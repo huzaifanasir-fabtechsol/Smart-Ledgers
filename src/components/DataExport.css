@@ -1,0 +1,115 @@
+@import '../shared.css';
+
+.data-export {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.data-export h2 {
+  margin-bottom: 30px;
+  color: #2c3e50;
+  font-size: 1.8rem;
+}
+
+.export-section {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+}
+
+.filter-options {
+  display: flex;
+  gap: 25px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #495057;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.filter-options input[type="radio"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+}
+
+.date-range {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.date-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.date-input label {
+  display: block;
+  margin-bottom: 8px;
+  color: #495057;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.date-input input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.date-input input:focus {
+  outline: none;
+  border-color: #4fc3f7;
+}
+
+.btn-export {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  border: none;
+  padding: 11px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+}
+
+.btn-export:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(17, 153, 142, 0.4);
+}
+
+@media (max-width: 768px) {
+  .data-export h2 {
+    font-size: 1.5rem;
+  }
+
+  .export-section {
+    padding: 20px 15px;
+  }
+
+  .filter-options {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .date-range {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,9 @@
+@import '../shared.css';
+
+.expense-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
