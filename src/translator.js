@@ -1,7 +1,7 @@
 
 import { API_BASE_URL } from './config';
 
-export const translations = async (text, targetLang) => {
+export const translateText = async (text, targetLang) => {
   if (targetLang === 'en' || !text) return text;
   
   try {
@@ -34,3 +34,5 @@ export const translateBatch = async (texts, targetLang) => {
     return texts;
   }
 };
+
+export const translations = { en: {} };
