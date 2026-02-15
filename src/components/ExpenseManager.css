@@ -7,3 +7,10 @@
   max-width: 1400px;
   margin: 0 auto;
 }
+
+@media (max-width: 768px) {
+  .expense-manager {
+    gap: 15px;
+    padding: 0 10px;
+  }
+}

@@ -193,20 +193,66 @@
 }
 
 @media (max-width: 768px) {
+  .revenue-manager {
+    padding: 0 10px;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+  }
+
+  .btn-receipt {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
   .receipt-modal {
     padding: 25px 20px;
+    width: 95%;
   }
 
   .receipt-header h2 {
     font-size: 22px;
   }
 
-  .receipt-items table {
+  .receipt-header p {
     font-size: 12px;
+  }
+
+  .receipt-title h3 {
+    font-size: 18px;
+  }
+
+  .info-row {
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+
+  .receipt-items table {
+    font-size: 11px;
   }
 
   .receipt-items th,
   .receipt-items td {
     padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .total-row {
+    font-size: 13px;
+  }
+
+  .grand-total {
+    font-size: 18px;
+  }
+
+  .receipt-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .receipt-actions button {
+    width: 100%;
   }
 }

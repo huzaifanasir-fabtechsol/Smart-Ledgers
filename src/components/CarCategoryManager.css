@@ -24,3 +24,19 @@
 .btn-icon:hover {
   transform: scale(1.2);
 }
+
+@media (max-width: 768px) {
+  .car-category-manager {
+    padding: 0 10px;
+  }
+
+  .loader {
+    padding: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .btn-icon {
+    font-size: 1.1rem;
+    padding: 0.5rem;
+  }
+}
