@@ -2,7 +2,7 @@ export const translations = {
   en: {
     appTitle: 'Smart Ledger',
     dashboard: 'Dashboard',
-    manageExpenses: 'Manage Expenses',
+    manageExpenses: 'Expenses',
     dataExport: 'Data Export',
     revenue: 'Revenue',
     revenueTransactions: 'Revenue Transactions',
@@ -85,7 +85,7 @@ export const translations = {
     toDate: 'To Date',
     exportData: 'Export to CSV',
     items: 'items',
-    carCategories: 'Car Categories',
+    carCategories: 'Cars',
     addCarCategory: '+ Add Car Category',
     addNewCarCategory: 'Add New Car Category',
     editCarCategory: 'Edit Car Category',

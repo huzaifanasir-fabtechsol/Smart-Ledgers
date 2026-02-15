@@ -33,6 +33,15 @@ function SidebarIcon({ name }) {
         <rect x="3" y="14" width="7" height="7" />
       </svg>
     ),
+    expenses: (
+      <svg {...baseProps}>
+        <path d="M8 3h8" />
+        <path d="M9 3v3" />
+        <path d="M15 3v3" />
+        <path d="M6 6h12a2 2 0 0 1 2 2v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8a2 2 0 0 1 2-2z" />
+        <path d="M8 11h8" />
+      </svg>
+    ),
     orders: (
       <svg {...baseProps}>
         <path d="M3 7h14l4 4v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
@@ -40,12 +49,33 @@ function SidebarIcon({ name }) {
         <path d="M9 13h6" />
       </svg>
     ),
+    // categories: (
+    //   <svg {...baseProps}>
+    //     <path d="M5 9l7-6 7 6" />
+    //     <path d="M4 10h16" />
+    //     <path d="M7 10v10M12 10v10M17 10v10" />
+    //     <path d="M5 20h14" />
+    //   </svg>
+    // ),
     categories: (
       <svg {...baseProps}>
-        <path d="M5 9l7-6 7 6" />
-        <path d="M4 10h16" />
-        <path d="M7 10v10M12 10v10M17 10v10" />
-        <path d="M5 20h14" />
+        <path d="M3 14h18l-1.5-4a3 3 0 0 0-2.8-2H7.3a3 3 0 0 0-2.8 2L3 14z" />
+
+        {/* Cabin / windows */}
+        <path d="M8 8l2.5-3h3L16 8" />
+
+        {/* Front bumper line */}
+        <path d="M3 14v3a2 2 0 0 0 2 2h1" />
+
+        {/* Rear bumper line */}
+        <path d="M21 14v3a2 2 0 0 1-2 2h-1" />
+
+        {/* Wheels */}
+        <circle cx="8" cy="18" r="2.5" />
+        <circle cx="16" cy="18" r="2.5" />
+
+        {/* Subtle detail line (door separation) */}
+        <path d="M12 8v6" />
       </svg>
     ),
     export: (
@@ -115,7 +145,7 @@ function AppContent() {
 
   const menuItems = [
     { path: '/dashboard', label: t.dashboard, icon: 'dashboard' },
-    // { path: '/expenses', label: t.manageExpenses, icon: 'expenses' },
+    { path: '/expenses', label: t.manageExpenses, icon: 'expenses' },
     // { path: '/revenue', label: t.revenue, icon: 'revenue' },
     { path: '/orders', label: t.orders, icon: 'orders' },
     { path: '/categories', label: t.carCategories, icon: 'categories' },
