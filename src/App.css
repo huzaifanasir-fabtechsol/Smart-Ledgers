@@ -263,6 +263,7 @@ tbody tr:hover {
   transition: border-color 0.2s ease;
   background: #ffffff;
   color: #1f2937;
+  color-scheme: light;
 }
 
 .form-group input:focus,
@@ -295,6 +296,7 @@ tbody tr:hover {
   font-size: 0.875rem;
   background: #ffffff;
   color: #1f2937;
+  color-scheme: light;
 }
 
 .filter-input {

@@ -54,7 +54,9 @@
   flex: 1;
   min-width: 200px;
 }
-
+.form-group input {
+  color-scheme: light !important;
+}
 .date-input label {
   display: block;
   margin-bottom: 8px;
@@ -70,6 +72,7 @@
   border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.2s;
+  color-scheme: light;
 }
 
 .date-input input:focus {

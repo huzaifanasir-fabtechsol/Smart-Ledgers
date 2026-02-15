@@ -46,6 +46,7 @@
   background: white;
   color: #1f2937;
   transition: all 0.2s ease;
+  color-scheme: light;
 }
 
 .filter-input {

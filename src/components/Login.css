@@ -64,6 +64,7 @@
   transition: border-color 0.2s ease;
   color: #1f2937;
   background-color: white;
+  color-scheme: light;
 }
 
 .form-group input:focus {

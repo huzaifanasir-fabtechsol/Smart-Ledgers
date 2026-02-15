@@ -42,6 +42,7 @@
   transition: border-color 0.2s ease;
   color: #1f2937;
   background-color: white;
+  color-scheme: light;
 }
 
 .filter-input:focus {
@@ -326,6 +327,7 @@ tbody tr:last-child td {
   transition: border-color 0.2s ease;
   color: #1f2937;
   background-color: white;
+  color-scheme: light;
 }
 
 .form-group input:focus,
