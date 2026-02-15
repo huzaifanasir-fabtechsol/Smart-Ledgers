@@ -5,6 +5,7 @@ export const translations = {
     manageExpenses: 'Expenses',
     dataExport: 'Data Export',
     revenue: 'Revenue',
+    all: 'All',
     revenueTransactions: 'Revenue Transactions',
     addTransaction: '+ Add Transaction',
     addNewTransaction: 'Add New Transaction',

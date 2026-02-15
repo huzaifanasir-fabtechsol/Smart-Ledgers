@@ -90,6 +90,7 @@ const DataExport = ({ language = 'en' }) => {
           </select>
 
           <select value={period} onChange={(e) => { setPeriod(e.target.value); setCurrentPage(1); }} className="filter-select">
+            <option value="all">{t.all}</option>
             <option value="today">{t.today}</option>
             <option value="month">{t.thisMonth}</option>
             <option value="year">{t.thisYear}</option>
