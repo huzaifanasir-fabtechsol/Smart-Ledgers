@@ -8,8 +8,70 @@ import CarCategoryManager from './components/CarCategoryManager';
 import OrderManager from './components/OrderManager';
 import AddOrder from './components/AddOrder';
 import Login from './components/Login';
+import ProfileSettings from './components/ProfileSettings';
 import { translations } from './translations';
 import './App.css';
+
+function SidebarIcon({ name }) {
+  const baseProps = {
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: '2',
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    className: 'sidebar-icon-svg',
+    'aria-hidden': 'true',
+  };
+
+  const icons = {
+    dashboard: (
+      <svg {...baseProps}>
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="5" />
+        <rect x="14" y="11" width="7" height="10" />
+        <rect x="3" y="14" width="7" height="7" />
+      </svg>
+    ),
+    orders: (
+      <svg {...baseProps}>
+        <path d="M3 7h14l4 4v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+        <path d="M3 7l2-4h10l2 4" />
+        <path d="M9 13h6" />
+      </svg>
+    ),
+    categories: (
+      <svg {...baseProps}>
+        <path d="M5 9l7-6 7 6" />
+        <path d="M4 10h16" />
+        <path d="M7 10v10M12 10v10M17 10v10" />
+        <path d="M5 20h14" />
+      </svg>
+    ),
+    export: (
+      <svg {...baseProps}>
+        <path d="M12 3v12" />
+        <path d="M8 11l4 4 4-4" />
+        <path d="M4 21h16" />
+      </svg>
+    ),
+    profile: (
+      <svg {...baseProps}>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+      </svg>
+    ),
+    logout: (
+      <svg {...baseProps}>
+        <path d="M10 17l5-5-5-5" />
+        <path d="M15 12H3" />
+        <path d="M17 3h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-3" />
+      </svg>
+    ),
+  };
+
+  return icons[name] || null;
+}
 
 function AppContent() {
   const [language, setLanguage] = useState('en');
@@ -43,17 +105,22 @@ function AppContent() {
     navigate('/login');
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
 
   const menuItems = [
-    { path: '/dashboard', label: t.dashboard, icon: '📊' },
-    // { path: '/expenses', label: t.manageExpenses, icon: '💰' },
-    // { path: '/revenue', label: t.revenue, icon: '💵' },
-    { path: '/orders', label: t.orders, icon: '📦' },
-    { path: '/categories', label: t.carCategories, icon: '🚗' },
-    { path: '/export', label: t.dataExport, icon: '📤' }
+    { path: '/dashboard', label: t.dashboard, icon: 'dashboard' },
+    // { path: '/expenses', label: t.manageExpenses, icon: 'expenses' },
+    // { path: '/revenue', label: t.revenue, icon: 'revenue' },
+    { path: '/orders', label: t.orders, icon: 'orders' },
+    { path: '/categories', label: t.carCategories, icon: 'categories' },
+    { path: '/export', label: t.dataExport, icon: 'export' },
+    { path: '/profile', label: 'Profile', icon: 'profile' },
   ];
 
   const isActive = (path) => {
@@ -69,28 +136,32 @@ function AppContent() {
         <div className="sidebar-header">
           <h1>{sidebarOpen && t.appTitle}</h1>
           <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? '◀' : '▶'}
+            {sidebarOpen ? '<' : '>'}
           </button>
         </div>
         <nav className="sidebar-nav">
-          {menuItems.map(item => (
-            <Link 
-              key={item.path} 
-              to={item.path} 
+          {menuItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
               className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
             >
-              <span className="icon">{item.icon}</span>
+              <span className="icon">
+                <SidebarIcon name={item.icon} />
+              </span>
               {sidebarOpen && <span className="label">{item.label}</span>}
             </Link>
           ))}
         </nav>
         <div className="sidebar-footer">
           {/* <button className="nav-item" onClick={() => setLanguage(language === 'en' ? 'ja' : 'en')}>
-            <span className="icon">🌐</span>
-            {sidebarOpen && <span className="label">{language === 'en' ? '日本語' : 'English'}</span>}
+            <span className="icon"><SidebarIcon name="language" /></span>
+            {sidebarOpen && <span className="label">{language === 'en' ? 'Japanese' : 'English'}</span>}
           </button> */}
           <button className="nav-item" onClick={handleLogout}>
-            <span className="icon">🚪</span>
+            <span className="icon">
+              <SidebarIcon name="logout" />
+            </span>
             {sidebarOpen && <span className="label">Logout</span>}
           </button>
         </div>
@@ -101,10 +172,23 @@ function AppContent() {
           <Route path="/dashboard" element={<Dashboard language={language} />} />
           <Route path="/expenses" element={<ExpenseManager language={language} />} />
           <Route path="/revenue" element={<RevenueManager language={language} />} />
-          <Route path="/orders" element={<OrderManager language={language} onAddOrder={() => navigate('/orders/add')} />} />
-          <Route path="/orders/add" element={<AddOrder language={language} onSave={() => navigate('/orders')} onCancel={() => navigate('/orders')} />} />
+          <Route
+            path="/orders"
+            element={<OrderManager language={language} onAddOrder={() => navigate('/orders/add')} />}
+          />
+          <Route
+            path="/orders/add"
+            element={
+              <AddOrder
+                language={language}
+                onSave={() => navigate('/orders')}
+                onCancel={() => navigate('/orders')}
+              />
+            }
+          />
           <Route path="/categories" element={<CarCategoryManager language={language} />} />
           <Route path="/export" element={<DataExport language={language} />} />
+          <Route path="/profile" element={<ProfileSettings onUserUpdate={handleUserUpdate} />} />
         </Routes>
       </main>
     </div>

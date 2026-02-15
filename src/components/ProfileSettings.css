@@ -1,0 +1,10 @@
+.profile-settings textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+@media (max-width: 768px) {
+  .profile-settings .form-row {
+    grid-template-columns: 1fr;
+  }
+}

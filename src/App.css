@@ -97,9 +97,28 @@ body {
 }
 
 .nav-item .icon {
-  font-size: 1.25rem;
-  margin-right: 1rem;
-  min-width: 24px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  margin-right: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #4b5563;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover .icon,
+.nav-item.active .icon {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.sidebar-icon-svg {
+  width: 18px;
+  height: 18px;
 }
 
 .sidebar.collapsed .nav-item .label {
@@ -462,7 +481,9 @@ tbody tr:hover {
 
   .nav-item .icon {
     margin-right: 0;
-    font-size: 1.25rem;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
   }
 
   .nav-item .label {
