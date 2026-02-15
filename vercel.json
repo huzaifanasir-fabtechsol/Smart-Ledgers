@@ -1,9 +1,9 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" },
     {
       "source": "/api/(.*)",
       "destination": "https://huzaifanasirfab.pythonanywhere.com/api/$1"
-    }
+    },
+    { "source": "/(.*)", "destination": "/" }
   ]
 }
