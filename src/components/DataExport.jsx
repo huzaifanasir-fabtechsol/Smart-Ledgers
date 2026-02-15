@@ -1,161 +1,152 @@
 import { useState, useEffect } from 'react';
 import { translations } from '../translations';
-import { translateText } from '../translator';
+import { apiRequest } from '../api';
+import '../shared.css';
 import './DataExport.css';
 
 const DataExport = ({ language = 'en' }) => {
   const t = translations[language];
 
-  const [expenses] = useState([
-    { id: 1, date: '2024-01-15', category: 'Food', description: 'Lunch at restaurant', amount: '$25.50' },
-    { id: 2, date: '2024-01-15', category: 'Transport', description: 'Uber ride', amount: '$15.00' },
-    { id: 3, date: '2024-01-14', category: 'Shopping', description: 'Groceries', amount: '$85.30' },
-    { id: 4, date: '2024-01-14', category: 'Entertainment', description: 'Movie tickets', amount: '$30.00' },
-    { id: 5, date: '2024-01-13', category: 'Food', description: 'Coffee', amount: '$5.50' },
-    { id: 6, date: '2024-01-13', category: 'Bills', description: 'Internet bill', amount: '$60.00' },
-    { id: 7, date: '2024-01-12', category: 'Transport', description: 'Gas', amount: '$45.00' },
-    { id: 8, date: '2024-01-12', category: 'Food', description: 'Dinner', amount: '$42.80' },
-    { id: 9, date: '2024-01-11', category: 'Shopping', description: 'Clothes', amount: '$120.00' },
-    { id: 10, date: '2024-01-11', category: 'Health', description: 'Pharmacy', amount: '$35.20' },
-    { id: 11, date: '2024-01-10', category: 'Food', description: 'Breakfast', amount: '$12.50' },
-    { id: 12, date: '2024-01-10', category: 'Entertainment', description: 'Concert', amount: '$75.00' },
-    { id: 13, date: '2024-01-09', category: 'Transport', description: 'Taxi', amount: '$18.50' },
-    { id: 14, date: '2024-01-09', category: 'Food', description: 'Pizza delivery', amount: '$28.90' },
-    { id: 15, date: '2024-01-08', category: 'Bills', description: 'Phone bill', amount: '$50.00' },
-    { id: 16, date: '2024-01-08', category: 'Shopping', description: 'Books', amount: '$45.60' },
-    { id: 17, date: '2024-01-07', category: 'Food', description: 'Lunch', amount: '$18.30' },
-    { id: 18, date: '2024-01-07', category: 'Transport', description: 'Bus pass', amount: '$25.00' },
-    { id: 19, date: '2024-01-06', category: 'Entertainment', description: 'Streaming', amount: '$15.99' },
-    { id: 20, date: '2024-01-06', category: 'Food', description: 'Dinner with friends', amount: '$65.00' }
-  ]);
-
-  const [filterType, setFilterType] = useState('all');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [page, setPage] = useState(1);
-  const [translatedExpenses, setTranslatedExpenses] = useState([]);
-
-  useEffect(() => {
-    const translateData = async () => {
-      if (language === 'en') {
-        setTranslatedExpenses(expenses);
-        return;
-      }
-      const translated = await Promise.all(
-        expenses.map(async (exp) => ({
-          ...exp,
-          category: await translateText(exp.category, language),
-          description: await translateText(exp.description, language)
-        }))
-      );
-      setTranslatedExpenses(translated);
-    };
-    translateData();
-  }, [language]);
-
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [reportType, setReportType] = useState('all');
+  const [period, setPeriod] = useState('month');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredExpenses = translatedExpenses.filter(expense => {
-    const expenseDate = new Date(expense.date);
-    const today = new Date();
-    
-    if (filterType === 'thisMonth') {
-      return expenseDate.getMonth() === today.getMonth() && expenseDate.getFullYear() === today.getFullYear();
-    } else if (filterType === 'thisYear') {
-      return expenseDate.getFullYear() === today.getFullYear();
-    } else if (filterType === 'custom' && fromDate && toDate) {
-      return expenseDate >= new Date(fromDate) && expenseDate <= new Date(toDate);
+  useEffect(() => {
+    fetchData();
+  }, [currentPage, reportType, period, startDate, endDate, paymentStatus, search]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        type: reportType,
+        period: period,
+        pageSize: itemsPerPage,
+        page: currentPage
+      });
+      
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      if (paymentStatus) params.append('payment_status', paymentStatus);
+      if (search) params.append('search', search);
+
+      const response = await apiRequest(`/revenue/orders/reports/?${params}`);
+      const result = await response.json();
+      
+      setData(result.results || []);
+      setTotalPages(Math.ceil((result.count || 0) / itemsPerPage));
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
-    return true;
-  });
+  };
 
-  const start = (page - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  const paginatedExpenses = filteredExpenses.slice(start, end);
-  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+  const handleExport = async () => {
+    try {
+      const params = new URLSearchParams({
+        period: period
+      });
+      
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
 
-  const handleExport = () => {
-    const csvContent = [
-      ['Date', 'Category', 'Description', 'Amount'],
-      ...filteredExpenses.map(e => [e.date, e.category, e.description, e.amount])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `expenses_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+      const response = await apiRequest(`/revenue/orders/financial_report/?${params}`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `financial_report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      a.click();
+    } catch (error) {
+      console.error('Error exporting:', error);
+    }
   };
 
   return (
     <div className="data-export">
-      <h2>{t.dataExport}</h2>
-      
-      <div className="export-section">
-        <div className="filter-options">
-          <label>
-            <input type="radio" value="all" checked={filterType === 'all'} onChange={(e) => setFilterType(e.target.value)} />
-            {t.allData}
-          </label>
-          <label>
-            <input type="radio" value="thisMonth" checked={filterType === 'thisMonth'} onChange={(e) => setFilterType(e.target.value)} />
-            {t.thisMonth}
-          </label>
-          <label>
-            <input type="radio" value="thisYear" checked={filterType === 'thisYear'} onChange={(e) => setFilterType(e.target.value)} />
-            {t.thisYear}
-          </label>
-          <label>
-            <input type="radio" value="custom" checked={filterType === 'custom'} onChange={(e) => setFilterType(e.target.value)} />
-            {t.customRange}
-          </label>
+      <div className="table-section">
+        <div className="table-header">
+          <h3>{t.dataExport}</h3>
+          <button className="btn-primary" onClick={handleExport}>{t.exportData}</button>
         </div>
 
-        {filterType === 'custom' && (
-          <div className="date-range">
-            <div className="date-input">
-              <label>{t.fromDate}</label>
-              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-            </div>
-            <div className="date-input">
-              <label>{t.toDate}</label>
-              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
-            </div>
-          </div>
-        )}
+        <div className="filters">
+          <select value={reportType} onChange={(e) => { setReportType(e.target.value); setCurrentPage(1); }} className="filter-select">
+            <option value="all">{t.allData}</option>
+            <option value="sales">{t.sale}</option>
+            <option value="purchases">{t.purchase}</option>
+            <option value="auctions">{t.auction}</option>
+            <option value="expenses">{t.expenses}</option>
+            <option value="orders">{t.orders}</option>
+          </select>
 
-        <button className="btn-export" onClick={handleExport}>{t.exportData}</button>
-      </div>
+          <select value={period} onChange={(e) => { setPeriod(e.target.value); setCurrentPage(1); }} className="filter-select">
+            <option value="today">{t.today}</option>
+            <option value="month">{t.thisMonth}</option>
+            <option value="year">{t.thisYear}</option>
+            <option value="custom">{t.customRange}</option>
+          </select>
 
-      <div className="table-section">
-        <h3>{t.expenses} ({filteredExpenses.length} {t.items})</h3>
+          {period === 'custom' && (
+            <>
+              <input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }} className="filter-input" placeholder={t.fromDate} />
+              <input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }} className="filter-input" placeholder={t.toDate} />
+            </>
+          )}
+
+          <select value={paymentStatus} onChange={(e) => { setPaymentStatus(e.target.value); setCurrentPage(1); }} className="filter-select">
+            <option value="">{t.allPaymentStatus || 'All Payment Status'}</option>
+            <option value="pending">{t.pending || 'Pending'}</option>
+            <option value="completed">{t.completed || 'Completed'}</option>
+          </select>
+
+          {/* <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t.search || 'Search...'} className="filter-input" /> */}
+
+          <button onClick={() => { setReportType('orders'); setPeriod('month'); setStartDate(''); setEndDate(''); setPaymentStatus(''); setSearch(''); setCurrentPage(1); }} className="btn-clear">{t.clear}</button>
+        </div>
+
         <div className="table-container">
           <table>
             <thead>
               <tr>
                 <th>{t.date}</th>
-                <th>{t.category}</th>
-                <th>{t.description}</th>
+                <th>{t.type}</th>
+                <th>{t.paymentStatus || 'Payment Status'}</th>
                 <th>{t.amount}</th>
               </tr>
             </thead>
             <tbody>
-              {paginatedExpenses.map((expense) => (
-                <tr key={expense.id}>
-                  <td>{expense.date}</td>
-                  <td>{expense.category}</td>
-                  <td>{expense.description}</td>
-                  <td className="amount-cell">{expense.amount}</td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan="4" style={{textAlign: 'center'}}>Loading...</td></tr>
+              ) : data.length === 0 ? (
+                <tr><td colSpan="4" style={{textAlign: 'center'}}>No data found</td></tr>
+              ) : (
+                data.map((item, idx) => (
+                  <tr key={idx}>
+                    <td>{item.transaction_date}</td>
+                    <td>{item.transaction_type}</td>
+                    <td>{item.payment_status}</td>
+                    <td className="amount-cell">${parseFloat(item.total_amount).toLocaleString()}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
         <div className="pagination">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>{t.previous}</button>
-          <span>{t.page} {page} {t.of} {totalPages}</span>
-          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>{t.next}</button>
+          <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>{t.previous}</button>
+          <span>{t.page} {currentPage} {t.of} {totalPages}</span>
+          <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>{t.next}</button>
         </div>
       </div>
     </div>

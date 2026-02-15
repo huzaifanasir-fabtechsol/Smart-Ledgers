@@ -53,7 +53,7 @@ function AppContent() {
     // { path: '/revenue', label: t.revenue, icon: '💵' },
     { path: '/orders', label: t.orders, icon: '📦' },
     { path: '/categories', label: t.carCategories, icon: '🚗' },
-    // { path: '/export', label: t.dataExport, icon: '📤' }
+    { path: '/export', label: t.dataExport, icon: '📤' }
   ];
 
   const isActive = (path) => {

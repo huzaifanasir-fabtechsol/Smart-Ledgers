@@ -69,17 +69,17 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
     if (order.transaction_type === 'purchase' && order.other_details) {
       return {
         name: order.other_details.seller_name || '',
-        phone: order.other_details.seller_phone || ''
+        phone: order.other_details.phone || ''
       };
     } else if (order.transaction_type === 'sale' && order.other_details) {
       return {
-        name: order.other_details.buyer_name || '',
-        phone: order.other_details.buyer_phone || ''
+        name: order.other_details.customer_name || '',
+        phone: order.other_details.phone || ''
       };
     } else if (order.transaction_type === 'auction' && order.other_details) {
       return {
         name: order.other_details.auction_house || '',
-        phone: ''
+        phone: order.other_details.phone || ''
       };
     }
     return { name: order.customer_name || '', phone: '' };
@@ -227,7 +227,7 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
             className="filter-input filter-date"
             placeholder="End Date"
           />
-          <button className="btn-secondary" onClick={handleClearFilters}>Clear</button>
+          {/* <button className="btn-secondary" onClick={handleClearFilters}>Clear</button> */}
         </div>
 
         <div className="table-container">
@@ -239,7 +239,7 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
                 <tr>
                   <th>{t.date}</th>
                   <th>{t.type}</th>
-                  <th>Contact</th>
+                  <th>Name</th>
                   <th>Phone</th>
                   <th>{t.items}</th>
                   <th>{t.paymentStatus}</th>
