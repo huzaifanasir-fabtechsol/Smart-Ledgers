@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { apiRequest } from '../api';
-// import { translations } from '../translations';
+import { translations } from '../translations';
 import './Dashboard.css';
 
 const Dashboard = ({ language = 'en' }) => {
-  // const t = translations[language];
+  const t = translations[language];
   const [dashboardData, setDashboardData] = useState({
     approved_amount: 0,
     pending_amount: 0,
