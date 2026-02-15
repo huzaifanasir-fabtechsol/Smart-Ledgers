@@ -419,19 +419,143 @@ tbody tr:hover {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 70px;
+  .app-container {
+    flex-direction: column;
   }
-  
-  .sidebar .label {
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid #e0e6ed;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+  }
+
+  .sidebar-header {
     display: none;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 1;
+  }
+
+  .nav-item {
+    flex: 1;
+    min-width: 60px;
+    padding: 0.5rem 0.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .nav-item .icon {
+    margin-right: 0;
+    font-size: 1.25rem;
+  }
+
+  .nav-item .label {
+    display: block !important;
+    font-size: 0.65rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .nav-item.active {
+    border-left: none;
+    border-bottom: 3px solid #2563eb;
+    padding-left: 0.25rem;
+    padding-bottom: calc(0.5rem - 3px);
+  }
+
+  .sidebar-footer {
+    display: flex;
+    flex-direction: row;
+    border-top: none;
+    border-left: 1px solid #e0e6ed;
+    padding: 0;
+  }
+
+  .sidebar-footer .nav-item {
+    border-left: 1px solid #e0e6ed;
   }
   
   .main-content {
-    margin-left: 70px;
+    margin-left: 0;
+    margin-bottom: 65px;
+    padding: 0.75rem;
+  }
+
+  .sidebar.collapsed ~ .main-content {
+    margin-left: 0;
   }
   
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .table-section {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .table-header {
+    margin-bottom: 1rem;
+  }
+
+  .table-header h3 {
+    font-size: 1rem;
+  }
+
+  th, td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.7rem;
+  }
+
+  .modal {
+    width: 95%;
+    padding: 1rem;
+  }
+
+  .modal h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
   }
 }

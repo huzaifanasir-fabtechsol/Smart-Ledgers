@@ -138,36 +138,53 @@ tbody tr:last-child td {
 
 @media (max-width: 768px) {
   .dashboard {
-    padding: 0 10px;
+    padding: 0;
+  }
+
+  .dashboard h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .dashboard h2 {
-    font-size: 1.5rem;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
   }
 
   .stat-card {
-    padding: 1.25rem;
+    padding: 1rem;
+  }
+
+  .stat-card h3 {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
   }
 
   .stat-card .amount {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .table-section {
-    padding: 1.25rem;
-  }
-
-  th, td {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.8rem;
+    padding: 1rem;
+    border-radius: 8px;
   }
 
   .table-header h3 {
-    font-size: 1.1rem;
+    font-size: 1rem;
+  }
+
+  th, td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.7rem;
+  }
+
+  th {
+    font-size: 0.65rem;
+  }
+
+  .status-badge {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.65rem;
   }
 }

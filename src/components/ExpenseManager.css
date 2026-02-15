@@ -10,7 +10,7 @@
 
 @media (max-width: 768px) {
   .expense-manager {
-    gap: 15px;
-    padding: 0 10px;
+    gap: 1rem;
+    padding: 0;
   }
 }

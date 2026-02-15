@@ -99,20 +99,50 @@
 }
 
 @media (max-width: 768px) {
+  .data-export {
+    padding: 0;
+  }
+
   .data-export h2 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .export-section {
-    padding: 20px 15px;
+    padding: 1rem;
   }
 
   .filter-options {
     flex-direction: column;
-    gap: 15px;
+    gap: 0.75rem;
+  }
+
+  .filter-options label {
+    font-size: 0.85rem;
   }
 
   .date-range {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .date-input {
+    min-width: 100%;
+  }
+
+  .date-input label {
+    font-size: 0.8rem;
+    margin-bottom: 0.375rem;
+  }
+
+  .date-input input {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .btn-export {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    font-size: 0.85rem;
   }
 }

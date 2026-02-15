@@ -27,16 +27,16 @@
 
 @media (max-width: 768px) {
   .car-category-manager {
-    padding: 0 10px;
+    padding: 0;
   }
 
   .loader {
-    padding: 1.5rem;
-    font-size: 1rem;
+    padding: 1rem;
+    font-size: 0.95rem;
   }
 
   .btn-icon {
-    font-size: 1.1rem;
-    padding: 0.5rem;
+    font-size: 1rem;
+    padding: 0.375rem;
   }
 }
