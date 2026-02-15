@@ -34,5 +34,3 @@ export const translateBatch = async (texts, targetLang) => {
     return texts;
   }
 };
-
-export const translations = { en: {} };
