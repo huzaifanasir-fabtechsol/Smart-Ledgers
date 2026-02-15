@@ -10,7 +10,7 @@ const DataExport = ({ language = 'en' }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [reportType, setReportType] = useState('all');
-  const [period, setPeriod] = useState('month');
+  const [period, setPeriod] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
