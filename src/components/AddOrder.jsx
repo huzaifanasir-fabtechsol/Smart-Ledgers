@@ -196,7 +196,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
           />
         </div>
 
-        {formData.transaction_type !== 'auction' && (
+        {formData.transaction_type !== 'uction' && (
           <>
             <div className="form-row">
               <div className="form-group">
