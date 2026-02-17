@@ -7,6 +7,10 @@ import RevenueManager from './components/RevenueManager';
 import CarCategoryManager from './components/CarCategoryManager';
 import OrderManager from './components/OrderManager';
 import AddOrder from './components/AddOrder';
+import CustomerManager from './components/CustomerManager';
+import CompanyAccountManager from './components/CompanyAccountManager';
+import AuctionManager from './components/AuctionManager';
+import CarManager from './components/CarManager';
 import Login from './components/Login';
 import ProfileSettings from './components/ProfileSettings';
 import { translations } from './translations';
@@ -146,9 +150,12 @@ function AppContent() {
   const menuItems = [
     { path: '/dashboard', label: t.dashboard, icon: 'dashboard' },
     { path: '/expenses', label: t.manageExpenses, icon: 'expenses' },
-    // { path: '/revenue', label: t.revenue, icon: 'revenue' },
     { path: '/orders', label: t.orders, icon: 'orders' },
     { path: '/categories', label: t.carCategories, icon: 'categories' },
+    { path: '/customers', label: 'Customers', icon: 'profile' },
+    { path: '/cars', label: 'Cars', icon: 'categories' },
+    { path: '/auctions', label: 'Auctions', icon: 'orders' },
+    { path: '/company-accounts', label: 'Bank Accounts', icon: 'expenses' },
     { path: '/export', label: t.dataExport, icon: 'export' },
     { path: '/profile', label: 'Profile', icon: 'profile' },
   ];
@@ -217,6 +224,10 @@ function AppContent() {
             }
           />
           <Route path="/categories" element={<CarCategoryManager language={language} />} />
+          <Route path="/customers" element={<CustomerManager />} />
+          <Route path="/cars" element={<CarManager />} />
+          <Route path="/auctions" element={<AuctionManager />} />
+          <Route path="/company-accounts" element={<CompanyAccountManager />} />
           <Route path="/export" element={<DataExport language={language} />} />
           <Route path="/profile" element={<ProfileSettings onUserUpdate={handleUserUpdate} />} />
         </Routes>

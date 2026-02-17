@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
@@ -65,9 +65,24 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [filterDate, setFilterDate] = useState('');
   const [searchText, setSearchText] = useState('');
 
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const [menuType, setMenuType] = useState('');
+  const menuRef = useRef(null);
+
   useEffect(() => {
     fetchCategories();
     fetchExpenses();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target) && !e.target.closest('.btn-menu')) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   const fetchCategories = async () => {
@@ -149,6 +164,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       description: category.description || '',
     });
     setShowCategoryModal(true);
+    setOpenMenuId(null);
   };
 
   const openCreateExpenseModal = () => {
@@ -168,6 +184,17 @@ const ExpenseManager = ({ language = 'en' }) => {
       category_name: expense.category_name || '',
     });
     setShowExpenseModal(true);
+    setOpenMenuId(null);
+  };
+
+  const handleMenuClick = (e, id, type) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const menuHeight = 80;
+    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
+    setMenuPos({ top, left: rect.right - 120 });
+    setMenuType(type);
+    setOpenMenuId(openMenuId === id ? null : id);
   };
 
   const handleCategorySubmit = async (event) => {
@@ -316,7 +343,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <th>{t.id}</th>
                   <th>{t.categoryName}</th>
                   <th>{t.description}</th>
-                  <th>{t.actions}</th>
+                  <th style={{width: '60px'}}>{t.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -326,9 +353,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     <td>{category.name}</td>
                     <td>{category.description || '-'}</td>
                     <td>
-                      <button className="btn-small btn-edit" onClick={() => openEditCategoryModal(category)}>
-                        {t.edit}
-                      </button>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, category.id, 'category')}>⋮</button>
                     </td>
                   </tr>
                 ))}
@@ -408,7 +433,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <th>{t.category}</th>
                   <th>{t.description}</th>
                   <th>{t.amount}</th>
-                  <th>{t.actions}</th>
+                  <th style={{width: '60px'}}>{t.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -420,9 +445,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     <td>{expense.description || '-'}</td>
                     <td className="amount-cell">${Number(expense.amount || 0).toLocaleString()}</td>
                     <td>
-                      <button className="btn-small btn-edit" onClick={() => openEditExpenseModal(expense)}>
-                        {t.edit}
-                      </button>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, expense.id, 'expense')}>⋮</button>
                     </td>
                   </tr>
                 ))}
@@ -452,6 +475,17 @@ const ExpenseManager = ({ language = 'en' }) => {
           </button>
         </div>
       </div>
+
+      {openMenuId && (
+        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
+          {menuType === 'category' && (
+            <button className="menu-item" onClick={() => openEditCategoryModal(categories.find(c => c.id === openMenuId))}>Edit</button>
+          )}
+          {menuType === 'expense' && (
+            <button className="menu-item" onClick={() => openEditExpenseModal(expenses.find(e => e.id === openMenuId))}>Edit</button>
+          )}
+        </div>
+      )}
 
       {showCategoryModal && (
         <div className="modal-overlay" onClick={() => setShowCategoryModal(false)}>

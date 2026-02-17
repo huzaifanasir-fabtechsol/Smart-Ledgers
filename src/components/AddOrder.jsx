@@ -13,42 +13,25 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
   const [categorySearch, setCategorySearch] = useState('');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [companyAccounts, setCompanyAccounts] = useState([]);
+  const [auctions, setAuctions] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [filteredCars, setFilteredCars] = useState([]);
+  const [carSearch, setCarSearch] = useState('');
+  const [showCarDropdown, setShowCarDropdown] = useState(false);
+  const [useExistingCar, setUseExistingCar] = useState(false);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    setFilteredCategories(
-      categories.filter(cat => cat.name.toLowerCase().includes(categorySearch.toLowerCase()))
-    );
-  }, [categorySearch, categories]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!e.target.closest('.category-dropdown-wrapper')) {
-        setShowCategoryDropdown(false);
-      }
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await apiRequest('/revenue/categories/');
-      const data = await response.json();
-      setCategories(data.results || data);
-      setFilteredCategories(data.results || data);
-    } catch (error) {
-      toast.error('Failed to load categories');
-    }
-  };
-  
   const [formData, setFormData] = useState({
     transaction_type: 'sale',
     transaction_date: new Date().toISOString().split('T')[0],
     transaction_catagory: 'local',
+    customer_id: null,
+    company_account_id: null,
+    auction_id: null,
     customer_name: '',
     seller_name: '',
     phone: '',
@@ -78,6 +61,106 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     bid_fee_tax: 0,
     notes: ''
   });
+
+  useEffect(() => {
+    fetchCategories();
+    fetchCustomers();
+    fetchCompanyAccounts();
+    fetchAuctions();
+    fetchCars();
+  }, []);
+
+  useEffect(() => {
+    setFilteredCategories(
+      categories.filter(cat => cat.name.toLowerCase().includes(categorySearch.toLowerCase()))
+    );
+  }, [categorySearch, categories]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.category-dropdown-wrapper')) {
+        setShowCategoryDropdown(false);
+      }
+      if (!e.target.closest('.customer-dropdown-wrapper')) {
+        setShowCustomerDropdown(false);
+      }
+      if (!e.target.closest('.car-dropdown-wrapper')) {
+        setShowCarDropdown(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (customerSearch) {
+      const filtered = customers.filter(c => 
+        c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+        c.email.toLowerCase().includes(customerSearch.toLowerCase())
+      );
+      setCustomers(filtered);
+    } else {
+      fetchCustomers();
+    }
+  }, [customerSearch]);
+
+  useEffect(() => {
+    if (currentItem.category && useExistingCar) {
+      const filtered = cars.filter(c => c.category === currentItem.category);
+      setFilteredCars(filtered);
+    }
+  }, [currentItem.category, cars, useExistingCar]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await apiRequest('/revenue/categories/');
+      const data = await response.json();
+      setCategories(data.results || data);
+      setFilteredCategories(data.results || data);
+    } catch (error) {
+      toast.error('Failed to load categories');
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await apiRequest('/revenue/customers/');
+      const data = await response.json();
+      setCustomers(data.results || data);
+    } catch (error) {
+      toast.error('Failed to load customers');
+    }
+  };
+
+  const fetchCompanyAccounts = async () => {
+    try {
+      const response = await apiRequest('/revenue/company-accounts/');
+      const data = await response.json();
+      setCompanyAccounts(data.results || data);
+    } catch (error) {
+      toast.error('Failed to load company accounts');
+    }
+  };
+
+  const fetchAuctions = async () => {
+    try {
+      const response = await apiRequest('/revenue/auctions/');
+      const data = await response.json();
+      setAuctions(data.results || data);
+    } catch (error) {
+      toast.error('Failed to load auctions');
+    }
+  };
+
+  const fetchCars = async () => {
+    try {
+      const response = await apiRequest('/revenue/cars/');
+      const data = await response.json();
+      setCars(data.results || data);
+    } catch (error) {
+      toast.error('Failed to load cars');
+    }
+  };
 
   const addItem = () => {
     if (!currentItem.category) {
@@ -178,22 +261,64 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
           </div>
         </div>
 
+        {formData.transaction_type !== 'purchase' && (
+          <div className="form-group customer-dropdown-wrapper">
+            <label>Customer</label>
+            <input 
+              type="text" 
+              placeholder="Search customers..."
+              value={customerSearch}
+              onChange={(e) => setCustomerSearch(e.target.value)}
+              onFocus={() => setShowCustomerDropdown(true)}
+            />
+            {showCustomerDropdown && (
+              <div className="category-dropdown-list">
+                {customers.length > 0 ? (
+                  customers.map(c => (
+                    <div
+                      key={c.id}
+                      className="category-option"
+                      onClick={() => {
+                        setSelectedCustomer(c);
+                        setCustomerSearch(c.name);
+                        setFormData({...formData, customer_id: c.id, customer_name: c.name, phone: c.phone, address: c.address});
+                        setShowCustomerDropdown(false);
+                      }}
+                    >
+                      {c.name} - {c.email}
+                    </div>
+                  ))
+                ) : (
+                  <div className="category-option disabled">No customers found</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {formData.transaction_type === 'purchase' && (
+          <div className="form-group">
+            <label>Seller Name</label>
+            <input type="text" value={formData.seller_name} onChange={(e) => setFormData({...formData, seller_name: e.target.value})} required />
+          </div>
+        )}
+
+        {formData.transaction_type === 'auction' && (
+          <div className="form-group">
+            <label>Auction House</label>
+            <select value={formData.auction_id || ''} onChange={(e) => setFormData({...formData, auction_id: e.target.value})} required>
+              <option value="">Select Auction</option>
+              {auctions.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
+        )}
+
         <div className="form-group">
-          <label>{formData.transaction_type === 'purchase' ? 'Seller Name' : formData.transaction_type === 'auction' ? 'Auction House' : 'Customer Name'}</label>
-          <input 
-            type="text" 
-            value={formData.transaction_type === 'purchase' ? formData.seller_name : formData.transaction_type === 'auction' ? formData.auction_house : formData.customer_name}
-            onChange={(e) => {
-              if (formData.transaction_type === 'purchase') {
-                setFormData({...formData, seller_name: e.target.value});
-              } else if (formData.transaction_type === 'auction') {
-                setFormData({...formData, auction_house: e.target.value});
-              } else {
-                setFormData({...formData, customer_name: e.target.value});
-              }
-            }}
-            required 
-          />
+          <label>Company Bank Account</label>
+          <select value={formData.company_account_id || ''} onChange={(e) => setFormData({...formData, company_account_id: e.target.value})}>
+            <option value="">Select Account</option>
+            {companyAccounts.map(a => <option key={a.id} value={a.id}>{a.bank_name} - {a.account_number}</option>)}
+          </select>
         </div>
 
         {formData.transaction_type !== 'uction' && (
@@ -265,47 +390,125 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
           
           <div className="item-form">
             <div className="form-row">
-              <div className="form-group category-dropdown-wrapper">
-                <label>{t.category}</label>
-                <input 
-                  type="text" 
-                  placeholder="Search categories..." 
-                  value={categorySearch}
-                  onChange={(e) => setCategorySearch(e.target.value)}
-                  onFocus={() => setShowCategoryDropdown(true)}
-                  className="category-search"
-                />
-                {showCategoryDropdown && (
-                  <div className="category-dropdown-list">
-                    {filteredCategories.length > 0 ? (
-                      filteredCategories.map(cat => (
-                        <div
-                          key={cat.id}
-                          className="category-option"
-                          onClick={() => {
-                            setCurrentItem({...currentItem, category: cat.id});
-                            setCategorySearch(cat.name);
-                            setShowCategoryDropdown(false);
-                          }}
-                        >
-                          {cat.name}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="category-option disabled">No categories found</div>
+              <div className="form-group">
+                <label>Car Source</label>
+                <select value={useExistingCar} onChange={(e) => { setUseExistingCar(e.target.value === 'true'); setCurrentItem({...currentItem, category: '', name: '', model: '', chassis_number: '', year: new Date().getFullYear()}); }}>
+                  <option value="false">Add New Car</option>
+                  <option value="true">Select Existing Car</option>
+                </select>
+              </div>
+            </div>
+
+            {useExistingCar ? (
+              <div className="form-row">
+                <div className="form-group category-dropdown-wrapper">
+                  <label>Select Category First</label>
+                  <input 
+                    type="text" 
+                    placeholder="Search categories..." 
+                    value={categorySearch}
+                    onChange={(e) => setCategorySearch(e.target.value)}
+                    onFocus={() => setShowCategoryDropdown(true)}
+                  />
+                  {showCategoryDropdown && (
+                    <div className="category-dropdown-list">
+                      {filteredCategories.length > 0 ? (
+                        filteredCategories.map(cat => (
+                          <div
+                            key={cat.id}
+                            className="category-option"
+                            onClick={() => {
+                              setCurrentItem({...currentItem, category: cat.id});
+                              setCategorySearch(cat.name);
+                              setShowCategoryDropdown(false);
+                            }}
+                          >
+                            {cat.name} ({cat.company})
+                          </div>
+                        ))
+                      ) : (
+                        <div className="category-option disabled">No categories found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {currentItem.category && (
+                  <div className="form-group car-dropdown-wrapper">
+                    <label>Select Car</label>
+                    <input 
+                      type="text" 
+                      placeholder="Search cars..." 
+                      value={carSearch}
+                      onChange={(e) => setCarSearch(e.target.value)}
+                      onFocus={() => setShowCarDropdown(true)}
+                    />
+                    {showCarDropdown && (
+                      <div className="category-dropdown-list">
+                        {filteredCars.filter(c => c.name.toLowerCase().includes(carSearch.toLowerCase())).length > 0 ? (
+                          filteredCars.filter(c => c.name.toLowerCase().includes(carSearch.toLowerCase())).map(car => (
+                            <div
+                              key={car.id}
+                              className="category-option"
+                              onClick={() => {
+                                setCurrentItem({...currentItem, name: car.name, model: car.model, chassis_number: car.chassis_number, year: car.year});
+                                setCarSearch(car.name);
+                                setShowCarDropdown(false);
+                              }}
+                            >
+                              {car.name} - {car.model} ({car.chassis_number})
+                            </div>
+                          ))
+                        ) : (
+                          <div className="category-option disabled">No cars found</div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
               </div>
-              <div className="form-group">
-                <label>{t.name}</label>
-                <input type="text" value={currentItem.name} onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})} />
+            ) : (
+              <div className="form-row">
+                <div className="form-group category-dropdown-wrapper">
+                  <label>{t.category}</label>
+                  <input 
+                    type="text" 
+                    placeholder="Search categories..." 
+                    value={categorySearch}
+                    onChange={(e) => setCategorySearch(e.target.value)}
+                    onFocus={() => setShowCategoryDropdown(true)}
+                  />
+                  {showCategoryDropdown && (
+                    <div className="category-dropdown-list">
+                      {filteredCategories.length > 0 ? (
+                        filteredCategories.map(cat => (
+                          <div
+                            key={cat.id}
+                            className="category-option"
+                            onClick={() => {
+                              setCurrentItem({...currentItem, category: cat.id});
+                              setCategorySearch(cat.name);
+                              setShowCategoryDropdown(false);
+                            }}
+                          >
+                            {cat.name} ({cat.company})
+                          </div>
+                        ))
+                      ) : (
+                        <div className="category-option disabled">No categories found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>{t.name}</label>
+                  <input type="text" value={currentItem.name} onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>{t.model}</label>
+                  <input type="text" value={currentItem.model} onChange={(e) => setCurrentItem({...currentItem, model: e.target.value})} />
+                </div>
               </div>
-              <div className="form-group">
-                <label>{t.model}</label>
-                <input type="text" value={currentItem.model} onChange={(e) => setCurrentItem({...currentItem, model: e.target.value})} />
-              </div>
-            </div>
+            )}
 
             <div className="form-row">
               <div className="form-group">

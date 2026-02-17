@@ -35,12 +35,14 @@
 .filter-input {
   flex: 1;
   min-width: 100px;
-  padding: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  padding-left: 2.5rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.875rem;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
   color: #1f2937;
+  background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>') no-repeat 0.75rem center;
   background-color: white;
   color-scheme: light;
 }
@@ -49,6 +51,11 @@
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  background-color: #fafbfc;
+}
+
+.filter-input::placeholder {
+  color: #9ca3af;
 }
 
 .filter-select {
@@ -120,7 +127,7 @@ tbody tr:last-child td {
 
 /* Buttons */
 .btn-primary {
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: white;
   border: none;
   padding: 0.625rem 1.25rem;
@@ -129,12 +136,18 @@ tbody tr:last-child td {
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
-  box-shadow: 0 4px 6px rgba(37,99,235,0.1);
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
 }
 
 .btn-secondary {
@@ -146,15 +159,22 @@ tbody tr:last-child td {
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(107, 114, 128, 0.2);
 }
 
 .btn-secondary:hover {
   background: #4b5563;
+  box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
 }
 
 .btn-small {
-  padding: 0.375rem 0.875rem;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
   border: none;
@@ -164,12 +184,15 @@ tbody tr:last-child td {
 }
 
 .btn-edit {
-  background: #f59e0b;
+  background: #3b82f6;
   color: #ffffff;
+  box-shadow: 0 1px 2px rgba(59, 130, 246, 0.2);
 }
 
 .btn-edit:hover {
-  background: #d97706;
+  background: #2563eb;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
 }
 
 .btn-clear {
@@ -180,11 +203,14 @@ tbody tr:last-child td {
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.875rem;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
 }
 
 .btn-clear:hover {
   background: #dc2626;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
 }
 
 .btn-remove {
@@ -198,11 +224,13 @@ tbody tr:last-child td {
   font-size: 1.2rem;
   line-height: 1;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
 }
 
 .btn-remove:hover {
   background: #dc2626;
   transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
 
 /* Pagination */
@@ -635,5 +663,29 @@ tbody tr:last-child td {
 
 .modal::-webkit-scrollbar-thumb:hover,
 .table-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Global Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
