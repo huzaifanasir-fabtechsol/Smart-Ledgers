@@ -99,6 +99,7 @@ const SalerManager = () => {
       <table className="data-table">
         <thead>
           <tr>
+            <th>Sr</th>
             <th>Name</th>
             <th>Email</th>
             <th>Phone</th>
@@ -108,8 +109,9 @@ const SalerManager = () => {
           </tr>
         </thead>
         <tbody>
-          {salers.map(s => (
+          {salers.map((s, index )=> (
             <tr key={s.id}>
+              <td>{index + 1}</td>
               <td>{s.name}</td>
               <td>{s.email}</td>
               <td>{s.phone}</td>

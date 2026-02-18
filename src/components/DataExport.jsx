@@ -119,6 +119,7 @@ const DataExport = ({ language = 'en' }) => {
           <table>
             <thead>
               <tr>
+                <th>Sr</th>
                 <th>{t.date}</th>
                 <th>{t.type}</th>
                 <th>{t.paymentStatus || 'Payment Status'}</th>
@@ -133,6 +134,7 @@ const DataExport = ({ language = 'en' }) => {
               ) : (
                 data.map((item, idx) => (
                   <tr key={idx}>
+                    <td>{idx + 1}</td>
                     <td>{item.transaction_date}</td>
                     <td>{item.transaction_type?.[0].toUpperCase() + item.transaction_type?.slice(1)}</td>
                     <td>{item.payment_status}</td>

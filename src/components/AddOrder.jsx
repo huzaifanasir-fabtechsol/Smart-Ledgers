@@ -281,12 +281,15 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
 
     setLoading(true);
     try {
-      await apiRequest('/revenue/orders/create_with_items/', {
+      const response = await apiRequest('/revenue/orders/create_with_items/', {
         method: 'POST',
         body: JSON.stringify(formData)
       });
+      if (!response.ok) {
+        throw new Error('Order creation failed');
+      }
       toast.success('Order created successfully');
-      onSave();
+      setTimeout(() => onSave(), 900);
     } catch (error) {
       toast.error('Failed to create order');
     } finally {

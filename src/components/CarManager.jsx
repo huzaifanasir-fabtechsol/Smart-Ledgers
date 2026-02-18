@@ -110,6 +110,7 @@ const CarManager = () => {
       <table className="data-table">
         <thead>
           <tr>
+            <th>Sr</th>
             <th>Company</th>
             <th>Name</th>
             <th>Model</th>
@@ -119,8 +120,9 @@ const CarManager = () => {
           </tr>
         </thead>
         <tbody>
-          {cars.map(c => (
+          {cars.map((c, index) => (
             <tr key={c.id}>
+              <td>{index+1}</td>
               <td>{c.company_name}</td>
               <td>{c.category_name}</td>
               <td>{c.model}</td>

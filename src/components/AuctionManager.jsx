@@ -103,8 +103,9 @@ const AuctionManager = () => {
           </tr>
         </thead>
         <tbody>
-          {auctions.map(a => (
+          {auctions.map((a, index )=> (
             <tr key={a.id}>
+              <td>{index + 1}</td>
               <td>{a.name}</td>
               <td>{a.description}</td>
               <td>

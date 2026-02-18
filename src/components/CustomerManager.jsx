@@ -99,6 +99,7 @@ const CustomerManager = () => {
       <table className="data-table">
         <thead>
           <tr>
+            <th>Sr</th>
             <th>Name</th>
             <th>Email</th>
             <th>Phone</th>
@@ -108,8 +109,9 @@ const CustomerManager = () => {
           </tr>
         </thead>
         <tbody>
-          {customers.map(c => (
+          {customers.map((c, index )=> (
             <tr key={c.id}>
+              <td>{index+1}</td>
               <td>{c.name}</td>
               <td>{c.email}</td>
               <td>{c.phone}</td>

@@ -99,6 +99,7 @@ const CompanyAccountManager = () => {
       <table className="data-table">
         <thead>
           <tr>
+            <th>Sr</th>
             <th>Bank Name</th>
             <th>Account Holder</th>
             <th>Account Number</th>
@@ -108,8 +109,9 @@ const CompanyAccountManager = () => {
           </tr>
         </thead>
         <tbody>
-          {accounts.map(a => (
+          {accounts.map((a, index )=> (
             <tr key={a.id}>
+              <td>{index + 1}</td>
               <td>{a.bank_name}</td>
               <td>{a.account_holder}</td>
               <td>{a.account_number}</td>

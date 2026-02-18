@@ -340,16 +340,16 @@ const ExpenseManager = ({ language = 'en' }) => {
             <table>
               <thead>
                 <tr>
-                  <th>{t.id}</th>
+                  <th>Sr</th>
                   <th>{t.categoryName}</th>
                   <th>{t.description}</th>
                   <th style={{width: '60px'}}>{t.actions}</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedCategories.map((category) => (
+                {paginatedCategories.map((category, index) => (
                   <tr key={category.id}>
-                    <td>{category.id}</td>
+                    <td>{index + 1}</td>
                     <td>{category.name}</td>
                     <td>{category.description || '-'}</td>
                     <td>
@@ -428,6 +428,7 @@ const ExpenseManager = ({ language = 'en' }) => {
             <table>
               <thead>
                 <tr>
+                  <th>Sr</th>
                   <th>{t.date}</th>
                   <th>Title</th>
                   <th>{t.category}</th>
@@ -437,8 +438,9 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedExpenses.map((expense) => (
+                {paginatedExpenses.map((expense, idx) => (
                   <tr key={expense.id}>
+                    <td>{idx + 1}</td>
                     <td>{expense.date}</td>
                     <td>{expense.title}</td>
                     <td>{expense.category_name || '-'}</td>

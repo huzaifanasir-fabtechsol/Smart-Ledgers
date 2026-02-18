@@ -120,6 +120,9 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
       const response = await apiRequest(`/revenue/orders/${orderId}/generate_invoice/`, {
         method: 'GET'
       });
+      if (!response.ok) {
+        throw new Error('Invoice generation failed');
+      }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -179,7 +182,7 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
         <div className="filters">
           <input
             type="text"
-            placeholder="Search by order, customer, notes..."
+            placeholder="Search by transaction , customer, notes..."
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
             className="filter-input"
@@ -211,7 +214,7 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
           >
             <option value="">All Categories</option>
             <option value="local">Local</option>
-            <option value="imported">Imported</option>
+            <option value="foreign">Foreign</option>
           </select>
           <input
             type="date"
@@ -237,6 +240,7 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
             <table>
               <thead>
                 <tr>
+                  <th>Sr</th>
                   <th>{t.date}</th>
                   <th>{t.type}</th>
                   <th>Name</th>
@@ -248,10 +252,11 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => {
+                {orders.map((order, index) => {
                   const contact = getContactInfo(order);
                   return (
                     <tr key={order.id}>
+                      <td>{index + 1}</td>
                       <td>{order.transaction_date}</td>
                       <td>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
                       <td>{contact.name}</td>
