@@ -157,7 +157,7 @@ function AppContent() {
     { path: '/salers', label: 'Salers', icon: 'profile' },
     { path: '/cars', label: 'Collection', icon: 'categories' },
     { path: '/auctions', label: 'Auctions', icon: 'orders' },
-    { path: '/company-accounts', label: 'Bank Accounts', icon: 'expenses' },
+    { path: '/company-accounts', label: 'Accounts', icon: 'expenses' },
     { path: '/export', label: t.dataExport, icon: 'export' },
     { path: '/profile', label: 'Profile', icon: 'profile' },
   ];
