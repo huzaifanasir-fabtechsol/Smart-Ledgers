@@ -14,7 +14,7 @@ const CarManager = () => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
   const [formData, setFormData] = useState({
-    category: '', name: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear()
+    category: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear()
   });
 
   useEffect(() => { fetchCars(); fetchCategories(); }, [search]);
@@ -61,7 +61,7 @@ const CarManager = () => {
       }
       setShowModal(false);
       setEditingCar(null);
-      setFormData({ category: '', name: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear() });
+      setFormData({ category: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear() });
       fetchCars();
     } catch (error) {
       toast.error('Failed to save car');
@@ -100,7 +100,7 @@ const CarManager = () => {
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h2>Car Management</h2>
-        <button className="btn-primary" onClick={() => { setShowModal(true); setEditingCar(null); setFormData({ category: '', name: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear() }); }}>Add Car</button>
+        {/* <button className="btn-primary" onClick={() => { setShowModal(true); setEditingCar(null); setFormData({ category: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear() }); }}>Add Car</button> */}
       </div>
 
       <div className="filters">
@@ -110,9 +110,9 @@ const CarManager = () => {
       <table className="data-table">
         <thead>
           <tr>
+            <th>Company</th>
             <th>Name</th>
             <th>Model</th>
-            <th>Category</th>
             <th>Chassis Number</th>
             <th>Year</th>
             <th style={{width: '60px'}}>Actions</th>
@@ -121,9 +121,9 @@ const CarManager = () => {
         <tbody>
           {cars.map(c => (
             <tr key={c.id}>
-              <td>{c.name}</td>
-              <td>{c.model}</td>
+              <td>{c.company_name}</td>
               <td>{c.category_name}</td>
+              <td>{c.model}</td>
               <td>{c.chassis_number}</td>
               <td>{c.year}</td>
               <td>
@@ -147,15 +147,11 @@ const CarManager = () => {
             <h3>{editingCar ? 'Edit Car' : 'Add Car'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>Category</label>
+                <label>Car Name (Company - Model)</label>
                 <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required>
-                  <option value="">Select Category</option>
-                  {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                  <option value="">Select Car Name</option>
+                  {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.company} - {cat.name}</option>)}
                 </select>
-              </div>
-              <div className="form-group">
-                <label>Name</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Model</label>

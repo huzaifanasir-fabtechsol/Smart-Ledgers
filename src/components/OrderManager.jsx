@@ -68,7 +68,7 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
   const getContactInfo = (order) => {
     if (order.transaction_type === 'purchase' && order.other_details) {
       return {
-        name: order.other_details.seller_name || '',
+        name: order.other_details.saler_name || order.other_details.seller_name || '',
         phone: order.other_details.phone || ''
       };
     } else if (order.transaction_type === 'sale' && order.other_details) {

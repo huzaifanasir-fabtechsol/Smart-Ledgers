@@ -69,7 +69,7 @@ export const translations = {
     page: 'Page',
     of: 'of',
     id: 'ID',
-    categoryName: 'Category Name',
+    categoryName: 'Car Name',
     searchPlaceholder: 'Search description or category...',
     allCategories: 'All Categories',
     clear: 'Clear',

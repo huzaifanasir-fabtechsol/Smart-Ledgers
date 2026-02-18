@@ -14,6 +14,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryName, setCategoryName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [categoryDescription, setCategoryDescription] = useState('');
   const [searchText, setSearchText] = useState('');
   const [pageSize, setPageSize] = useState(10);
@@ -101,19 +102,20 @@ const CarCategoryManager = ({ language = 'en' }) => {
       if (editingCategory) {
         await apiRequest(`/revenue/categories/${editingCategory.id}/`, {
           method: 'PUT',
-          body: JSON.stringify({ name: categoryName, description: categoryDescription })
+          body: JSON.stringify({ name: categoryName, description: categoryDescription, company: companyName  })
         });
         toast.success('Category updated successfully');
       } else {
         await apiRequest('/revenue/categories/', {
           method: 'POST',
-          body: JSON.stringify({ name: categoryName, description: categoryDescription })
+          body: JSON.stringify({ name: categoryName, description: categoryDescription, company: companyName  })
         });
         toast.success('Category added successfully');
       }
       fetchCategories();
       setCategoryName('');
       setCategoryDescription('');
+      setCompanyName('');
       setEditingCategory(null);
       setShowModal(false);
     } catch (error) {
@@ -127,6 +129,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
     setEditingCategory(category);
     setCategoryName(category.name);
     setCategoryDescription(category.description || '');
+    setCompanyName(category.company || '');
     setShowModal(true);
     setOpenMenuId(null);
   };
@@ -135,6 +138,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
     setEditingCategory(null);
     setCategoryName('');
     setCategoryDescription('');
+    setCompanyName('');
     setShowModal(true);
   };
 
@@ -174,6 +178,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
               <thead>
                 <tr>
                   <th style={{width: '80px'}}>{t.id}</th>
+                  <th>Company</th>
                   <th>{t.categoryName}</th>
                   <th>{t.description}</th>
                   <th style={{width: '60px'}}>{t.actions}</th>
@@ -183,6 +188,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
                 {translatedCategories.map((category, index) => (
                   <tr key={category.id}>
                     <td>{index+1}</td>
+                    <td>{category.company}</td>
                     <td>{category.name}</td>
                     <td>{category.description || '-'}</td>
                     <td>
@@ -214,6 +220,16 @@ const CarCategoryManager = ({ language = 'en' }) => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingCategory ? t.editCarCategory : t.addNewCarCategory}</h3>
             <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Company</label>
+                <input 
+                  type="text" 
+                  placeholder='Add Company'
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  required
+                />
+              </div>
               <div className="form-group">
                 <label>{t.categoryName}</label>
                 <input 

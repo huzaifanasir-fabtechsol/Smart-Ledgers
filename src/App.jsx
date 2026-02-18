@@ -8,6 +8,7 @@ import CarCategoryManager from './components/CarCategoryManager';
 import OrderManager from './components/OrderManager';
 import AddOrder from './components/AddOrder';
 import CustomerManager from './components/CustomerManager';
+import SalerManager from './components/SalerManager';
 import CompanyAccountManager from './components/CompanyAccountManager';
 import AuctionManager from './components/AuctionManager';
 import CarManager from './components/CarManager';
@@ -153,7 +154,8 @@ function AppContent() {
     { path: '/orders', label: t.orders, icon: 'orders' },
     { path: '/categories', label: t.carCategories, icon: 'categories' },
     { path: '/customers', label: 'Customers', icon: 'profile' },
-    { path: '/cars', label: 'Cars', icon: 'categories' },
+    { path: '/salers', label: 'Salers', icon: 'profile' },
+    { path: '/cars', label: 'Collection', icon: 'categories' },
     { path: '/auctions', label: 'Auctions', icon: 'orders' },
     { path: '/company-accounts', label: 'Bank Accounts', icon: 'expenses' },
     { path: '/export', label: t.dataExport, icon: 'export' },
@@ -225,6 +227,7 @@ function AppContent() {
           />
           <Route path="/categories" element={<CarCategoryManager language={language} />} />
           <Route path="/customers" element={<CustomerManager />} />
+          <Route path="/salers" element={<SalerManager />} />
           <Route path="/cars" element={<CarManager />} />
           <Route path="/auctions" element={<AuctionManager />} />
           <Route path="/company-accounts" element={<CompanyAccountManager />} />

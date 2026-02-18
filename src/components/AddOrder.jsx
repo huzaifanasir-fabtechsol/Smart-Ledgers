@@ -14,10 +14,15 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [salers, setSalers] = useState([]);
+  const [allSalers, setAllSalers] = useState([]);
   const [customerSearch, setCustomerSearch] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedSaler, setSelectedSaler] = useState(null);
   const [companyAccounts, setCompanyAccounts] = useState([]);
+  const [selectedCompanyAccount, setSelectedCompanyAccount] = useState(null);
   const [auctions, setAuctions] = useState([]);
   const [cars, setCars] = useState([]);
   const [filteredCars, setFilteredCars] = useState([]);
@@ -30,13 +35,15 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     transaction_date: new Date().toISOString().split('T')[0],
     transaction_catagory: 'local',
     customer_id: null,
+    saler_id: null,
     company_account_id: null,
     auction_id: null,
     customer_name: '',
+    saler_name: '',
     seller_name: '',
     phone: '',
     address: '',
-    payment_method: '',
+    payment_method: 'Cash',
     account_number: '',
     auction_house: '',
     payment_status: 'pending',
@@ -46,7 +53,6 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
 
   const [currentItem, setCurrentItem] = useState({
     category: '',
-    name: '',
     model: '',
     chassis_number: '',
     year: new Date().getFullYear(),
@@ -65,6 +71,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
   useEffect(() => {
     fetchCategories();
     fetchCustomers();
+    fetchSalers();
     fetchCompanyAccounts();
     fetchAuctions();
     fetchCars();
@@ -94,15 +101,41 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
 
   useEffect(() => {
     if (customerSearch) {
-      const filtered = customers.filter(c => 
-        c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-        c.email.toLowerCase().includes(customerSearch.toLowerCase())
-      );
-      setCustomers(filtered);
+      if (formData.transaction_type === 'purchase') {
+        const filtered = allSalers.filter(s =>
+          s.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+          s.email.toLowerCase().includes(customerSearch.toLowerCase())
+        );
+        setSalers(filtered);
+      } else {
+        const filtered = allCustomers.filter(c =>
+          c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+          c.email.toLowerCase().includes(customerSearch.toLowerCase())
+        );
+        setCustomers(filtered);
+      }
     } else {
-      fetchCustomers();
+      setCustomers(allCustomers);
+      setSalers(allSalers);
     }
-  }, [customerSearch]);
+  }, [customerSearch, allCustomers, allSalers, formData.transaction_type]);
+
+  useEffect(() => {
+    const selected = companyAccounts.find(
+      (account) => String(account.id) === String(formData.company_account_id)
+    ) || null;
+    setSelectedCompanyAccount(selected);
+  }, [companyAccounts, formData.company_account_id]);
+
+  useEffect(() => {
+    const selectedParty = formData.transaction_type === 'purchase' ? selectedSaler : selectedCustomer;
+    if (!selectedParty) return;
+    const nextAccount = formData.payment_method === 'Bank' ? (selectedParty.account_number || '') : '';
+    setFormData((prev) => {
+      if (prev.account_number === nextAccount) return prev;
+      return { ...prev, account_number: nextAccount };
+    });
+  }, [selectedCustomer, selectedSaler, formData.payment_method, formData.transaction_type]);
 
   useEffect(() => {
     if (currentItem.category && useExistingCar) {
@@ -126,9 +159,23 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     try {
       const response = await apiRequest('/revenue/customers/');
       const data = await response.json();
-      setCustomers(data.results || data);
+      const rows = data.results || data;
+      setAllCustomers(rows);
+      setCustomers(rows);
     } catch (error) {
       toast.error('Failed to load customers');
+    }
+  };
+
+  const fetchSalers = async () => {
+    try {
+      const response = await apiRequest('/revenue/salers/');
+      const data = await response.json();
+      const rows = data.results || data;
+      setAllSalers(rows);
+      setSalers(rows);
+    } catch (error) {
+      toast.error('Failed to load salers');
     }
   };
 
@@ -164,11 +211,11 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
 
   const addItem = () => {
     if (!currentItem.category) {
-      toast.error('Please select a category');
+      toast.error('Please select a car name');
       return;
     }
-    if (!currentItem.name || !currentItem.model) {
-      toast.error('Name and Model are required');
+    if (!currentItem.model) {
+      toast.error('Model is required');
       return;
     }
     if (!currentItem.chassis_number) {
@@ -185,7 +232,6 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     });
     setCurrentItem({
       category: '',
-      name: '',
       model: '',
       chassis_number: '',
       year: new Date().getFullYear(),
@@ -212,8 +258,26 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.customer_name && !formData.seller_name && !formData.auction_house) return;
-    if (formData.items.length === 0) return;
+    
+    if (formData.items.length === 0) {
+      toast.error('Please add at least one item');
+      return;
+    }
+
+    if (formData.transaction_type === 'sale' && !formData.customer_name) {
+      toast.error('Customer name is required for sale transactions');
+      return;
+    }
+
+    if (formData.transaction_type === 'purchase' && !formData.saler_name) {
+      toast.error('Saler name is required for purchase transactions');
+      return;
+    }
+
+    if (formData.transaction_type === 'auction' && !formData.auction_id) {
+      toast.error('Auction house is required for auction transactions');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -230,6 +294,25 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     }
   };
 
+  const handleTransactionTypeChange = (transactionType) => {
+    setSelectedCustomer(null);
+    setSelectedSaler(null);
+    setCustomerSearch('');
+    setShowCustomerDropdown(false);
+    setFormData({
+      ...formData,
+      transaction_type: transactionType,
+      customer_id: null,
+      saler_id: null,
+      customer_name: '',
+      saler_name: '',
+      seller_name: '',
+      phone: '',
+      address: '',
+      account_number: ''
+    });
+  };
+
   return (
     <div className="order-manager">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -242,7 +325,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
         <div className="form-row">
           <div className="form-group">
             <label>{t.type}</label>
-            <select value={formData.transaction_type} onChange={(e) => setFormData({...formData, transaction_type: e.target.value})}>
+            <select value={formData.transaction_type} onChange={(e) => handleTransactionTypeChange(e.target.value)}>
               <option value="sale">{t.sale}</option>
               <option value="purchase">{t.purchase}</option>
               <option value="auction">{t.auction}</option>
@@ -261,46 +344,174 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
           </div>
         </div>
 
-        {formData.transaction_type !== 'purchase' && (
-          <div className="form-group customer-dropdown-wrapper">
-            <label>Customer</label>
-            <input 
-              type="text" 
-              placeholder="Search customers..."
-              value={customerSearch}
-              onChange={(e) => setCustomerSearch(e.target.value)}
-              onFocus={() => setShowCustomerDropdown(true)}
-            />
-            {showCustomerDropdown && (
-              <div className="category-dropdown-list">
-                {customers.length > 0 ? (
-                  customers.map(c => (
-                    <div
-                      key={c.id}
-                      className="category-option"
-                      onClick={() => {
-                        setSelectedCustomer(c);
-                        setCustomerSearch(c.name);
-                        setFormData({...formData, customer_id: c.id, customer_name: c.name, phone: c.phone, address: c.address});
-                        setShowCustomerDropdown(false);
-                      }}
-                    >
-                      {c.name} - {c.email}
-                    </div>
-                  ))
-                ) : (
-                  <div className="category-option disabled">No customers found</div>
-                )}
-              </div>
-            )}
+        <div className="form-group">
+          <label>Company Bank Account</label>
+          <select
+            value={formData.company_account_id || ''}
+            onChange={(e) => setFormData({
+              ...formData,
+              company_account_id: e.target.value ? Number(e.target.value) : null
+            })}
+          >
+            <option value="">Select Account</option>
+            {companyAccounts.map(a => <option key={a.id} value={a.id}>{a.bank_name} - {a.account_number}</option>)}
+          </select>
+        </div>
+
+        {selectedCompanyAccount && (
+          <div className="form-row">
+            <div className="form-group">
+              <label>Company Bank Name</label>
+              <input type="text" value={selectedCompanyAccount.bank_name || ''} readOnly />
+            </div>
+            <div className="form-group">
+              <label>Company Account Number</label>
+              <input type="text" value={selectedCompanyAccount.account_number || ''} readOnly />
+            </div>
+            <div className="form-group">
+              <label>Account Holder</label>
+              <input type="text" value={selectedCompanyAccount.account_holder || ''} readOnly />
+            </div>
           </div>
         )}
 
-        {formData.transaction_type === 'purchase' && (
-          <div className="form-group">
-            <label>Seller Name</label>
-            <input type="text" value={formData.seller_name} onChange={(e) => setFormData({...formData, seller_name: e.target.value})} required />
+        {selectedCompanyAccount && (
+          <div className="form-row">
+            <div className="form-group">
+              <label>Company Branch Code</label>
+              <input type="text" value={selectedCompanyAccount.branch_code || ''} readOnly />
+            </div>
+            <div className="form-group">
+              <label>Company SWIFT Code</label>
+              <input type="text" value={selectedCompanyAccount.swift_code || ''} readOnly />
+            </div>
           </div>
+        )}
+
+        <div className="form-group customer-dropdown-wrapper">
+          <label>{formData.transaction_type === 'purchase' ? 'Saler' : 'Customer'}</label>
+          <input
+            type="text"
+            placeholder={formData.transaction_type === 'purchase' ? 'Search salers...' : 'Search customers...'}
+            value={customerSearch}
+            onChange={(e) => setCustomerSearch(e.target.value)}
+            onFocus={() => setShowCustomerDropdown(true)}
+          />
+          {showCustomerDropdown && (
+            <div className="category-dropdown-list">
+              {(formData.transaction_type === 'purchase' ? salers : customers).length > 0 ? (
+                (formData.transaction_type === 'purchase' ? salers : customers).map(c => (
+                  <div
+                    key={c.id}
+                    className="category-option"
+                    onClick={() => {
+                      if (formData.transaction_type === 'purchase') {
+                        setSelectedSaler(c);
+                        setSelectedCustomer(null);
+                      } else {
+                        setSelectedCustomer(c);
+                        setSelectedSaler(null);
+                      }
+                      setCustomerSearch(c.name);
+                      if (formData.transaction_type === 'purchase') {
+                        setFormData({
+                          ...formData,
+                          saler_id: c.id,
+                          saler_name: c.name,
+                          seller_name: c.name,
+                          customer_id: null,
+                          customer_name: '',
+                          phone: c.phone,
+                          address: c.address
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          customer_id: c.id,
+                          customer_name: c.name,
+                          saler_id: null,
+                          saler_name: '',
+                          seller_name: '',
+                          phone: c.phone,
+                          address: c.address
+                        });
+                      }
+                      setShowCustomerDropdown(false);
+                    }}
+                  >
+                    {c.name} - {c.email}
+                  </div>
+                ))
+              ) : (
+                <div className="category-option disabled">
+                  {formData.transaction_type === 'purchase' ? 'No salers found' : 'No customers found'}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {formData.transaction_type !== 'uction' && (
+          <>
+            <div className="form-row">
+              <div className="form-group">
+                <label>{formData.transaction_type === 'purchase' ? 'Saler Name' : 'Customer Name'}</label>
+                <input type="text" value={formData.transaction_type === 'purchase' ? formData.saler_name : formData.customer_name} readOnly />
+              </div>
+              <div className="form-group">
+                <label>Phone</label>
+                <input type="tel" value={formData.phone} readOnly />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Address</label>
+              <textarea value={formData.address} rows="2" readOnly />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Payment Status</label>
+                <select value={formData.payment_status} onChange={(e) => setFormData({...formData, payment_status: e.target.value})}>
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Payment Method</label>
+                <select value={formData.payment_method} onChange={(e) => setFormData({...formData, payment_method: e.target.value})}>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank">Bank</option>
+                </select>
+              </div>
+            </div>
+
+            {formData.payment_method === 'Bank' && (formData.transaction_type === 'purchase' ? selectedSaler : selectedCustomer) && (
+              <>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{formData.transaction_type === 'purchase' ? 'Saler Bank Name' : 'Customer Bank Name'}</label>
+                    <input type="text" value={(formData.transaction_type === 'purchase' ? selectedSaler?.bank_name : selectedCustomer?.bank_name) || ''} readOnly />
+                  </div>
+                  <div className="form-group">
+                    <label>{formData.transaction_type === 'purchase' ? 'Saler Account Number' : 'Customer Account Number'}</label>
+                    <input type="text" value={(formData.transaction_type === 'purchase' ? selectedSaler?.account_number : selectedCustomer?.account_number) || ''} readOnly />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{formData.transaction_type === 'purchase' ? 'Saler Branch Code' : 'Customer Branch Code'}</label>
+                    <input type="text" value={(formData.transaction_type === 'purchase' ? selectedSaler?.branch_code : selectedCustomer?.branch_code) || ''} readOnly />
+                  </div>
+                  <div className="form-group">
+                    <label>{formData.transaction_type === 'purchase' ? 'Saler SWIFT Code' : 'Customer SWIFT Code'}</label>
+                    <input type="text" value={(formData.transaction_type === 'purchase' ? selectedSaler?.swift_code : selectedCustomer?.swift_code) || ''} readOnly />
+                  </div>
+                </div>
+              </>
+            )}
+          </>
         )}
 
         {formData.transaction_type === 'auction' && (
@@ -311,73 +522,6 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
               {auctions.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
           </div>
-        )}
-
-        <div className="form-group">
-          <label>Company Bank Account</label>
-          <select value={formData.company_account_id || ''} onChange={(e) => setFormData({...formData, company_account_id: e.target.value})}>
-            <option value="">Select Account</option>
-            {companyAccounts.map(a => <option key={a.id} value={a.id}>{a.bank_name} - {a.account_number}</option>)}
-          </select>
-        </div>
-
-        {formData.transaction_type !== 'uction' && (
-          <>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Phone</label>
-                <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
-              </div>
-              <div className="form-group">
-                <label>Payment Status</label>
-                <select value={formData.payment_status} onChange={(e) => setFormData({...formData, payment_status: e.target.value})}>
-                  <option value="pending">Pending</option>
-                  <option value="completed">Completed</option>
-                  <option value="failed">Failed</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Address</label>
-              <textarea value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} rows="2" />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Payment Method</label>
-                <select value={formData.payment_method} onChange={(e) => setFormData({...formData, payment_method: e.target.value})}>
-                  <option value="">Select Payment Method</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Wire Transfer">Wire Transfer</option>
-                  <option value="Check">Check</option>
-                  <option value="Credit Card">Credit Card</option>
-                </select>
-              </div>
-            </div>
-
-            {(formData.payment_method === 'Bank Transfer' || formData.payment_method === 'Wire Transfer') && (
-              <div className="form-group">
-                <label>Account Number</label>
-                <input type="text" placeholder="Enter account number" value={formData.account_number} onChange={(e) => setFormData({...formData, account_number: e.target.value})} />
-              </div>
-            )}
-
-            {formData.payment_method === 'Check' && (
-              <div className="form-group">
-                <label>Check Number</label>
-                <input type="text" placeholder="Enter check number" value={formData.account_number} onChange={(e) => setFormData({...formData, account_number: e.target.value})} />
-              </div>
-            )}
-
-            {formData.payment_method === 'Credit Card' && (
-              <div className="form-group">
-                <label>Card Number</label>
-                <input type="text" placeholder="Enter card number" value={formData.account_number} onChange={(e) => setFormData({...formData, account_number: e.target.value})} maxLength="19" />
-              </div>
-            )}
-          </>
         )}
 
         <div className="form-group">
@@ -392,7 +536,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
             <div className="form-row">
               <div className="form-group">
                 <label>Car Source</label>
-                <select value={useExistingCar} onChange={(e) => { setUseExistingCar(e.target.value === 'true'); setCurrentItem({...currentItem, category: '', name: '', model: '', chassis_number: '', year: new Date().getFullYear()}); }}>
+                <select value={useExistingCar} onChange={(e) => { setUseExistingCar(e.target.value === 'true'); setCurrentItem({...currentItem, category: '', model: '', chassis_number: '', year: new Date().getFullYear()}); }}>
                   <option value="false">Add New Car</option>
                   <option value="true">Select Existing Car</option>
                 </select>
@@ -402,10 +546,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
             {useExistingCar ? (
               <div className="form-row">
                 <div className="form-group category-dropdown-wrapper">
-                  <label>Select Category First</label>
+                  <label>Select Car Name (Company - Model)</label>
                   <input 
                     type="text" 
-                    placeholder="Search categories..." 
+                    placeholder="Search car names..." 
                     value={categorySearch}
                     onChange={(e) => setCategorySearch(e.target.value)}
                     onFocus={() => setShowCategoryDropdown(true)}
@@ -419,22 +563,22 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
                             className="category-option"
                             onClick={() => {
                               setCurrentItem({...currentItem, category: cat.id});
-                              setCategorySearch(cat.name);
+                              setCategorySearch(`${cat.company} - ${cat.name}`);
                               setShowCategoryDropdown(false);
                             }}
                           >
-                            {cat.name} ({cat.company})
+                            {cat.company} - {cat.name}
                           </div>
                         ))
                       ) : (
-                        <div className="category-option disabled">No categories found</div>
+                        <div className="category-option disabled">No car names found</div>
                       )}
                     </div>
                   )}
                 </div>
                 {currentItem.category && (
                   <div className="form-group car-dropdown-wrapper">
-                    <label>Select Car</label>
+                    <label>Select Existing Car</label>
                     <input 
                       type="text" 
                       placeholder="Search cars..." 
@@ -444,18 +588,18 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
                     />
                     {showCarDropdown && (
                       <div className="category-dropdown-list">
-                        {filteredCars.filter(c => c.name.toLowerCase().includes(carSearch.toLowerCase())).length > 0 ? (
-                          filteredCars.filter(c => c.name.toLowerCase().includes(carSearch.toLowerCase())).map(car => (
+                        {filteredCars.filter(c => c.model.toLowerCase().includes(carSearch.toLowerCase())).length > 0 ? (
+                          filteredCars.filter(c => c.model.toLowerCase().includes(carSearch.toLowerCase())).map(car => (
                             <div
                               key={car.id}
                               className="category-option"
                               onClick={() => {
-                                setCurrentItem({...currentItem, name: car.name, model: car.model, chassis_number: car.chassis_number, year: car.year});
-                                setCarSearch(car.name);
+                                setCurrentItem({...currentItem, model: car.model, chassis_number: car.chassis_number, year: car.year});
+                                setCarSearch(car.model);
                                 setShowCarDropdown(false);
                               }}
                             >
-                              {car.name} - {car.model} ({car.chassis_number})
+                              {car.model} ({car.chassis_number})
                             </div>
                           ))
                         ) : (
@@ -469,10 +613,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
             ) : (
               <div className="form-row">
                 <div className="form-group category-dropdown-wrapper">
-                  <label>{t.category}</label>
+                  <label>Car Name (Company - Model)</label>
                   <input 
                     type="text" 
-                    placeholder="Search categories..." 
+                    placeholder="Search car names..." 
                     value={categorySearch}
                     onChange={(e) => setCategorySearch(e.target.value)}
                     onFocus={() => setShowCategoryDropdown(true)}
@@ -486,22 +630,18 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
                             className="category-option"
                             onClick={() => {
                               setCurrentItem({...currentItem, category: cat.id});
-                              setCategorySearch(cat.name);
+                              setCategorySearch(`${cat.company} - ${cat.name}`);
                               setShowCategoryDropdown(false);
                             }}
                           >
-                            {cat.name} ({cat.company})
+                            {cat.company} - {cat.name}
                           </div>
                         ))
                       ) : (
-                        <div className="category-option disabled">No categories found</div>
+                        <div className="category-option disabled">No car names found</div>
                       )}
                     </div>
                   )}
-                </div>
-                <div className="form-group">
-                  <label>{t.name}</label>
-                  <input type="text" value={currentItem.name} onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label>{t.model}</label>
@@ -581,7 +721,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
             {formData.items.map((item) => (
               <div key={item.id} className="item-card">
                 <div className="item-info">
-                  <strong>{item.name} {item.model}</strong> - {item.chassis_number} ({item.year})
+                  <strong>{categories.find(c => c.id === item.category)?.company} - {categories.find(c => c.id === item.category)?.name} ({item.model})</strong> - {item.chassis_number} ({item.year})
                   <div className="item-details">
                     {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Price: ${Number(item.vehicle_price).toLocaleString()}
                   </div>

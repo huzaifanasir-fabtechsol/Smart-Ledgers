@@ -4,19 +4,19 @@ import { apiRequest } from '../api';
 import '../shared.css';
 import './OrderManager.css';
 
-const CustomerManager = () => {
-  const [customers, setCustomers] = useState([]);
+const SalerManager = () => {
+  const [salers, setSalers] = useState([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [editingSaler, setEditingSaler] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
   const [formData, setFormData] = useState({
-    name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: ''
+    name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: ''
   });
 
-  useEffect(() => { fetchCustomers(); }, [search]);
+  useEffect(() => { fetchSalers(); }, [search]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -28,49 +28,49 @@ const CustomerManager = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const fetchCustomers = async () => {
+  const fetchSalers = async () => {
     try {
-      const response = await apiRequest(`/revenue/customers/?search=${search}`);
+      const response = await apiRequest(`/revenue/salers/?search=${search}`);
       const data = await response.json();
-      setCustomers(data.results || data);
+      setSalers(data.results || data);
     } catch (error) {
-      toast.error('Failed to load customers');
+      toast.error('Failed to load salers');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingCustomer) {
-        await apiRequest(`/revenue/customers/${editingCustomer.id}/`, { method: 'PUT', body: JSON.stringify(formData) });
-        toast.success('Customer updated');
+      if (editingSaler) {
+        await apiRequest(`/revenue/salers/${editingSaler.id}/`, { method: 'PUT', body: JSON.stringify(formData) });
+        toast.success('Saler updated');
       } else {
-        await apiRequest('/revenue/customers/', { method: 'POST', body: JSON.stringify(formData) });
-        toast.success('Customer added');
+        await apiRequest('/revenue/salers/', { method: 'POST', body: JSON.stringify(formData) });
+        toast.success('Saler added');
       }
       setShowModal(false);
-      setEditingCustomer(null);
+      setEditingSaler(null);
       setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' });
-      fetchCustomers();
+      fetchSalers();
     } catch (error) {
-      toast.error('Failed to save customer');
+      toast.error('Failed to save saler');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this customer?')) return;
+    if (!confirm('Delete this saler?')) return;
     try {
-      await apiRequest(`/revenue/customers/${id}/`, { method: 'DELETE' });
-      toast.success('Customer deleted');
-      fetchCustomers();
+      await apiRequest(`/revenue/salers/${id}/`, { method: 'DELETE' });
+      toast.success('Saler deleted');
+      fetchSalers();
     } catch (error) {
-      toast.error('Failed to delete customer');
+      toast.error('Failed to delete saler');
     }
   };
 
-  const openEdit = (customer) => {
-    setEditingCustomer(customer);
-    setFormData(customer);
+  const openEdit = (saler) => {
+    setEditingSaler(saler);
+    setFormData(saler);
     setShowModal(true);
     setOpenMenuId(null);
   };
@@ -88,12 +88,12 @@ const CustomerManager = () => {
     <div className="order-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
-        <h2>Customer Management</h2>
-        <button className="btn-primary" onClick={() => { setShowModal(true); setEditingCustomer(null); setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '' }); }}>Add Customer</button>
+        <h2>Saler Management</h2>
+        <button className="btn-primary" onClick={() => { setShowModal(true); setEditingSaler(null); setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' }); }}>Add Saler</button>
       </div>
 
       <div className="filters">
-        <input type="text" placeholder="Search customers..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input type="text" placeholder="Search salers..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       <table className="data-table">
@@ -108,15 +108,15 @@ const CustomerManager = () => {
           </tr>
         </thead>
         <tbody>
-          {customers.map(c => (
-            <tr key={c.id}>
-              <td>{c.name}</td>
-              <td>{c.email}</td>
-              <td>{c.phone}</td>
-              <td>{c.bank_name}</td>
-              <td>{c.account_number}</td>
+          {salers.map(s => (
+            <tr key={s.id}>
+              <td>{s.name}</td>
+              <td>{s.email}</td>
+              <td>{s.phone}</td>
+              <td>{s.bank_name}</td>
+              <td>{s.account_number}</td>
               <td>
-                <button className="btn-menu" onClick={(e) => handleMenuClick(e, c.id)}>⋮</button>
+                <button className="btn-menu" onClick={(e) => handleMenuClick(e, s.id)}>â‹®</button>
               </td>
             </tr>
           ))}
@@ -125,7 +125,7 @@ const CustomerManager = () => {
 
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          <button className="menu-item" onClick={() => openEdit(customers.find(c => c.id === openMenuId))}>Edit</button>
+          <button className="menu-item" onClick={() => openEdit(salers.find(s => s.id === openMenuId))}>Edit</button>
           <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>Delete</button>
         </div>
       )}
@@ -133,7 +133,7 @@ const CustomerManager = () => {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingCustomer ? 'Edit Customer' : 'Add Customer'}</h3>
+            <h3>{editingSaler ? 'Edit Saler' : 'Add Saler'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Name</label>
@@ -179,4 +179,4 @@ const CustomerManager = () => {
   );
 };
 
-export default CustomerManager;
+export default SalerManager;
