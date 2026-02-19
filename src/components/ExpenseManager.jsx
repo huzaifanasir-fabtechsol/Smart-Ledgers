@@ -388,6 +388,60 @@ const ExpenseManager = ({ language = 'en' }) => {
     setExpensePage(1);
   };
 
+  const exportExpenseToPDF = (expense) => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Title
+      doc.setFontSize(18);
+      doc.text('Expense Receipt', pageWidth / 2, 20, { align: 'center' });
+      
+      // Expense details
+      doc.setFontSize(12);
+      let yPos = 40;
+      
+      doc.text(`Title: ${expense.title}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Amount: $${Number(expense.amount || 0).toLocaleString()}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Date: ${expense.date}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Category: ${expense.category_name || 'N/A'}`, 20, yPos);
+      yPos += 10;
+      
+      if (expense.description) {
+        doc.text(`Description: ${expense.description}`, 20, yPos);
+        yPos += 10;
+      }
+      
+      if (expense.transaction) {
+        yPos += 5;
+        doc.text('Transaction Details:', 20, yPos);
+        yPos += 8;
+        doc.text(`  Transaction: ${expense.transaction.description}`, 20, yPos);
+        yPos += 8;
+        doc.text(`  Amount: $${Number(expense.transaction.withdraw || 0).toLocaleString()}`, 20, yPos);
+        yPos += 8;
+        doc.text(`  Date: ${expense.transaction.date}`, 20, yPos);
+      }
+      
+      if (expense.restaurant_name) {
+        yPos += 10;
+        doc.text(`Restaurant: ${expense.restaurant_name}`, 20, yPos);
+      }
+      
+      yPos += 20;
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, yPos);
+      
+      const fileName = `expense_${expense.title.replace(/[^a-z0-9]/gi, '_')}_${expense.date}.pdf`;
+      doc.save(fileName);
+      toast.success('PDF exported successfully');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF');
+    }
+  };
   const exportToPDF = async () => {
     if (filteredExpenses.length === 0) {
       toast.error('No expenses to export');
@@ -656,7 +710,10 @@ const ExpenseManager = ({ language = 'en' }) => {
             <button className="menu-item" onClick={() => openEditCategoryModal(categories.find(c => c.id === openMenuId))}>Edit</button>
           )}
           {menuType === 'expense' && (
-            <button className="menu-item" onClick={() => openEditExpenseModal(expenses.find(e => e.id === openMenuId))}>Edit</button>
+            <>
+              <button className="menu-item" onClick={() => openEditExpenseModal(expenses.find(e => e.id === openMenuId))}>Edit</button>
+              <button className="menu-item" onClick={() => exportExpenseToPDF(expenses.find(e => e.id === openMenuId))}>Export PDF</button>
+            </>
           )}
         </div>
       )}
