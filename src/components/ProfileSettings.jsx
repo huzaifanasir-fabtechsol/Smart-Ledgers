@@ -12,6 +12,7 @@ const INITIAL_PROFILE = {
   company_phone: '',
   company_website: '',
   company_address: '',
+  business_registration: '',
 };
 
 const INITIAL_PASSWORD = {
@@ -76,6 +77,7 @@ const ProfileSettings = ({ onUserUpdate }) => {
         company_phone: data.company_phone || '',
         company_website: data.company_website || '',
         company_address: data.company_address || '',
+        business_registration: data.business_registration || '',
       });
     } catch (error) {
       toast.error(error.message || 'Failed to load profile');
@@ -118,6 +120,7 @@ const ProfileSettings = ({ onUserUpdate }) => {
         company_phone: updatedProfile.company_phone || '',
         company_website: updatedProfile.company_website || '',
         company_address: updatedProfile.company_address || '',
+        business_registration: updatedProfile.business_registration || '',
       };
 
       setProfile(normalizedProfile);
@@ -286,6 +289,16 @@ const ProfileSettings = ({ onUserUpdate }) => {
             <textarea
               name="company_address"
               value={profile.company_address}
+              onChange={handleProfileChange}
+              rows="3"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Business Registration</label>
+            <textarea
+              name="business_registration"
+              value={profile.business_registration}
               onChange={handleProfileChange}
               rows="3"
             />

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 const GoogleTranslateInitializer = () => {
   useEffect(() => {
     const initializeGoogleTranslate = () => {
-      const includedLanguages = "en,zh-CN,ja";
+      const includedLanguages = "en,ja";
       
       try {
         if (window.google && window.google.translate) {
