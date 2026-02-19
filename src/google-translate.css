@@ -1,0 +1,105 @@
+/* Google Translate Styling */
+/* Hide Google Translate attribution */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0px !important;
+}
+
+/* Style the main translate element */
+#google_translate_element {
+  font-family: inherit !important;
+  position: relative;
+  z-index: 20;
+}
+
+#google_translate_element .goog-te-gadget {
+  font-family: inherit !important;
+  font-size: 10px !important;
+  color: #1f2937 !important;
+}
+
+#google_translate_element .goog-te-combo {
+  min-width: 130px;
+  height: 34px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0 0.5rem;
+  font-size: 0.8rem;
+  color: #111827;
+  background: #ffffff;
+}
+
+#google_translate_element .goog-te-gadget-simple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  border-radius: 25px !important;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  color: white !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+  transition: all 0.3s ease !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  position: relative !important;
+}
+
+#google_translate_element .goog-te-gadget-simple:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+}
+
+#google_translate_element .goog-te-gadget-simple .goog-te-menu-value {
+  color: white !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+#google_translate_element .goog-te-gadget-simple .goog-te-menu-value span {
+  color: white !important;
+  border-left: none !important;
+  background: none !important;
+}
+
+#google_translate_element .goog-te-gadget-simple .goog-te-menu-value span:first-child {
+  display: none !important;
+}
+
+#google_translate_element .goog-te-gadget-simple .goog-te-menu-value:before {
+  content: "🌐";
+  color: white !important;
+  font-weight: 500 !important;
+  margin-right: 5px;
+}
+
+/* Style the dropdown menu */
+.goog-te-menu-frame {
+  border-radius: 8px !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+  border: none !important;
+  z-index: 998 !important;
+}
+
+.goog-te-menu2 {
+  border-radius: 8px !important;
+  border: none !important;
+  background: white !important;
+}
+
+.goog-te-menu2-item {
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  transition: background 0.2s ease !important;
+}
+
+.goog-te-menu2-item:hover {
+  background: #f3f4f6 !important;
+}
+
+.goog-te-menu2-item-selected {
+  background: #667eea !important;
+  color: white !important;
+}

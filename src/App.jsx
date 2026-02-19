@@ -13,11 +13,13 @@ import CompanyAccountManager from './components/CompanyAccountManager';
 import AuctionManager from './components/AuctionManager';
 import CarManager from './components/CarManager';
 import RestaurantManager from './components/RestaurantManager';
+import TransactionManager from './components/TransactionManager';
 import Login from './components/Login';
 import ProfileSettings from './components/ProfileSettings';
 import GoogleTranslateInitializer from './components/GoogleTranslateInitializer';
 import { translations } from './translations';
 import './notranslate.css';
+import './google-translate.css';
 import './App.css';
 
 function SidebarIcon({ name }) {
@@ -160,6 +162,7 @@ function AppContent() {
     { path: '/salers', label: 'Salers', icon: 'profile' },
     { path: '/cars', label: 'Collection', icon: 'categories' },
     { path: '/auctions', label: 'Auctions', icon: 'orders' },
+    { path: '/transactions', label: 'Transactions', icon: 'expenses' },
     { path: '/restaurants', label: 'Restaurants', icon: 'expenses' },
     { path: '/company-accounts', label: 'Accounts', icon: 'expenses' },
     { path: '/export', label: t.dataExport, icon: 'export' },
@@ -176,7 +179,6 @@ function AppContent() {
   return (
     <div className="app-container">
       <GoogleTranslateInitializer />
-      <div id="google_translate_element" className="google-translate-wrapper"></div>
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'collapsed'}`}>
         <div className="sidebar-header">
           <h1>{sidebarOpen && t.appTitle}</h1>
@@ -212,6 +214,9 @@ function AppContent() {
         </div>
       </aside>
       <main className="main-content">
+        <div className="main-topbar">
+          <div id="google_translate_element" className="google-translate-wrapper"></div>
+        </div>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard language={language} />} />
@@ -236,6 +241,7 @@ function AppContent() {
           <Route path="/salers" element={<SalerManager />} />
           <Route path="/cars" element={<CarManager />} />
           <Route path="/auctions" element={<AuctionManager />} />
+          <Route path="/transactions" element={<TransactionManager />} />
           <Route path="/restaurants" element={<RestaurantManager />} />
           <Route path="/company-accounts" element={<CompanyAccountManager />} />
           <Route path="/export" element={<DataExport language={language} />} />
