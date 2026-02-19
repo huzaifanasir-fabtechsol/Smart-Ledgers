@@ -12,9 +12,12 @@ import SalerManager from './components/SalerManager';
 import CompanyAccountManager from './components/CompanyAccountManager';
 import AuctionManager from './components/AuctionManager';
 import CarManager from './components/CarManager';
+import RestaurantManager from './components/RestaurantManager';
 import Login from './components/Login';
 import ProfileSettings from './components/ProfileSettings';
+import GoogleTranslateInitializer from './components/GoogleTranslateInitializer';
 import { translations } from './translations';
+import './notranslate.css';
 import './App.css';
 
 function SidebarIcon({ name }) {
@@ -157,6 +160,7 @@ function AppContent() {
     { path: '/salers', label: 'Salers', icon: 'profile' },
     { path: '/cars', label: 'Collection', icon: 'categories' },
     { path: '/auctions', label: 'Auctions', icon: 'orders' },
+    { path: '/restaurants', label: 'Restaurants', icon: 'expenses' },
     { path: '/company-accounts', label: 'Accounts', icon: 'expenses' },
     { path: '/export', label: t.dataExport, icon: 'export' },
     { path: '/profile', label: 'Profile', icon: 'profile' },
@@ -171,6 +175,8 @@ function AppContent() {
 
   return (
     <div className="app-container">
+      <GoogleTranslateInitializer />
+      <div id="google_translate_element" className="google-translate-wrapper"></div>
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'collapsed'}`}>
         <div className="sidebar-header">
           <h1>{sidebarOpen && t.appTitle}</h1>
@@ -230,6 +236,7 @@ function AppContent() {
           <Route path="/salers" element={<SalerManager />} />
           <Route path="/cars" element={<CarManager />} />
           <Route path="/auctions" element={<AuctionManager />} />
+          <Route path="/restaurants" element={<RestaurantManager />} />
           <Route path="/company-accounts" element={<CompanyAccountManager />} />
           <Route path="/export" element={<DataExport language={language} />} />
           <Route path="/profile" element={<ProfileSettings onUserUpdate={handleUserUpdate} />} />

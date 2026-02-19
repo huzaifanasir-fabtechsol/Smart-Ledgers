@@ -23,6 +23,11 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
   const [selectedSaler, setSelectedSaler] = useState(null);
   const [companyAccounts, setCompanyAccounts] = useState([]);
   const [selectedCompanyAccount, setSelectedCompanyAccount] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [transactionSearch, setTransactionSearch] = useState('');
+  const [transactionDate, setTransactionDate] = useState('');
   const [auctions, setAuctions] = useState([]);
   const [cars, setCars] = useState([]);
   const [filteredCars, setFilteredCars] = useState([]);
@@ -209,6 +214,26 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     }
   };
 
+  const fetchTransactions = async (accountId) => {
+    if (!accountId) return;
+    setLoadingTransactions(true);
+    try {
+      const params = new URLSearchParams({ account_id: accountId });
+      if (transactionSearch) params.append('search', transactionSearch);
+      if (transactionDate) params.append('date', transactionDate);
+      
+      const response = await apiRequest(`/expenses/available_transactions/?${params}`);
+      if (!response.ok) throw new Error('Failed to load transactions');
+      const data = await response.json();
+      setTransactions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast.error(error.message || 'Failed to load transactions');
+      setTransactions([]);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
   const addItem = () => {
     if (!currentItem.category) {
       toast.error('Please select a car name');
@@ -283,7 +308,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     try {
       const response = await apiRequest('/revenue/orders/create_with_items/', {
         method: 'POST',
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          transaction: selectedTransaction && selectedTransaction.id ? selectedTransaction.id : null
+        })
       });
       if (!response.ok) {
         throw new Error('Order creation failed');
@@ -336,7 +364,13 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
           </div>
           <div className="form-group">
             <label>{t.date}</label>
-            <input type="date" value={formData.transaction_date} onChange={(e) => setFormData({...formData, transaction_date: e.target.value})} />
+            <input 
+              type="date" 
+              value={formData.transaction_date} 
+              onChange={(e) => setFormData({...formData, transaction_date: e.target.value})} 
+              readOnly={selectedTransaction && selectedTransaction.id}
+              style={selectedTransaction && selectedTransaction.id ? {backgroundColor: '#f3f4f6', cursor: 'not-allowed'} : {}}
+            />
           </div>
           <div className="form-group">
             <label>Category</label>
@@ -351,10 +385,19 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
           <label>Company Bank Account</label>
           <select
             value={formData.company_account_id || ''}
-            onChange={(e) => setFormData({
-              ...formData,
-              company_account_id: e.target.value ? Number(e.target.value) : null
-            })}
+            onChange={(e) => {
+              const accountId = e.target.value ? Number(e.target.value) : null;
+              setFormData({
+                ...formData,
+                company_account_id: accountId
+              });
+              if (accountId) {
+                fetchTransactions(accountId);
+              } else {
+                setTransactions([]);
+                setSelectedTransaction(null);
+              }
+            }}
           >
             <option value="">Select Account</option>
             {companyAccounts.map(a => <option key={a.id} value={a.id}>{a.bank_name} - {a.account_number}</option>)}
@@ -388,6 +431,74 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
               <label>Company SWIFT Code</label>
               <input type="text" value={selectedCompanyAccount.swift_code || ''} readOnly />
             </div>
+          </div>
+        )}
+
+        {formData.company_account_id && !selectedTransaction && (
+          <div style={{marginBottom: '1.5rem'}}>
+            <h4 style={{marginBottom: '1rem'}}>Select Transaction (Optional)</h4>
+            <div className="form-row">
+              <div className="form-group">
+                <input
+                  type="text"
+                  placeholder="Search transactions..."
+                  value={transactionSearch}
+                  onChange={(e) => setTransactionSearch(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <input
+                  type="date"
+                  value={transactionDate}
+                  onChange={(e) => setTransactionDate(e.target.value)}
+                />
+              </div>
+              <button type="button" className="btn-secondary" onClick={() => fetchTransactions(formData.company_account_id)}>Search</button>
+            </div>
+            
+            {loadingTransactions ? (
+              <div>Loading transactions...</div>
+            ) : (
+              <div style={{maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+                {transactions.map(t => (
+                  <div
+                    key={t.id}
+                    onClick={() => {
+                      setSelectedTransaction(t);
+                      const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.vehicle_price || 0), 0);
+                      if (totalAmount === 0) {
+                        setFormData(prev => ({ ...prev, transaction_date: t.date }));
+                      }
+                    }}
+                    style={{
+                      padding: '0.75rem',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #f3f4f6',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                  >
+                    <div style={{fontWeight: '500'}}>{t.description}</div>
+                    <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
+                      {t.date} - ${Number(t.withdraw).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+                {transactions.length === 0 && (
+                  <div style={{padding: '1rem', textAlign: 'center', color: '#9ca3af'}}>No transactions found</div>
+                )}
+              </div>
+            )}
+            <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction({})} style={{marginTop: '1rem', width: '100%'}}>Skip - Add Order Without Transaction</button>
+          </div>
+        )}
+
+        {selectedTransaction && selectedTransaction.id && (
+          <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '1rem'}}>
+            <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
+            <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ${Number(selectedTransaction.withdraw).toLocaleString()}</div>
+            <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}>Change Transaction</button>
           </div>
         )}
 

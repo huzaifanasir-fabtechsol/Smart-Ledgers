@@ -13,6 +13,26 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Hide Google Translate elements */
+iframe.skiptranslate {
+  display: none !important;
+}
+.VIpgJd-ZVi9od-aZ2wEe {
+  display: none !important;
+}
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf {
+  display: none !important;
+}
+#goog-gt-original-text {
+  display: none !important;
+}
+.VIpgJd-yAWNEb-hvhgNd {
+  display: none !important;
+}
+body > .skiptranslate {
+  display: none !important;
+}
+
 a {
   font-weight: 500;
   color: #646cff;

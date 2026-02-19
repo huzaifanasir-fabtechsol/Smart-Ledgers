@@ -3,6 +3,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './ExpenseManager.css';
 
 const CATEGORY_INITIAL_FORM = {
@@ -57,6 +59,16 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [savingCategory, setSavingCategory] = useState(false);
   const [savingExpense, setSavingExpense] = useState(false);
 
+  const [transactions, setTransactions] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [transactionSearch, setTransactionSearch] = useState('');
+  const [transactionDate, setTransactionDate] = useState('');
+  const [companyAccounts, setCompanyAccounts] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [restaurants, setRestaurants] = useState([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+
   const [categoryPage, setCategoryPage] = useState(1);
   const [expensePage, setExpensePage] = useState(1);
   const itemsPerPage = 10;
@@ -73,6 +85,8 @@ const ExpenseManager = ({ language = 'en' }) => {
   useEffect(() => {
     fetchCategories();
     fetchExpenses();
+    fetchCompanyAccounts();
+    fetchRestaurants();
   }, []);
 
   useEffect(() => {
@@ -123,6 +137,50 @@ const ExpenseManager = ({ language = 'en' }) => {
     }
   };
 
+  const fetchCompanyAccounts = async () => {
+    try {
+      const response = await apiRequest('/revenue/company-accounts/');
+      if (!response.ok) throw new Error('Failed to load accounts');
+      const data = await response.json();
+      setCompanyAccounts(Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast.error(error.message || 'Failed to load accounts');
+      setCompanyAccounts([]);
+    }
+  };
+
+  const fetchRestaurants = async () => {
+    try {
+      const response = await apiRequest('/restaurants/');
+      if (!response.ok) throw new Error('Failed to load restaurants');
+      const data = await response.json();
+      setRestaurants(Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast.error(error.message || 'Failed to load restaurants');
+      setRestaurants([]);
+    }
+  };
+
+  const fetchTransactions = async (accountId) => {
+    if (!accountId) return;
+    setLoadingTransactions(true);
+    try {
+      const params = new URLSearchParams({ account_id: accountId });
+      if (transactionSearch) params.append('search', transactionSearch);
+      if (transactionDate) params.append('date', transactionDate);
+      
+      const response = await apiRequest(`/expenses/available_transactions/?${params}`);
+      if (!response.ok) throw new Error('Failed to load transactions');
+      const data = await response.json();
+      setTransactions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast.error(error.message || 'Failed to load transactions');
+      setTransactions([]);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
       const expenseCategoryName = expense.category_name || '';
@@ -170,6 +228,9 @@ const ExpenseManager = ({ language = 'en' }) => {
   const openCreateExpenseModal = () => {
     setEditingExpense(null);
     setExpenseForm(EXPENSE_INITIAL_FORM);
+    setSelectedTransaction(null);
+    setSelectedAccount(null);
+    setTransactions([]);
     setShowExpenseModal(true);
   };
 
@@ -241,6 +302,9 @@ const ExpenseManager = ({ language = 'en' }) => {
       category: value,
       category_name: selectedCategory?.name || '',
     }));
+    if (selectedCategory?.name.toLowerCase().includes('food')) {
+      setSelectedRestaurant(null);
+    }
   };
 
   const handleExpenseSubmit = async (event) => {
@@ -275,6 +339,8 @@ const ExpenseManager = ({ language = 'en' }) => {
         date: expenseForm.date,
         category: Number(expenseForm.category),
         category_name: expenseForm.category_name,
+        transaction: selectedTransaction ? selectedTransaction.id : null,
+        restaurant: selectedRestaurant ? selectedRestaurant.id : null,
       };
 
       const response = await apiRequest(endpoint, {
@@ -291,6 +357,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       setShowExpenseModal(false);
       setExpenseForm(EXPENSE_INITIAL_FORM);
       setEditingExpense(null);
+      setSelectedTransaction(null);
       await fetchExpenses();
     } catch (error) {
       toast.error(error.message || 'Failed to save expense');
@@ -321,6 +388,96 @@ const ExpenseManager = ({ language = 'en' }) => {
     setExpensePage(1);
   };
 
+  const exportToPDF = async () => {
+    if (filteredExpenses.length === 0) {
+      toast.error('No expenses to export');
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Title
+      doc.setFontSize(18);
+      doc.text('Expense Invoice', pageWidth / 2, 20, { align: 'center' });
+      
+      // Filters info
+      doc.setFontSize(10);
+      let yPos = 35;
+      
+      if (filterDate) {
+        doc.text(`Date: ${filterDate}`, 14, yPos);
+        yPos += 6;
+      }
+      
+      if (filterCategory) {
+        const catName = categories.find(c => String(c.id) === String(filterCategory))?.name || '';
+        doc.text(`Category: ${catName}`, 14, yPos);
+        yPos += 6;
+      }
+      
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, yPos);
+      yPos += 10;
+      
+      // Table
+      const tableData = filteredExpenses.map((expense, idx) => [
+        idx + 1,
+        expense.date,
+        expense.title,
+        expense.category_name || '-',
+        expense.description || '-',
+        `$${Number(expense.amount || 0).toLocaleString()}`
+      ]);
+      
+      const total = filteredExpenses.reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+      
+      autoTable(doc, {
+        startY: yPos,
+        head: [[
+          'Sr',
+          'Date',
+          'Title',
+          'Category',
+          'Description',
+          'Amount'
+        ]],
+        body: tableData,
+        foot: [['', '', '', '', 'Total:', `$${total.toLocaleString()}`]],
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246], fontSize: 9 },
+        footStyles: { fillColor: [243, 244, 246], textColor: [0, 0, 0], fontStyle: 'bold' },
+        styles: { fontSize: 8, cellPadding: 3 },
+        columnStyles: {
+          0: { cellWidth: 15 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 50 },
+          5: { cellWidth: 25, halign: 'right' }
+        },
+        didDrawPage: (data) => {
+          const pageCount = doc.internal.getNumberOfPages();
+          const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+          doc.setFontSize(8);
+          doc.text(
+            `Page ${pageNumber} of ${pageCount}`,
+            pageWidth / 2,
+            doc.internal.pageSize.getHeight() - 10,
+            { align: 'center' }
+          );
+        }
+      });
+      
+      const fileName = `expenses_${new Date().getTime()}.pdf`;
+      doc.save(fileName);
+      toast.success('PDF exported successfully');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF');
+    }
+  };
+
   return (
     <div className="expense-manager">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -341,7 +498,7 @@ const ExpenseManager = ({ language = 'en' }) => {
               <thead>
                 <tr>
                   <th>Sr</th>
-                  <th>{t.categoryName}</th>
+                  <th>Category</th>
                   <th>{t.description}</th>
                   <th style={{width: '60px'}}>{t.actions}</th>
                 </tr>
@@ -387,9 +544,14 @@ const ExpenseManager = ({ language = 'en' }) => {
       <div className="table-section">
         <div className="table-header">
           <h3>{t.expenses}</h3>
-          <button className="btn-primary" onClick={openCreateExpenseModal}>
-            {t.addExpense}
-          </button>
+          <div style={{display: 'flex', gap: '0.5rem'}}>
+            <button className="btn-secondary" onClick={exportToPDF}>
+              📄 Export PDF
+            </button>
+            <button className="btn-primary" onClick={openCreateExpenseModal}>
+              {t.addExpense}
+            </button>
+          </div>
         </div>
         <div className="filters">
           <input
@@ -433,6 +595,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <th>Title</th>
                   <th>{t.category}</th>
                   <th>{t.description}</th>
+                  <th>Transaction</th>
                   <th>{t.amount}</th>
                   <th style={{width: '60px'}}>{t.actions}</th>
                 </tr>
@@ -445,6 +608,15 @@ const ExpenseManager = ({ language = 'en' }) => {
                     <td>{expense.title}</td>
                     <td>{expense.category_name || '-'}</td>
                     <td>{expense.description || '-'}</td>
+                    <td>
+                      {expense.transaction ? (
+                        <span className="transaction-link" title={expense.transaction.description}>
+                          💳 ${Number(expense.transaction.withdraw || 0).toLocaleString()}
+                        </span>
+                      ) : (
+                        <span className="no-transaction">-</span>
+                      )}
+                    </td>
                     <td className="amount-cell">${Number(expense.amount || 0).toLocaleString()}</td>
                     <td>
                       <button className="btn-menu" onClick={(e) => handleMenuClick(e, expense.id, 'expense')}>⋮</button>
@@ -453,7 +625,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 ))}
                 {paginatedExpenses.length === 0 && (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: 'center' }}>
+                    <td colSpan="8" style={{ textAlign: 'center' }}>
                       No expenses found
                     </td>
                   </tr>
@@ -495,7 +667,7 @@ const ExpenseManager = ({ language = 'en' }) => {
             <h3>{editingCategory ? 'Edit Category' : t.addNewCategory}</h3>
             <form onSubmit={handleCategorySubmit}>
               <div className="form-group">
-                <label>{t.categoryName}</label>
+                <label>Category Name</label>
                 <input
                   type="text"
                   placeholder={t.categoryPlaceholder}
@@ -530,9 +702,95 @@ const ExpenseManager = ({ language = 'en' }) => {
         <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingExpense ? 'Edit Expense' : t.addNewExpense}</h3>
-            <form onSubmit={handleExpenseSubmit}>
-              <div className="form-row">
+            
+            {!editingExpense && !selectedTransaction && (
+              <div style={{marginBottom: '1.5rem'}}>
+                <h4 style={{marginBottom: '1rem'}}>Select Company Account</h4>
                 <div className="form-group">
+                  <select
+                    value={selectedAccount || ''}
+                    onChange={(e) => {
+                      setSelectedAccount(e.target.value);
+                      fetchTransactions(e.target.value);
+                    }}
+                    required
+                  >
+                    <option value="">Select Account</option>
+                    {companyAccounts.map(acc => (
+                      <option key={acc.id} value={acc.id}>{acc.bank_name} - {acc.account_number}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedAccount && (
+                  <>
+                    <h4 style={{marginBottom: '1rem', marginTop: '1.5rem'}}>Select Transaction (Optional)</h4>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          placeholder="Search transactions..."
+                          value={transactionSearch}
+                          onChange={(e) => setTransactionSearch(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <input
+                          type="date"
+                          value={transactionDate}
+                          onChange={(e) => setTransactionDate(e.target.value)}
+                        />
+                      </div>
+                      <button type="button" className="btn-secondary" onClick={() => fetchTransactions(selectedAccount)}>Search</button>
+                    </div>
+                    
+                    {loadingTransactions ? (
+                      <div>Loading transactions...</div>
+                    ) : (
+                      <div style={{maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+                        {transactions.map(t => (
+                          <div
+                            key={t.id}
+                            onClick={() => {
+                              setSelectedTransaction(t);
+                              setExpenseForm(prev => ({ ...prev, amount: t.withdraw, date: t.date }));
+                            }}
+                            style={{
+                              padding: '0.75rem',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid #f3f4f6',
+                              transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                          >
+                            <div style={{fontWeight: '500'}}>{t.description}</div>
+                            <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
+                              {t.date} - ${Number(t.withdraw).toLocaleString()}
+                            </div>
+                          </div>
+                        ))}
+                        {transactions.length === 0 && (
+                          <div style={{padding: '1rem', textAlign: 'center', color: '#9ca3af'}}>No transactions found</div>
+                        )}
+                      </div>
+                    )}
+                    <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction({})} style={{marginTop: '1rem', width: '100%'}}>Skip - Add Expense Without Transaction</button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {(selectedTransaction || editingExpense) && (
+              <form onSubmit={handleExpenseSubmit}>
+                {selectedTransaction && selectedTransaction.id && (
+                  <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '1rem'}}>
+                    <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
+                    <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ${Number(selectedTransaction.withdraw).toLocaleString()}</div>
+                  </div>
+                )}
+                <div className="form-row">
+                  <div className="form-group">
                   <label>Title</label>
                   <input
                     type="text"
@@ -551,6 +809,8 @@ const ExpenseManager = ({ language = 'en' }) => {
                     step="0.01"
                     min="0"
                     required
+                    readOnly={selectedTransaction && selectedTransaction.id}
+                    style={selectedTransaction && selectedTransaction.id ? {backgroundColor: '#f3f4f6', cursor: 'not-allowed'} : {}}
                   />
                 </div>
               </div>
@@ -577,9 +837,25 @@ const ExpenseManager = ({ language = 'en' }) => {
                     value={expenseForm.date}
                     onChange={(e) => setExpenseForm((prev) => ({ ...prev, date: e.target.value }))}
                     required
+                    readOnly={selectedTransaction && selectedTransaction.id}
+                    style={selectedTransaction && selectedTransaction.id ? {backgroundColor: '#f3f4f6', cursor: 'not-allowed'} : {}}
                   />
                 </div>
               </div>
+              {expenseForm.category && categories.find(c => c.id === Number(expenseForm.category))?.name.toLowerCase().includes('food') && (
+                <div className="form-group">
+                  <label>Restaurant (Optional)</label>
+                  <select
+                    value={selectedRestaurant?.id || ''}
+                    onChange={(e) => setSelectedRestaurant(restaurants.find(r => r.id === Number(e.target.value)))}
+                  >
+                    <option value="">Select Restaurant</option>
+                    {restaurants.map(r => (
+                      <option key={r.id} value={r.id}>{r.name} - {r.location}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="form-group">
                 <label>{t.description}</label>
                 <textarea
@@ -598,6 +874,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}

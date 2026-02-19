@@ -246,6 +246,7 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
                   <th>Name</th>
                   <th>Phone</th>
                   <th>{t.items}</th>
+                  <th>Transaction</th>
                   <th>{t.paymentStatus}</th>
                   <th>{t.totalAmount}</th>
                   <th style={{width: '60px'}}>{t.actions}</th>
@@ -262,6 +263,15 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
                       <td>{contact.name}</td>
                       <td>{contact.phone}</td>
                       <td>{order.items?.length || 0}</td>
+                      <td>
+                        {order.transaction ? (
+                          <span className="transaction-link" title={order.transaction.description}>
+                            💳 ${Number(order.transaction.withdraw || 0).toLocaleString()}
+                          </span>
+                        ) : (
+                          <span className="no-transaction">-</span>
+                        )}
+                      </td>
                       <td><span className={`status-badge status-${order.payment_status}`} onClick={() => handleEditStatus(order)} style={{cursor: 'pointer'}}>{t[order.payment_status]}</span></td>
                       <td>${order.items?.reduce((sum, item) => sum + (Number(item.vehicle_price) || 0), 0).toLocaleString()}</td>
                       <td>

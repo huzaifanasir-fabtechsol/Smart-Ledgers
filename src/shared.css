@@ -689,3 +689,27 @@ tbody tr:last-child td {
 *::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+/* Transaction Display Styles */
+.transaction-link {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.transaction-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.no-transaction {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 0.875rem;
+}

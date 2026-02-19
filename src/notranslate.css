@@ -1,0 +1,11 @@
+/* Prevent Google Translate from translating user input data */
+input.notranslate,
+textarea.notranslate,
+.notranslate {
+  translate: no;
+}
+
+/* Additional attribute for better browser support */
+[translate="no"] {
+  translate: no;
+}
