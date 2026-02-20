@@ -61,7 +61,7 @@ const Dashboard = ({ language = 'en' }) => {
 
       <div className="table-section">
         <div className="table-header">
-          <h3>Latest Orders</h3>
+          <h3>Latest Invoices</h3>
         </div>
         <div className="table-container">
           <table>
