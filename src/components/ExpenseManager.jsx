@@ -5,6 +5,7 @@ import { translations } from '../translations';
 import { apiRequest } from '../api';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import DateInput from './DateInput';
 import './ExpenseManager.css';
 
 const CATEGORY_INITIAL_FORM = {
@@ -508,11 +509,11 @@ const ExpenseManager = ({ language = 'en' }) => {
               </option>
             ))}
           </select>
-          <input
-            type="date"
+          <DateInput
             value={filterDate}
             onChange={(e) => handleDateFilterChange(e.target.value)}
             className="filter-input"
+            id="myDate"
           />
           <button onClick={handleClearFilters} className="btn-secondary">
             {t.clear}
@@ -704,179 +705,9 @@ const ExpenseManager = ({ language = 'en' }) => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingExpense ? 'Edit Expense' : t.addNewExpense}</h3>
             
-            {!editingExpense && !selectedTransaction && (
-              <div style={{marginBottom: '1.5rem'}}>
-                <h4 style={{marginBottom: '1rem'}}>Select Company Account (Optional)</h4>
+            <form onSubmit={handleExpenseSubmit}>
+              <div className="form-row">
                 <div className="form-group">
-                  <select
-                    value={selectedAccount || ''}
-                    onChange={(e) => {
-                      setSelectedAccount(e.target.value);
-                      if (e.target.value) {
-                        fetchTransactions(e.target.value);
-                      } else {
-                        setTransactions([]);
-                      }
-                    }}
-                  >
-                    <option value="">Select Account</option>
-                    {companyAccounts.map(acc => (
-                      <option key={acc.id} value={acc.id}>{acc.bank_name} - {acc.account_number}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {selectedAccount && (
-                  <>
-                    <h4 style={{marginBottom: '1rem', marginTop: '1.5rem'}}>Select Transaction (Optional)</h4>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          placeholder="Search transactions..."
-                          value={transactionSearch}
-                          onChange={(e) => setTransactionSearch(e.target.value)}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <input
-                          type="date"
-                          value={transactionDate}
-                          onChange={(e) => setTransactionDate(e.target.value)}
-                        />
-                      </div>
-                      <button type="button" className="btn-secondary" onClick={() => fetchTransactions(selectedAccount)}>Search</button>
-                    </div>
-                    
-                    {loadingTransactions ? (
-                      <div>Loading transactions...</div>
-                    ) : (
-                      <div style={{maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
-                        {transactions.map(t => (
-                          <div
-                            key={t.id}
-                            onClick={() => {
-                              setSelectedTransaction(t);
-                              setExpenseForm(prev => ({ ...prev, amount: t.withdraw, date: t.date }));
-                            }}
-                            style={{
-                              padding: '0.75rem',
-                              cursor: 'pointer',
-                              borderBottom: '1px solid #f3f4f6',
-                              transition: 'background 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                          >
-                            <div style={{fontWeight: '500'}}>{t.description}</div>
-                            <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
-                              {t.date} - ¥{Number(t.withdraw).toLocaleString()}
-                            </div>
-                          </div>
-                        ))}
-                        {transactions.length === 0 && (
-                          <div style={{padding: '1rem', textAlign: 'center', color: '#9ca3af'}}>No transactions found</div>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-                {!selectedAccount && (
-                  <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction({})} style={{marginTop: '1rem', width: '100%'}}>Skip - Add Expense Without Account</button>
-                )}
-              </div>
-            )}
-
-            {(selectedTransaction || editingExpense) && (
-              <form onSubmit={handleExpenseSubmit}>
-                {editingExpense && (
-                  <div style={{marginBottom: '1.5rem'}}>
-                    <h4 style={{marginBottom: '1rem'}}>Update Transaction (Optional)</h4>
-                    <div className="form-group">
-                      <select
-                        value={selectedAccount || ''}
-                        onChange={(e) => {
-                          setSelectedAccount(e.target.value);
-                          if (e.target.value) {
-                            fetchTransactions(e.target.value);
-                          } else {
-                            setTransactions([]);
-                            setSelectedTransaction(null);
-                          }
-                        }}
-                      >
-                        <option value="">Select Account</option>
-                        {companyAccounts.map(acc => (
-                          <option key={acc.id} value={acc.id}>{acc.bank_name} - {acc.account_number}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {selectedAccount && (
-                      <>
-                        <div className="form-row">
-                          <div className="form-group">
-                            <input
-                              type="text"
-                              placeholder="Search transactions..."
-                              value={transactionSearch}
-                              onChange={(e) => setTransactionSearch(e.target.value)}
-                            />
-                          </div>
-                          <div className="form-group">
-                            <input
-                              type="date"
-                              value={transactionDate}
-                              onChange={(e) => setTransactionDate(e.target.value)}
-                            />
-                          </div>
-                          <button type="button" className="btn-secondary" onClick={() => fetchTransactions(selectedAccount)}>Search</button>
-                        </div>
-                        
-                        {loadingTransactions ? (
-                          <div>Loading transactions...</div>
-                        ) : (
-                          <div style={{maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
-                            {transactions.map(t => (
-                              <div
-                                key={t.id}
-                                onClick={() => {
-                                  setSelectedTransaction(t);
-                                  setExpenseForm(prev => ({ ...prev, amount: t.withdraw, date: t.date }));
-                                }}
-                                style={{
-                                  padding: '0.75rem',
-                                  cursor: 'pointer',
-                                  borderBottom: '1px solid #f3f4f6',
-                                  transition: 'background 0.2s',
-                                  background: selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : '#f9fafb'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'}
-                              >
-                                <div style={{fontWeight: '500'}}>{t.description}</div>
-                                <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
-                                  {t.date} - ¥{Number(t.withdraw).toLocaleString()}
-                                </div>
-                              </div>
-                            ))}
-                            {transactions.length === 0 && (
-                              <div style={{padding: '1rem', textAlign: 'center', color: '#9ca3af'}}>No transactions found</div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-                {selectedTransaction && selectedTransaction.id && (
-                  <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '1rem'}}>
-                    <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
-                    <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
-                  </div>
-                )}
-                <div className="form-row">
-                  <div className="form-group">
                   <label>Title</label>
                   <input
                     type="text"
@@ -900,6 +731,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   />
                 </div>
               </div>
+              
               <div className="form-row">
                 <div className="form-group">
                   <label>{t.category}</label>
@@ -918,8 +750,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </div>
                 <div className="form-group">
                   <label>{t.date}</label>
-                  <input
-                    type="date"
+                  <DateInput
                     value={expenseForm.date}
                     onChange={(e) => setExpenseForm((prev) => ({ ...prev, date: e.target.value }))}
                     required
@@ -928,6 +759,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   />
                 </div>
               </div>
+              
               {expenseForm.category && allCategories.find(c => c.id === Number(expenseForm.category))?.name.toLowerCase().includes('food') && (
                 <div className="form-group">
                   <label>Restaurant (Optional)</label>
@@ -942,6 +774,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   </select>
                 </div>
               )}
+              
               <div className="form-group">
                 <label>{t.description}</label>
                 <textarea
@@ -951,6 +784,94 @@ const ExpenseManager = ({ language = 'en' }) => {
                   rows="3"
                 />
               </div>
+              
+              <div style={{borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '1rem'}}>
+                <h4 style={{marginBottom: '1rem'}}>Link Transaction (Optional)</h4>
+                <div className="form-group">
+                  <label>Company Account</label>
+                  <select
+                    value={selectedAccount || ''}
+                    onChange={(e) => {
+                      setSelectedAccount(e.target.value);
+                      setSelectedTransaction(null);
+                      if (e.target.value) {
+                        fetchTransactions(e.target.value);
+                      } else {
+                        setTransactions([]);
+                      }
+                    }}
+                  >
+                    <option value="">Select Account</option>
+                    {companyAccounts.map(acc => (
+                      <option key={acc.id} value={acc.id}>{acc.bank_name} - {acc.account_number}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedAccount && (
+                  <>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          placeholder="Search transactions..."
+                          value={transactionSearch}
+                          onChange={(e) => setTransactionSearch(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <DateInput
+                          value={transactionDate}
+                          onChange={(e) => setTransactionDate(e.target.value)}
+                        />
+                      </div>
+                      <button type="button" className="btn-secondary" onClick={() => fetchTransactions(selectedAccount)}>Search</button>
+                    </div>
+                    
+                    {loadingTransactions ? (
+                      <div>Loading transactions...</div>
+                    ) : (
+                      <div style={{maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+                        {transactions.map(t => (
+                          <div
+                            key={t.id}
+                            onClick={() => {
+                              setSelectedTransaction(t);
+                              setExpenseForm(prev => ({ ...prev, amount: t.withdraw, date: t.date }));
+                            }}
+                            style={{
+                              padding: '0.75rem',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid #f3f4f6',
+                              transition: 'background 0.2s',
+                              background: selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : '#f9fafb'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'}
+                          >
+                            <div style={{fontWeight: '500'}}>{t.description}</div>
+                            <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
+                              {t.date} - ¥{Number(t.withdraw).toLocaleString()}
+                            </div>
+                          </div>
+                        ))}
+                        {transactions.length === 0 && (
+                          <div style={{padding: '1rem', textAlign: 'center', color: '#9ca3af'}}>No transactions found</div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                {selectedTransaction && selectedTransaction.id && (
+                  <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginTop: '1rem'}}>
+                    <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
+                    <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
+                    <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}>Remove Transaction</button>
+                  </div>
+                )}
+              </div>
+              
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowExpenseModal(false)}>
                   {t.cancel}
@@ -960,7 +881,6 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </button>
               </div>
             </form>
-            )}
           </div>
         </div>
       )}
