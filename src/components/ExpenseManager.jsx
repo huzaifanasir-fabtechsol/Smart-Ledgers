@@ -128,10 +128,10 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   const fetchAllCategories = async () => {
     try {
-      const response = await apiRequest('/categories/?page_size=1000');
+      const response = await apiRequest('/categories/all/');
       if (!response.ok) throw new Error('Failed to load all categories');
       const data = await response.json();
-      setAllCategories(data.results || data || []);
+      setAllCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to load all categories');
     }
@@ -240,6 +240,10 @@ const ExpenseManager = ({ language = 'en' }) => {
       category: expense.category ? String(expense.category) : '',
       category_name: expense.category_name || '',
     });
+    if (expense.transaction) {
+      setSelectedTransaction(expense.transaction);
+      setSelectedAccount(expense.transaction.company_account);
+    }
     setShowExpenseModal(true);
     setOpenMenuId(null);
   };
@@ -785,6 +789,86 @@ const ExpenseManager = ({ language = 'en' }) => {
 
             {(selectedTransaction || editingExpense) && (
               <form onSubmit={handleExpenseSubmit}>
+                {editingExpense && (
+                  <div style={{marginBottom: '1.5rem'}}>
+                    <h4 style={{marginBottom: '1rem'}}>Update Transaction (Optional)</h4>
+                    <div className="form-group">
+                      <select
+                        value={selectedAccount || ''}
+                        onChange={(e) => {
+                          setSelectedAccount(e.target.value);
+                          if (e.target.value) {
+                            fetchTransactions(e.target.value);
+                          } else {
+                            setTransactions([]);
+                            setSelectedTransaction(null);
+                          }
+                        }}
+                      >
+                        <option value="">Select Account</option>
+                        {companyAccounts.map(acc => (
+                          <option key={acc.id} value={acc.id}>{acc.bank_name} - {acc.account_number}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedAccount && (
+                      <>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <input
+                              type="text"
+                              placeholder="Search transactions..."
+                              value={transactionSearch}
+                              onChange={(e) => setTransactionSearch(e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <input
+                              type="date"
+                              value={transactionDate}
+                              onChange={(e) => setTransactionDate(e.target.value)}
+                            />
+                          </div>
+                          <button type="button" className="btn-secondary" onClick={() => fetchTransactions(selectedAccount)}>Search</button>
+                        </div>
+                        
+                        {loadingTransactions ? (
+                          <div>Loading transactions...</div>
+                        ) : (
+                          <div style={{maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+                            {transactions.map(t => (
+                              <div
+                                key={t.id}
+                                onClick={() => {
+                                  setSelectedTransaction(t);
+                                  setExpenseForm(prev => ({ ...prev, amount: t.withdraw, date: t.date }));
+                                }}
+                                style={{
+                                  padding: '0.75rem',
+                                  cursor: 'pointer',
+                                  borderBottom: '1px solid #f3f4f6',
+                                  transition: 'background 0.2s',
+                                  background: selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : '#f9fafb'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'}
+                              >
+                                <div style={{fontWeight: '500'}}>{t.description}</div>
+                                <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
+                                  {t.date} - ¥{Number(t.withdraw).toLocaleString()}
+                                </div>
+                              </div>
+                            ))}
+                            {transactions.length === 0 && (
+                              <div style={{padding: '1rem', textAlign: 'center', color: '#9ca3af'}}>No transactions found</div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
                 {selectedTransaction && selectedTransaction.id && (
                   <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '1rem'}}>
                     <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
