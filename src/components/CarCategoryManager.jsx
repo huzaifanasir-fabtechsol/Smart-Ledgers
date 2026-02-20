@@ -187,7 +187,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
               <tbody>
                 {translatedCategories.map((category, index) => (
                   <tr key={category.id}>
-                    <td>{index+1}</td>
+                    <td>{(currentPage - 1) * pageSize + index + 1}</td>
                     <td>{category.company}</td>
                     <td>{category.name}</td>
                     <td>{category.description || '-'}</td>

@@ -265,7 +265,7 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                   const contact = getContactInfo(order);
                   return (
                     <tr key={order.id}>
-                      <td>{index + 1}</td>
+                      <td>{(currentPage - 1) * pageSize + index + 1}</td>
                       <td>{order.transaction_date}</td>
                       <td>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
                       <td>{contact.name}</td>

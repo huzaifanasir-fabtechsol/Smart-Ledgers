@@ -424,7 +424,7 @@ const ExpenseManager = ({ language = 'en' }) => {
     }
   };
   const exportToPDF = async () => {
-    if (filteredExpenses.length === 0) {
+    if (expenses.length === 0) {
       toast.error('No expenses to export');
       return;
     }
@@ -521,7 +521,7 @@ const ExpenseManager = ({ language = 'en' }) => {
               <tbody>
                 {expenses.map((expense, idx) => (
                   <tr key={expense.id}>
-                    <td>{idx + 1}</td>
+                    <td>{(expensePage - 1) * itemsPerPage + idx + 1}</td>
                     <td>{expense.date}</td>
                     <td>{expense.title}</td>
                     <td>{expense.category_name || '-'}</td>
@@ -591,7 +591,7 @@ const ExpenseManager = ({ language = 'en' }) => {
               <tbody>
                 {categories.map((category, index) => (
                   <tr key={category.id}>
-                    <td>{index + 1}</td>
+                    <td>{(categoryPage - 1) * itemsPerPage + index + 1}</td>
                     <td>{category.name}</td>
                     <td>{category.description || '-'}</td>
                     <td>
