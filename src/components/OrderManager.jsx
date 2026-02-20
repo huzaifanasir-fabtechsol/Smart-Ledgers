@@ -266,14 +266,14 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
                       <td>
                         {order.transaction ? (
                           <span className="transaction-link" title={order.transaction.description}>
-                            💳 ${Number(order.transaction.withdraw || 0).toLocaleString()}
+                            💳 ¥{Number(order.transaction.withdraw || 0).toLocaleString()}
                           </span>
                         ) : (
                           <span className="no-transaction">-</span>
                         )}
                       </td>
                       <td><span className={`status-badge status-${order.payment_status}`} onClick={() => handleEditStatus(order)} style={{cursor: 'pointer'}}>{t[order.payment_status]}</span></td>
-                      <td>${order.items?.reduce((sum, item) => sum + (Number(item.vehicle_price) || 0), 0).toLocaleString()}</td>
+                      <td>¥{order.items?.reduce((sum, item) => sum + (Number(item.vehicle_price) || 0), 0).toLocaleString()}</td>
                       <td>
                         <button className="btn-menu" onClick={(e) => handleMenuClick(e, order.id)}>⋮</button>
                       </td>

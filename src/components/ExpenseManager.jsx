@@ -605,13 +605,13 @@ const ExpenseManager = ({ language = 'en' }) => {
                     <td>
                       {expense.transaction ? (
                         <span className="transaction-link" title={expense.transaction.description}>
-                          💳 ${Number(expense.transaction.withdraw || 0).toLocaleString()}
+                          💳 ¥{Number(expense.transaction.withdraw || 0).toLocaleString()}
                         </span>
                       ) : (
                         <span className="no-transaction">-</span>
                       )}
                     </td>
-                    <td className="amount-cell">${Number(expense.amount || 0).toLocaleString()}</td>
+                    <td className="amount-cell">¥{Number(expense.amount || 0).toLocaleString()}</td>
                     <td>
                       <button className="btn-menu" onClick={(e) => handleMenuClick(e, expense.id, 'expense')}>⋮</button>
                     </td>
@@ -767,7 +767,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                           >
                             <div style={{fontWeight: '500'}}>{t.description}</div>
                             <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
-                              {t.date} - ${Number(t.withdraw).toLocaleString()}
+                              {t.date} - ¥{Number(t.withdraw).toLocaleString()}
                             </div>
                           </div>
                         ))}
@@ -787,7 +787,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 {selectedTransaction && selectedTransaction.id && (
                   <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '1rem'}}>
                     <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
-                    <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ${Number(selectedTransaction.withdraw).toLocaleString()}</div>
+                    <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
                   </div>
                 )}
                 <div className="form-row">

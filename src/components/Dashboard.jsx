@@ -43,19 +43,19 @@ const Dashboard = ({ language = 'en' }) => {
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Approved Amount</h3>
-          <div className="amount">${dashboardData.approved_amount?.toLocaleString()}</div>
+          <div className="amount">¥{dashboardData.approved_amount?.toLocaleString()}</div>
         </div>
         <div className="stat-card">
           <h3>Pending Amount</h3>
-          <div className="amount">${dashboardData.pending_amount?.toLocaleString()}</div>
+          <div className="amount">¥{dashboardData.pending_amount?.toLocaleString()}</div>
         </div>
         <div className="stat-card">
           <h3>Total Expense</h3>
-          <div className="amount">${dashboardData.total_expense?.toLocaleString()}</div>
+          <div className="amount">¥{dashboardData.total_expense?.toLocaleString()}</div>
         </div>
         <div className="stat-card">
           <h3>Total Purchase</h3>
-          <div className="amount">${dashboardData.total_purchase?.toLocaleString()}</div>
+          <div className="amount">¥{dashboardData.total_purchase?.toLocaleString()}</div>
         </div>
       </div>
 
@@ -78,8 +78,8 @@ const Dashboard = ({ language = 'en' }) => {
                 <tr key={idx}>
                   <td>{order.transaction_date}</td>
                   <td>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
-                  <td><span className={`status-badge status-${order.payment_status}`}>{order.payment_status}</span></td>
-                  <td>${order.total_amount?.toLocaleString()}</td>
+                  <td><span className={`status-badge status-¥{order.payment_status}`}>{order.payment_status}</span></td>
+                  <td>¥{order.total_amount?.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

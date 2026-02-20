@@ -138,7 +138,7 @@ const DataExport = ({ language = 'en' }) => {
                     <td>{item.transaction_date}</td>
                     <td>{item.transaction_type?.[0].toUpperCase() + item.transaction_type?.slice(1)}</td>
                     <td>{item.payment_status}</td>
-                    <td className="amount-cell">${parseFloat(item.total_amount).toLocaleString()}</td>
+                    <td className="amount-cell">¥{parseFloat(item.total_amount).toLocaleString()}</td>
                   </tr>
                 ))
               )}

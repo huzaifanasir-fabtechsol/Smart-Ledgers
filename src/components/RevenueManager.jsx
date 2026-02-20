@@ -171,7 +171,7 @@ const RevenueManager = ({ language = 'en' }) => {
                   <td><span className={`badge badge-${transaction.type.toLowerCase()}`}>{transaction.type}</span></td>
                   <td>{transaction.carModel}</td>
                   <td>{transaction.customerName}</td>
-                  <td className="amount-cell">${transaction.amount.toLocaleString()}</td>
+                  <td className="amount-cell">¥{transaction.amount.toLocaleString()}</td>
                   <td>{transaction.paymentMethod}</td>
                   <td>
                     <button className="btn-small btn-receipt" onClick={() => handlePrintReceipt(transaction)}>{t.receipt}</button>
@@ -420,7 +420,7 @@ const RevenueManager = ({ language = 'en' }) => {
                   <tbody>
                     <tr>
                       <td>{selectedTransaction.carModel}</td>
-                      <td>${selectedTransaction.amount.toLocaleString()}</td>
+                      <td>¥{selectedTransaction.amount.toLocaleString()}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -435,7 +435,7 @@ const RevenueManager = ({ language = 'en' }) => {
                 </div>
                 <div className="total-row grand-total">
                   <span className="label">{t.totalAmount}:</span>
-                  <span className="value">${selectedTransaction.amount.toLocaleString()}</span>
+                  <span className="value">¥{selectedTransaction.amount.toLocaleString()}</span>
                 </div>
               </div>
 

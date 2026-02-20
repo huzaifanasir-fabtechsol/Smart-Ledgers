@@ -248,12 +248,12 @@ const TransactionManager = () => {
                     <td>{transaction.transaction_id || '-'}</td>
                     <td>{transaction.description}</td>
                     <td className="amount-cell">
-                      {transaction.withdraw > 0 ? `$${Number(transaction.withdraw).toLocaleString()}` : '-'}
+                      {transaction.withdraw > 0 ? `¥${Number(transaction.withdraw).toLocaleString()}` : '-'}
                     </td>
                     <td className="amount-cell">
-                      {transaction.deposit > 0 ? `$${Number(transaction.deposit).toLocaleString()}` : '-'}
+                      {transaction.deposit > 0 ? `¥${Number(transaction.deposit).toLocaleString()}` : '-'}
                     </td>
-                    <td className="amount-cell">${Number(transaction.balance).toLocaleString()}</td>
+                    <td className="amount-cell">¥{Number(transaction.balance).toLocaleString()}</td>
                     <td>
                       {companyAccounts.find(acc => acc.id === transaction.company_account)?.bank_name || '-'}
                     </td>

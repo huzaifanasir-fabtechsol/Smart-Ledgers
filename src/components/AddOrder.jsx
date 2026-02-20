@@ -477,7 +477,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
                   >
                     <div style={{fontWeight: '500'}}>{t.description}</div>
                     <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
-                      {t.date} - ${Number(t.withdraw).toLocaleString()}
+                      {t.date} - ¥{Number(t.withdraw).toLocaleString()}
                     </div>
                   </div>
                 ))}
@@ -493,7 +493,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
         {selectedTransaction && selectedTransaction.id && (
           <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '1rem'}}>
             <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
-            <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ${Number(selectedTransaction.withdraw).toLocaleString()}</div>
+            <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
             <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}>Change Transaction</button>
           </div>
         )}
@@ -812,7 +812,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
                 <div className="item-info">
                   <strong>{categories.find(c => c.id === item.category)?.company} - {categories.find(c => c.id === item.category)?.name} ({item.model})</strong> - {item.chassis_number} ({item.year})
                   <div className="item-details">
-                    {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Price: ${Number(item.vehicle_price).toLocaleString()}
+                    {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Price: ¥{Number(item.vehicle_price).toLocaleString()}
                   </div>
                 </div>
                 <button type="button" className="btn-remove" onClick={() => removeItem(item.id)}>×</button>
