@@ -46,6 +46,7 @@ const ExpenseManager = ({ language = 'en' }) => {
   const t = translations[language];
 
   const [categories, setCategories] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingExpenses, setLoadingExpenses] = useState(false);
@@ -86,6 +87,7 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   useEffect(() => {
     fetchCategories();
+    fetchAllCategories();
     fetchCompanyAccounts();
     fetchRestaurants();
   }, [categoryPage]);
@@ -121,6 +123,17 @@ const ExpenseManager = ({ language = 'en' }) => {
       setCategories([]);
     } finally {
       setLoadingCategories(false);
+    }
+  };
+
+  const fetchAllCategories = async () => {
+    try {
+      const response = await apiRequest('/categories/?page_size=1000');
+      if (!response.ok) throw new Error('Failed to load all categories');
+      const data = await response.json();
+      setAllCategories(data.results || data || []);
+    } catch (error) {
+      console.error('Failed to load all categories');
     }
   };
 
@@ -279,7 +292,7 @@ const ExpenseManager = ({ language = 'en' }) => {
   };
 
   const handleExpenseCategoryChange = (value) => {
-    const selectedCategory = categories.find((cat) => String(cat.id) === String(value));
+    const selectedCategory = allCategories.find((cat) => String(cat.id) === String(value));
     setExpenseForm((prev) => ({
       ...prev,
       category: value,
@@ -485,7 +498,7 @@ const ExpenseManager = ({ language = 'en' }) => {
             className="filter-select"
           >
             <option value="">{t.allCategories}</option>
-            {categories.map((cat) => (
+            {allCategories.map((cat) => (
               <option key={cat.id} value={String(cat.id)}>
                 {cat.name}
               </option>
@@ -812,7 +825,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     required
                   >
                     <option value="">{t.selectCategory}</option>
-                    {categories.map((cat) => (
+                    {allCategories.map((cat) => (
                       <option key={cat.id} value={String(cat.id)}>
                         {cat.name}
                       </option>
@@ -831,7 +844,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   />
                 </div>
               </div>
-              {expenseForm.category && categories.find(c => c.id === Number(expenseForm.category))?.name.toLowerCase().includes('food') && (
+              {expenseForm.category && allCategories.find(c => c.id === Number(expenseForm.category))?.name.toLowerCase().includes('food') && (
                 <div className="form-group">
                   <label>Restaurant (Optional)</label>
                   <select
