@@ -6,7 +6,7 @@ import { apiRequest } from '../api';
 import '../shared.css';
 import './OrderManager.css';
 
-const AddOrder = ({ language = 'en', onSave, onCancel }) => {
+const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) => {
   const t = translations[language];
   const [categories, setCategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
@@ -78,7 +78,11 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     fetchCompanyAccounts();
     fetchAuctions();
     fetchCars();
-  }, []);
+    
+    if (editingOrder) {
+      loadOrderData(editingOrder);
+    }
+  }, [editingOrder]);
 
   useEffect(() => {
     setFilteredCategories(
@@ -149,10 +153,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await apiRequest('/revenue/categories/');
+      const response = await apiRequest('/revenue/categories/all/');
       const data = await response.json();
-      setCategories(data.results || data);
-      setFilteredCategories(data.results || data);
+      setCategories(data);
+      setFilteredCategories(data);
     } catch (error) {
       toast.error('Failed to load categories');
     }
@@ -206,9 +210,66 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     try {
       const response = await apiRequest('/revenue/cars/');
       const data = await response.json();
-      setCars(data.results || data);
+      setCars(data);
     } catch (error) {
       toast.error('Failed to load cars');
+    }
+  };
+
+  const loadOrderData = (order) => {
+    setFormData({
+      transaction_type: order.transaction_type,
+      transaction_date: order.transaction_date,
+      transaction_catagory: order.transaction_catagory,
+      customer_id: order.customer,
+      saler_id: order.saler,
+      company_account_id: order.company_account,
+      auction_id: order.auction,
+      customer_name: order.other_details?.customer_name || '',
+      saler_name: order.other_details?.saler_name || '',
+      seller_name: order.other_details?.seller_name || '',
+      phone: order.other_details?.phone || '',
+      address: order.other_details?.address || '',
+      payment_method: order.other_details?.payment_method || 'Cash',
+      account_number: order.other_details?.account_number || '',
+      auction_house: order.other_details?.auction_house || '',
+      payment_status: order.payment_status,
+      notes: order.notes || '',
+      items: order.items?.map(item => ({
+        id: item.id,
+        category: item.car.category,
+        model: item.car.model,
+        chassis_number: item.car.chassis_number,
+        year: item.car.year,
+        venue: item.venue || '',
+        year_type: item.year_type || '',
+        vehicle_price: item.vehicle_price,
+        recycling_fee: item.recycling_fee,
+        automobile_tax: item.automobile_tax,
+        auction_fee: item.auction_fee,
+        service_fee: item.service_fee,
+        notes: item.notes || ''
+      })) || []
+    });
+    
+    if (order.customer) {
+      const customer = allCustomers.find(c => c.id === order.customer);
+      if (customer) {
+        setSelectedCustomer(customer);
+        setCustomerSearch(customer.name);
+      }
+    }
+    
+    if (order.saler) {
+      const saler = allSalers.find(s => s.id === order.saler);
+      if (saler) {
+        setSelectedSaler(saler);
+        setCustomerSearch(saler.name);
+      }
+    }
+    
+    if (order.transaction) {
+      setSelectedTransaction(order.transaction);
     }
   };
 
@@ -302,20 +363,27 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
 
     setLoading(true);
     try {
-      const response = await apiRequest('/revenue/orders/create_with_items/', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...formData,
-          transaction: selectedTransaction && selectedTransaction.id ? selectedTransaction.id : null
-        })
+      const endpoint = editingOrder 
+        ? `/revenue/orders/${editingOrder.id}/update_with_items/` 
+        : '/revenue/orders/create_with_items/';
+      const method = 'POST';
+      
+      const payload = {
+        ...formData,
+        transaction: selectedTransaction && selectedTransaction.id ? selectedTransaction.id : null
+      };
+      
+      const response = await apiRequest(endpoint, {
+        method,
+        body: JSON.stringify(payload)
       });
       if (!response.ok) {
-        throw new Error('Order creation failed');
+        throw new Error('Order operation failed');
       }
-      toast.success('Order created successfully');
+      toast.success(editingOrder ? 'Order updated successfully' : 'Order created successfully');
       setTimeout(() => onSave(), 900);
     } catch (error) {
-      toast.error('Failed to create order');
+      toast.error(editingOrder ? 'Failed to update order' : 'Failed to create order');
     } finally {
       setLoading(false);
     }
@@ -344,7 +412,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     <div className="order-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
-        <h2>{t.addNewOrder}</h2>
+        <h2>{editingOrder ? 'Edit Order' : t.addNewOrder}</h2>
         <button className="btn-secondary" onClick={onCancel}>{t.cancel}</button>
       </div>
 
@@ -807,24 +875,27 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
           </div>
 
           <div className="items-list">
-            {formData.items.map((item) => (
-              <div key={item.id} className="item-card">
-                <div className="item-info">
-                  <strong>{categories.find(c => c.id === item.category)?.company} - {categories.find(c => c.id === item.category)?.name} ({item.model})</strong> - {item.chassis_number} ({item.year})
-                  <div className="item-details">
-                    {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Price: ¥{Number(item.vehicle_price).toLocaleString()}
+            {formData.items.map((item) => {
+              const category = categories.find(c => c.id === item.category);
+              return (
+                <div key={item.id} className="item-card">
+                  <div className="item-info">
+                    <strong>{category?.company} - {category?.name} ({item.model})</strong> - {item.chassis_number} ({item.year})
+                    <div className="item-details">
+                      {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Price: ¥{Number(item.vehicle_price).toLocaleString()}
+                    </div>
                   </div>
+                  <button type="button" className="btn-remove" onClick={() => removeItem(item.id)}>×</button>
                 </div>
-                <button type="button" className="btn-remove" onClick={() => removeItem(item.id)}>×</button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         <div className="form-actions">
           <button type="button" className="btn-secondary" onClick={onCancel} disabled={loading}>{t.cancel}</button>
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Saving...' : t.addOrder}
+            {loading ? 'Saving...' : editingOrder ? 'Update Order' : t.addOrder}
           </button>
         </div>
       </form>

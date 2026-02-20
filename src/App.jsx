@@ -224,13 +224,30 @@ function AppContent() {
           <Route path="/revenue" element={<RevenueManager language={language} />} />
           <Route
             path="/orders"
-            element={<OrderManager language={language} onAddOrder={() => navigate('/orders/add')} />}
+            element={
+              <OrderManager 
+                language={language} 
+                onAddOrder={() => navigate('/orders/add')} 
+                onEditOrder={(order) => navigate('/orders/edit', { state: { order } })}
+              />
+            }
           />
           <Route
             path="/orders/add"
             element={
               <AddOrder
                 language={language}
+                onSave={() => navigate('/orders')}
+                onCancel={() => navigate('/orders')}
+              />
+            }
+          />
+          <Route
+            path="/orders/edit"
+            element={
+              <AddOrder
+                language={language}
+                editingOrder={location.state?.order}
                 onSave={() => navigate('/orders')}
                 onCancel={() => navigate('/orders')}
               />

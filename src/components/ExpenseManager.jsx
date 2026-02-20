@@ -478,65 +478,6 @@ const ExpenseManager = ({ language = 'en' }) => {
 
       <div className="table-section">
         <div className="table-header">
-          <h3>{t.categories}</h3>
-          <button className="btn-primary" onClick={openCreateCategoryModal}>
-            {t.addCategory}
-          </button>
-        </div>
-
-        <div className="table-container">
-          {loadingCategories ? (
-            <div className="loader">Loading categories...</div>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Sr</th>
-                  <th>Category</th>
-                  <th>{t.description}</th>
-                  <th style={{width: '60px'}}>{t.actions}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedCategories.map((category, index) => (
-                  <tr key={category.id}>
-                    <td>{index + 1}</td>
-                    <td>{category.name}</td>
-                    <td>{category.description || '-'}</td>
-                    <td>
-                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, category.id, 'category')}>⋮</button>
-                    </td>
-                  </tr>
-                ))}
-                {paginatedCategories.length === 0 && (
-                  <tr>
-                    <td colSpan="4" style={{ textAlign: 'center' }}>
-                      No categories found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
-        <div className="pagination">
-          <button onClick={() => setCategoryPage((p) => Math.max(1, p - 1))} disabled={categoryPage === 1}>
-            {t.previous}
-          </button>
-          <span>
-            {t.page} {categoryPage} {t.of} {totalCategoryPages}
-          </span>
-          <button
-            onClick={() => setCategoryPage((p) => Math.min(totalCategoryPages, p + 1))}
-            disabled={categoryPage === totalCategoryPages}
-          >
-            {t.next}
-          </button>
-        </div>
-      </div>
-
-      <div className="table-section">
-        <div className="table-header">
           <h3>{t.expenses}</h3>
           <div style={{display: 'flex', gap: '0.5rem'}}>
             <button className="btn-secondary" onClick={exportToPDF}>
@@ -643,6 +584,65 @@ const ExpenseManager = ({ language = 'en' }) => {
           </button>
         </div>
       </div>
+      <div className="table-section">
+        <div className="table-header">
+          <h3>{t.categories}</h3>
+          <button className="btn-primary" onClick={openCreateCategoryModal}>
+            {t.addCategory}
+          </button>
+        </div>
+
+        <div className="table-container">
+          {loadingCategories ? (
+            <div className="loader">Loading categories...</div>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Sr</th>
+                  <th>Category</th>
+                  <th>{t.description}</th>
+                  <th style={{width: '60px'}}>{t.actions}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedCategories.map((category, index) => (
+                  <tr key={category.id}>
+                    <td>{index + 1}</td>
+                    <td>{category.name}</td>
+                    <td>{category.description || '-'}</td>
+                    <td>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, category.id, 'category')}>⋮</button>
+                    </td>
+                  </tr>
+                ))}
+                {paginatedCategories.length === 0 && (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center' }}>
+                      No categories found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+        <div className="pagination">
+          <button onClick={() => setCategoryPage((p) => Math.max(1, p - 1))} disabled={categoryPage === 1}>
+            {t.previous}
+          </button>
+          <span>
+            {t.page} {categoryPage} {t.of} {totalCategoryPages}
+          </span>
+          <button
+            onClick={() => setCategoryPage((p) => Math.min(totalCategoryPages, p + 1))}
+            disabled={categoryPage === totalCategoryPages}
+          >
+            {t.next}
+          </button>
+        </div>
+      </div>
+
 
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
@@ -706,15 +706,18 @@ const ExpenseManager = ({ language = 'en' }) => {
             
             {!editingExpense && !selectedTransaction && (
               <div style={{marginBottom: '1.5rem'}}>
-                <h4 style={{marginBottom: '1rem'}}>Select Company Account</h4>
+                <h4 style={{marginBottom: '1rem'}}>Select Company Account (Optional)</h4>
                 <div className="form-group">
                   <select
                     value={selectedAccount || ''}
                     onChange={(e) => {
                       setSelectedAccount(e.target.value);
-                      fetchTransactions(e.target.value);
+                      if (e.target.value) {
+                        fetchTransactions(e.target.value);
+                      } else {
+                        setTransactions([]);
+                      }
                     }}
-                    required
                   >
                     <option value="">Select Account</option>
                     {companyAccounts.map(acc => (
@@ -776,8 +779,10 @@ const ExpenseManager = ({ language = 'en' }) => {
                         )}
                       </div>
                     )}
-                    <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction({})} style={{marginTop: '1rem', width: '100%'}}>Skip - Add Expense Without Transaction</button>
                   </>
+                )}
+                {!selectedAccount && (
+                  <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction({})} style={{marginTop: '1rem', width: '100%'}}>Skip - Add Expense Without Account</button>
                 )}
               </div>
             )}

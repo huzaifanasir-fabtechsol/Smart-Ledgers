@@ -6,7 +6,7 @@ import { apiRequest } from '../api';
 import '../shared.css';
 import './OrderManager.css';
 
-const OrderManager = ({ language = 'en', onAddOrder }) => {
+const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
   const t = translations[language];
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -112,6 +112,14 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
       fetchOrders();
     } catch (error) {
       toast.error('Failed to delete order');
+    }
+  };
+
+  const handleEdit = (orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      setOpenMenuId(null);
+      onEditOrder(order);
     }
   };
 
@@ -294,6 +302,7 @@ const OrderManager = ({ language = 'en', onAddOrder }) => {
 
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
+          <button className="menu-item" onClick={() => handleEdit(openMenuId)}>Edit</button>
           <button className="menu-item" onClick={() => handleGenerateInvoice(openMenuId)}>Invoice</button>
           <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>Delete</button>
         </div>
