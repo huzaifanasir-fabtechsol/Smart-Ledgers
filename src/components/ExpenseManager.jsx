@@ -388,6 +388,37 @@ const ExpenseManager = ({ language = 'en' }) => {
     setExpensePage(1);
   };
 
+  const handleDeleteCategory = async (category) => {
+    if (!window.confirm(`Are you sure you want to delete "${category.name}"? This will also delete all expenses linked to this category.`)) {
+      return;
+    }
+    try {
+      const response = await apiRequest(`/categories/${category.id}/`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete category');
+      toast.success('Category deleted successfully');
+      await fetchCategories();
+      await fetchExpenses();
+    } catch (error) {
+      toast.error('Failed to delete category');
+    }
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteExpense = async (expense) => {
+    if (!window.confirm(`Are you sure you want to delete "${expense.title}"?`)) {
+      return;
+    }
+    try {
+      const response = await apiRequest(`/expenses/${expense.id}/`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete expense');
+      toast.success('Expense deleted successfully');
+      await fetchExpenses();
+    } catch (error) {
+      toast.error('Failed to delete expense');
+    }
+    setOpenMenuId(null);
+  };
+
   const exportExpenseToPDF = async (expense) => {
     try {
       const response = await apiRequest(`/expenses/${expense.id}/generate_receipt/`);
@@ -616,12 +647,16 @@ const ExpenseManager = ({ language = 'en' }) => {
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
           {menuType === 'category' && (
-            <button className="menu-item" onClick={() => openEditCategoryModal(categories.find(c => c.id === openMenuId))}>Edit</button>
+            <>
+              <button className="menu-item" onClick={() => openEditCategoryModal(categories.find(c => c.id === openMenuId))}>Edit</button>
+              <button className="menu-item" onClick={() => handleDeleteCategory(categories.find(c => c.id === openMenuId))}>Delete</button>
+            </>
           )}
           {menuType === 'expense' && (
             <>
               <button className="menu-item" onClick={() => openEditExpenseModal(expenses.find(e => e.id === openMenuId))}>Edit</button>
               <button className="menu-item" onClick={() => exportExpenseToPDF(expenses.find(e => e.id === openMenuId))}>Export PDF</button>
+              <button className="menu-item" onClick={() => handleDeleteExpense(expenses.find(e => e.id === openMenuId))}>Delete</button>
             </>
           )}
         </div>

@@ -58,11 +58,12 @@ const CustomerManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this customer?')) return;
+    if (!window.confirm('Are you sure you want to delete this customer? This will also delete all related orders.')) return;
     try {
       await apiRequest(`/revenue/customers/${id}/`, { method: 'DELETE' });
       toast.success('Customer deleted');
       fetchCustomers();
+      setOpenMenuId(null);
     } catch (error) {
       toast.error('Failed to delete customer');
     }

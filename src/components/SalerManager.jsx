@@ -58,11 +58,12 @@ const SalerManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this saler?')) return;
+    if (!window.confirm('Are you sure you want to delete this saler? This will also delete all related orders.')) return;
     try {
       await apiRequest(`/revenue/salers/${id}/`, { method: 'DELETE' });
       toast.success('Saler deleted');
       fetchSalers();
+      setOpenMenuId(null);
     } catch (error) {
       toast.error('Failed to delete saler');
     }

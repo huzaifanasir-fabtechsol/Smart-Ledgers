@@ -58,11 +58,12 @@ const CompanyAccountManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this account?')) return;
+    if (!window.confirm('Are you sure you want to delete this account? This will also delete all transactions and orders linked to it.')) return;
     try {
       await apiRequest(`/revenue/company-accounts/${id}/`, { method: 'DELETE' });
       toast.success('Account deleted');
       fetchAccounts();
+      setOpenMenuId(null);
     } catch (error) {
       toast.error('Failed to delete account');
     }
