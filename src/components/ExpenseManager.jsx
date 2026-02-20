@@ -71,6 +71,8 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   const [categoryPage, setCategoryPage] = useState(1);
   const [expensePage, setExpensePage] = useState(1);
+  const [totalCategoryPages, setTotalCategoryPages] = useState(1);
+  const [totalExpensePages, setTotalExpensePages] = useState(1);
   const itemsPerPage = 10;
 
   const [filterCategory, setFilterCategory] = useState('');
@@ -84,10 +86,13 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   useEffect(() => {
     fetchCategories();
-    fetchExpenses();
     fetchCompanyAccounts();
     fetchRestaurants();
-  }, []);
+  }, [categoryPage]);
+
+  useEffect(() => {
+    fetchExpenses();
+  }, [expensePage, filterCategory, filterDate, searchText]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -102,14 +107,15 @@ const ExpenseManager = ({ language = 'en' }) => {
   const fetchCategories = async () => {
     setLoadingCategories(true);
     try {
-      const response = await apiRequest('/categories/');
+      const params = new URLSearchParams({ page: categoryPage, page_size: itemsPerPage });
+      const response = await apiRequest(`/categories/?${params}`);
       if (!response.ok) {
         const message = await getErrorMessage(response, 'Failed to load categories');
         throw new Error(message);
       }
       const data = await response.json();
-      const list = parseListResponse(data);
-      setCategories(Array.isArray(list) ? list : []);
+      setCategories(data.results || data || []);
+      if (data.count) setTotalCategoryPages(Math.ceil(data.count / itemsPerPage));
     } catch (error) {
       toast.error(error.message || 'Failed to load categories');
       setCategories([]);
@@ -121,14 +127,19 @@ const ExpenseManager = ({ language = 'en' }) => {
   const fetchExpenses = async () => {
     setLoadingExpenses(true);
     try {
-      const response = await apiRequest('/expenses/');
+      const params = new URLSearchParams({ page: expensePage, page_size: itemsPerPage });
+      if (filterCategory) params.append('category', filterCategory);
+      if (filterDate) params.append('date', filterDate);
+      if (searchText) params.append('search', searchText);
+      
+      const response = await apiRequest(`/expenses/?${params}`);
       if (!response.ok) {
         const message = await getErrorMessage(response, 'Failed to load expenses');
         throw new Error(message);
       }
       const data = await response.json();
-      const list = parseListResponse(data);
-      setExpenses(Array.isArray(list) ? list : []);
+      setExpenses(data.results || data || []);
+      if (data.count) setTotalExpensePages(Math.ceil(data.count / itemsPerPage));
     } catch (error) {
       toast.error(error.message || 'Failed to load expenses');
       setExpenses([]);
@@ -180,34 +191,6 @@ const ExpenseManager = ({ language = 'en' }) => {
       setLoadingTransactions(false);
     }
   };
-
-  const filteredExpenses = useMemo(() => {
-    return expenses.filter((expense) => {
-      const expenseCategoryName = expense.category_name || '';
-      const categoryMatch = !filterCategory || String(expense.category) === String(filterCategory);
-      const dateMatch = !filterDate || expense.date === filterDate;
-      const searchMatch =
-        !searchText ||
-        expenseCategoryName.toLowerCase().includes(searchText.toLowerCase()) ||
-        (expense.description || '').toLowerCase().includes(searchText.toLowerCase()) ||
-        (expense.title || '').toLowerCase().includes(searchText.toLowerCase());
-
-      return categoryMatch && dateMatch && searchMatch;
-    });
-  }, [expenses, filterCategory, filterDate, searchText]);
-
-  const paginatedCategories = useMemo(() => {
-    const start = (categoryPage - 1) * itemsPerPage;
-    return categories.slice(start, start + itemsPerPage);
-  }, [categories, categoryPage]);
-
-  const paginatedExpenses = useMemo(() => {
-    const start = (expensePage - 1) * itemsPerPage;
-    return filteredExpenses.slice(start, start + itemsPerPage);
-  }, [filteredExpenses, expensePage]);
-
-  const totalCategoryPages = Math.max(1, Math.ceil(categories.length / itemsPerPage));
-  const totalExpensePages = Math.max(1, Math.ceil(filteredExpenses.length / itemsPerPage));
 
   const openCreateCategoryModal = () => {
     setEditingCategory(null);
@@ -536,7 +519,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedExpenses.map((expense, idx) => (
+                {expenses.map((expense, idx) => (
                   <tr key={expense.id}>
                     <td>{idx + 1}</td>
                     <td>{expense.date}</td>
@@ -558,7 +541,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     </td>
                   </tr>
                 ))}
-                {paginatedExpenses.length === 0 && (
+                {expenses.length === 0 && (
                   <tr>
                     <td colSpan="8" style={{ textAlign: 'center' }}>
                       No expenses found
@@ -606,7 +589,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedCategories.map((category, index) => (
+                {categories.map((category, index) => (
                   <tr key={category.id}>
                     <td>{index + 1}</td>
                     <td>{category.name}</td>
@@ -616,7 +599,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     </td>
                   </tr>
                 ))}
-                {paginatedCategories.length === 0 && (
+                {categories.length === 0 && (
                   <tr>
                     <td colSpan="4" style={{ textAlign: 'center' }}>
                       No categories found

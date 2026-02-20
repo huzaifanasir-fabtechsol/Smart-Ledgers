@@ -97,6 +97,7 @@ const RestaurantManager = () => {
       <table className="data-table">
         <thead>
           <tr>
+            <th>Sr.</th>
             <th>Name</th>
             <th>Location</th>
             <th>Description</th>
@@ -104,8 +105,9 @@ const RestaurantManager = () => {
           </tr>
         </thead>
         <tbody>
-          {restaurants.map(r => (
+          {restaurants.map((r, idx) => (
             <tr key={r.id}>
+              <td>{idx+1}</td>
               <td>{r.name}</td>
               <td>{r.location}</td>
               <td>{r.description}</td>
