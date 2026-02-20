@@ -64,12 +64,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
     venue: '',
     year_type: '',
     vehicle_price: 0,
-    consumption_tax: 0,
     recycling_fee: 0,
     automobile_tax: 0,
     auction_fee: 0,
-    bid_fee: 0,
-    bid_fee_tax: 0,
+    service_fee: 0,
     notes: ''
   });
 
@@ -263,12 +261,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
       venue: '',
       year_type: '',
       vehicle_price: 0,
-      consumption_tax: 0,
       recycling_fee: 0,
       automobile_tax: 0,
       auction_fee: 0,
-      bid_fee: 0,
-      bid_fee_tax: 0,
+      service_fee: 0,
       notes: ''
     });
     setCategorySearch('');
@@ -359,7 +355,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
             <select value={formData.transaction_type} onChange={(e) => handleTransactionTypeChange(e.target.value)}>
               <option value="sale">{t.sale}</option>
               <option value="purchase">{t.purchase}</option>
-              <option value="auction">{t.auction}</option>
+              {/* <option value="auction">{t.auction}</option> */}
             </select>
           </div>
           <div className="form-group">
@@ -628,7 +624,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
           </>
         )}
 
-        {formData.transaction_type === 'auction' && (
+        {formData.transaction_type !== 'uction' && (
           <div className="form-group">
             <label>Auction House</label>
             <select value={formData.auction_id || ''} onChange={(e) => setFormData({...formData, auction_id: e.target.value})} required>
@@ -773,7 +769,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
                 <label>{t.year}</label>
                 <input type="number" value={currentItem.year} onChange={(e) => setCurrentItem({...currentItem, year: e.target.value})} />
               </div>
-              {formData.transaction_type === 'auction' && (
+              {formData.transaction_type !== 'action' && (
                 <div className="form-group">
                   <label>{t.venue}</label>
                   <input type="text" value={currentItem.venue} onChange={(e) => setCurrentItem({...currentItem, venue: e.target.value})} />
@@ -786,47 +782,26 @@ const AddOrder = ({ language = 'en', onSave, onCancel }) => {
                 <label>{t.vehiclePrice}</label>
                 <input type="number" value={currentItem.vehicle_price} onChange={(e) => setCurrentItem({...currentItem, vehicle_price: e.target.value})} />
               </div>
-              {formData.transaction_type === 'auction' ? (
-                <>
-                  <div className="form-group">
-                    <label>Auction Fee</label>
-                    <input type="number" value={currentItem.auction_fee} onChange={(e) => setCurrentItem({...currentItem, auction_fee: e.target.value})} />
-                  </div>
-                  <div className="form-group">
-                    <label>Consumption Tax</label>
-                    <input type="number" value={currentItem.consumption_tax} onChange={(e) => setCurrentItem({...currentItem, consumption_tax: e.target.value})} />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="form-group">
-                    <label>Consumption Tax</label>
-                    <input type="number" value={currentItem.consumption_tax} onChange={(e) => setCurrentItem({...currentItem, consumption_tax: e.target.value})} />
-                  </div>
-                  <div className="form-group">
-                    <label>Automobile Tax</label>
-                    <input type="number" value={currentItem.automobile_tax} onChange={(e) => setCurrentItem({...currentItem, automobile_tax: e.target.value})} />
-                  </div>
-                </>
-              )}
+              <div className="form-group">
+                <label>Auction Fee</label>
+                <input type="number" value={currentItem.auction_fee} onChange={(e) => setCurrentItem({...currentItem, auction_fee: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Recycling Fee</label>
+                <input type="number" value={currentItem.recycling_fee} onChange={(e) => setCurrentItem({...currentItem, recycling_fee: e.target.value})} />
+              </div>
             </div>
 
-            {formData.transaction_type === 'auction' && (
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Recycling Fee</label>
-                  <input type="number" value={currentItem.recycling_fee} onChange={(e) => setCurrentItem({...currentItem, recycling_fee: e.target.value})} />
-                </div>
-                <div className="form-group">
-                  <label>Bid Fee</label>
-                  <input type="number" value={currentItem.bid_fee} onChange={(e) => setCurrentItem({...currentItem, bid_fee: e.target.value})} />
-                </div>
-                <div className="form-group">
-                  <label>Bid Fee Tax</label>
-                  <input type="number" value={currentItem.bid_fee_tax} onChange={(e) => setCurrentItem({...currentItem, bid_fee_tax: e.target.value})} />
-                </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Automobile Tax</label>
+                <input type="number" value={currentItem.automobile_tax} onChange={(e) => setCurrentItem({...currentItem, automobile_tax: e.target.value})} />
               </div>
-            )}
+              <div className="form-group">
+                <label>Service Fee</label>
+                <input type="number" value={currentItem.service_fee} onChange={(e) => setCurrentItem({...currentItem, service_fee: e.target.value})} />
+              </div>
+            </div>
 
             <button type="button" className="btn-secondary" onClick={addItem}>{t.addItem}</button>
           </div>

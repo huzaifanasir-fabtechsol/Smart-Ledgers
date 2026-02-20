@@ -388,54 +388,21 @@ const ExpenseManager = ({ language = 'en' }) => {
     setExpensePage(1);
   };
 
-  const exportExpenseToPDF = (expense) => {
+  const exportExpenseToPDF = async (expense) => {
     try {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
+      const response = await apiRequest(`/expenses/${expense.id}/generate_receipt/`);
+      if (!response.ok) throw new Error('Failed to generate PDF');
       
-      // Title
-      doc.setFontSize(18);
-      doc.text('Expense Receipt', pageWidth / 2, 20, { align: 'center' });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `expense_${expense.title.replace(/[^a-z0-9]/gi, '_')}_${expense.date}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
-      // Expense details
-      doc.setFontSize(12);
-      let yPos = 40;
-      
-      doc.text(`Title: ${expense.title}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Amount: $${Number(expense.amount || 0).toLocaleString()}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Date: ${expense.date}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Category: ${expense.category_name || 'N/A'}`, 20, yPos);
-      yPos += 10;
-      
-      if (expense.description) {
-        doc.text(`Description: ${expense.description}`, 20, yPos);
-        yPos += 10;
-      }
-      
-      if (expense.transaction) {
-        yPos += 5;
-        doc.text('Transaction Details:', 20, yPos);
-        yPos += 8;
-        doc.text(`  Transaction: ${expense.transaction.description}`, 20, yPos);
-        yPos += 8;
-        doc.text(`  Amount: $${Number(expense.transaction.withdraw || 0).toLocaleString()}`, 20, yPos);
-        yPos += 8;
-        doc.text(`  Date: ${expense.transaction.date}`, 20, yPos);
-      }
-      
-      if (expense.restaurant_name) {
-        yPos += 10;
-        doc.text(`Restaurant: ${expense.restaurant_name}`, 20, yPos);
-      }
-      
-      yPos += 20;
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, yPos);
-      
-      const fileName = `expense_${expense.title.replace(/[^a-z0-9]/gi, '_')}_${expense.date}.pdf`;
-      doc.save(fileName);
       toast.success('PDF exported successfully');
     } catch (error) {
       console.error('PDF export error:', error);
@@ -449,82 +416,24 @@ const ExpenseManager = ({ language = 'en' }) => {
     }
 
     try {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
+      const params = new URLSearchParams();
+      if (filterDate) params.append('date', filterDate);
+      if (filterCategory) params.append('category', filterCategory);
+      if (searchText) params.append('search', searchText);
       
-      // Title
-      doc.setFontSize(18);
-      doc.text('Expense Invoice', pageWidth / 2, 20, { align: 'center' });
+      const response = await apiRequest(`/expenses/export_pdf/?${params}`);
+      if (!response.ok) throw new Error('Failed to generate PDF');
       
-      // Filters info
-      doc.setFontSize(10);
-      let yPos = 35;
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `expenses_${new Date().getTime()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
-      if (filterDate) {
-        doc.text(`Date: ${filterDate}`, 14, yPos);
-        yPos += 6;
-      }
-      
-      if (filterCategory) {
-        const catName = categories.find(c => String(c.id) === String(filterCategory))?.name || '';
-        doc.text(`Category: ${catName}`, 14, yPos);
-        yPos += 6;
-      }
-      
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, yPos);
-      yPos += 10;
-      
-      // Table
-      const tableData = filteredExpenses.map((expense, idx) => [
-        idx + 1,
-        expense.date,
-        expense.title,
-        expense.category_name || '-',
-        expense.description || '-',
-        `$${Number(expense.amount || 0).toLocaleString()}`
-      ]);
-      
-      const total = filteredExpenses.reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
-      
-      autoTable(doc, {
-        startY: yPos,
-        head: [[
-          'Sr',
-          'Date',
-          'Title',
-          'Category',
-          'Description',
-          'Amount'
-        ]],
-        body: tableData,
-        foot: [['', '', '', '', 'Total:', `$${total.toLocaleString()}`]],
-        theme: 'grid',
-        headStyles: { fillColor: [59, 130, 246], fontSize: 9 },
-        footStyles: { fillColor: [243, 244, 246], textColor: [0, 0, 0], fontStyle: 'bold' },
-        styles: { fontSize: 8, cellPadding: 3 },
-        columnStyles: {
-          0: { cellWidth: 15 },
-          1: { cellWidth: 25 },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 30 },
-          4: { cellWidth: 50 },
-          5: { cellWidth: 25, halign: 'right' }
-        },
-        didDrawPage: (data) => {
-          const pageCount = doc.internal.getNumberOfPages();
-          const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
-          doc.setFontSize(8);
-          doc.text(
-            `Page ${pageNumber} of ${pageCount}`,
-            pageWidth / 2,
-            doc.internal.pageSize.getHeight() - 10,
-            { align: 'center' }
-          );
-        }
-      });
-      
-      const fileName = `expenses_${new Date().getTime()}.pdf`;
-      doc.save(fileName);
       toast.success('PDF exported successfully');
     } catch (error) {
       console.error('PDF export error:', error);
