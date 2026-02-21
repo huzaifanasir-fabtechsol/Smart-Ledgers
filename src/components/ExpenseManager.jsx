@@ -567,7 +567,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <th>{t.date}</th>
                   <th>Title</th>
                   <th>{t.category}</th>
-                  <th>Spare Part</th>
+                  <th>Shop</th>
                   <th>{t.description}</th>
                   <th>Transaction</th>
                   <th>{t.amount}</th>
@@ -581,7 +581,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     <td>{expense.date}</td>
                     <td>{expense.title}</td>
                     <td>{expense.category_name || '-'}</td>
-                    <td>{expense.spare_part ? `${expense.spare_part.name}${expense.spare_part.part_number ? ` (${expense.spare_part.part_number})` : ''}` : '-'}</td>
+                    <td>{expense.spare_part ? `${expense.spare_part.name}${expense.spare_part.location ? ` - ${expense.spare_part.location}` : ''}` : '-'}</td>
                     <td>{expense.description || '-'}</td>
                     <td>
                       {expense.transaction ? (
@@ -816,16 +816,16 @@ const ExpenseManager = ({ language = 'en' }) => {
 
               {isSparePartsCategory(expenseForm.category) && (
                 <div className="form-group">
-                  <label>Spare Part</label>
+                  <label>Shop</label>
                   <select
                     value={selectedSparePart?.id || ''}
                     onChange={(e) => setSelectedSparePart(spareParts.find((p) => p.id === Number(e.target.value)) || null)}
                     required
                   >
-                    <option value="">Select Spare Part</option>
+                    <option value="">Select Shop</option>
                     {spareParts.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name}{p.part_number ? ` (${p.part_number})` : ''}
+                        {p.name}{p.location ? ` - ${p.location}` : ''}
                       </option>
                     ))}
                   </select>

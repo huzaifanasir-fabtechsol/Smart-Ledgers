@@ -4,7 +4,7 @@ import { apiRequest } from '../api';
 import '../shared.css';
 import './OrderManager.css';
 
-const INITIAL_FORM = { name: '', part_number: '', brand: '', description: '' };
+const INITIAL_FORM = { name: '', location: '', description: '' };
 
 const SparePartManager = () => {
   const [spareParts, setSpareParts] = useState([]);
@@ -48,8 +48,7 @@ const SparePartManager = () => {
     setEditingSparePart(sparePart);
     setFormData({
       name: sparePart.name || '',
-      part_number: sparePart.part_number || '',
-      brand: sparePart.brand || '',
+      location: sparePart.location || '',
       description: sparePart.description || '',
     });
     setShowModal(true);
@@ -61,17 +60,17 @@ const SparePartManager = () => {
     try {
       if (editingSparePart) {
         await apiRequest(`/spare-parts/${editingSparePart.id}/`, { method: 'PUT', body: JSON.stringify(formData) });
-        toast.success('Spare part updated');
+        toast.success('Shop updated');
       } else {
         await apiRequest('/spare-parts/', { method: 'POST', body: JSON.stringify(formData) });
-        toast.success('Spare part added');
+        toast.success('Shop added');
       }
       setShowModal(false);
       setEditingSparePart(null);
       setFormData(INITIAL_FORM);
       fetchSpareParts();
     } catch (error) {
-      toast.error('Failed to save spare part');
+      toast.error('Failed to save shop');
     }
   };
 
@@ -79,10 +78,10 @@ const SparePartManager = () => {
     if (!confirm('Delete this spare part?')) return;
     try {
       await apiRequest(`/spare-parts/${id}/`, { method: 'DELETE' });
-      toast.success('Spare part deleted');
+      toast.success('Shop deleted');
       fetchSpareParts();
     } catch (error) {
-      toast.error('Failed to delete spare part');
+      toast.error('Failed to delete shop');
     }
   };
 
@@ -99,12 +98,12 @@ const SparePartManager = () => {
     <div className="order-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
-        <h2>Spare Parts Management</h2>
-        <button className="btn-primary" onClick={openCreate}>Add Spare Part</button>
+        <h2>Shops Management</h2>
+        <button className="btn-primary" onClick={openCreate}>Add Shop</button>
       </div>
 
       <div className="filters">
-        <input type="text" placeholder="Search spare parts..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input type="text" placeholder="Search shops..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       <table className="data-table">
@@ -112,8 +111,7 @@ const SparePartManager = () => {
           <tr>
             <th>Sr.</th>
             <th>Name</th>
-            <th>Part Number</th>
-            <th>Brand</th>
+            <th>Location</th>
             <th>Description</th>
             <th style={{ width: '60px' }}>Actions</th>
           </tr>
@@ -123,8 +121,7 @@ const SparePartManager = () => {
             <tr key={item.id}>
               <td>{idx + 1}</td>
               <td>{item.name}</td>
-              <td>{item.part_number || '-'}</td>
-              <td>{item.brand || '-'}</td>
+              <td>{item.location || '-'}</td>
               <td>{item.description || '-'}</td>
               <td>
                 <button className="btn-menu" onClick={(e) => handleMenuClick(e, item.id)}>⋮</button>
@@ -144,19 +141,15 @@ const SparePartManager = () => {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingSparePart ? 'Edit Spare Part' : 'Add Spare Part'}</h3>
+            <h3>{editingSparePart ? 'Edit Shop' : 'Add Shop'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Name</label>
                 <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
               <div className="form-group">
-                <label>Part Number</label>
-                <input type="text" value={formData.part_number} onChange={(e) => setFormData({ ...formData, part_number: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label>Brand</label>
-                <input type="text" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} />
+                <label>Location</label>
+                <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
               </div>
               <div className="form-group">
                 <label>Description</label>

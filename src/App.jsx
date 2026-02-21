@@ -165,7 +165,7 @@ function AppContent() {
     { path: '/cars', label: 'Collection', icon: 'categories' },
     { path: '/transactions', label: 'Transactions', icon: 'expenses' },
     { path: '/restaurants', label: 'Restaurants', icon: 'expenses' },
-    { path: '/spare-parts', label: 'Spare Parts', icon: 'expenses' },
+    { path: '/spare-parts', label: 'Shops', icon: 'expenses' },
     { path: '/company-accounts', label: 'Accounts', icon: 'expenses' },
     { path: '/export', label: t.dataExport, icon: 'export' },
     { path: '/profile', label: 'Profile', icon: 'profile' },
