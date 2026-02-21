@@ -13,6 +13,7 @@ import CompanyAccountManager from './components/CompanyAccountManager';
 import AuctionManager from './components/AuctionManager';
 import CarManager from './components/CarManager';
 import RestaurantManager from './components/RestaurantManager';
+import SparePartManager from './components/SparePartManager';
 import TransactionManager from './components/TransactionManager';
 import Login from './components/Login';
 import ProfileSettings from './components/ProfileSettings';
@@ -164,6 +165,7 @@ function AppContent() {
     { path: '/cars', label: 'Collection', icon: 'categories' },
     { path: '/transactions', label: 'Transactions', icon: 'expenses' },
     { path: '/restaurants', label: 'Restaurants', icon: 'expenses' },
+    { path: '/spare-parts', label: 'Spare Parts', icon: 'expenses' },
     { path: '/company-accounts', label: 'Accounts', icon: 'expenses' },
     { path: '/export', label: t.dataExport, icon: 'export' },
     { path: '/profile', label: 'Profile', icon: 'profile' },
@@ -260,6 +262,7 @@ function AppContent() {
           <Route path="/auctions" element={<AuctionManager />} />
           <Route path="/transactions" element={<TransactionManager />} />
           <Route path="/restaurants" element={<RestaurantManager />} />
+          <Route path="/spare-parts" element={<SparePartManager />} />
           <Route path="/company-accounts" element={<CompanyAccountManager />} />
           <Route path="/export" element={<DataExport language={language} />} />
           <Route path="/profile" element={<ProfileSettings onUserUpdate={handleUserUpdate} />} />

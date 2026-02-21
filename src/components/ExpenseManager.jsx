@@ -70,6 +70,8 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [spareParts, setSpareParts] = useState([]);
+  const [selectedSparePart, setSelectedSparePart] = useState(null);
 
   const [categoryPage, setCategoryPage] = useState(1);
   const [expensePage, setExpensePage] = useState(1);
@@ -91,6 +93,7 @@ const ExpenseManager = ({ language = 'en' }) => {
     fetchAllCategories();
     fetchCompanyAccounts();
     fetchRestaurants();
+    fetchSpareParts();
   }, [categoryPage]);
 
   useEffect(() => {
@@ -186,6 +189,30 @@ const ExpenseManager = ({ language = 'en' }) => {
     }
   };
 
+  const fetchSpareParts = async () => {
+    try {
+      const response = await apiRequest('/spare-parts/?page_size=1000');
+      if (!response.ok) throw new Error('Failed to load spare parts');
+      const data = await response.json();
+      setSpareParts(Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast.error(error.message || 'Failed to load spare parts');
+      setSpareParts([]);
+    }
+  };
+
+  const isFoodCategory = (categoryId) => {
+    if (!categoryId) return false;
+    const category = allCategories.find((c) => String(c.id) === String(categoryId));
+    return Boolean(category?.name && category.name.toLowerCase().includes('food'));
+  };
+
+  const isSparePartsCategory = (categoryId) => {
+    if (!categoryId) return false;
+    const category = allCategories.find((c) => String(c.id) === String(categoryId));
+    return Boolean(category?.name && category.name.trim().toUpperCase() === 'SPARE PARTS');
+  };
+
   const fetchTransactions = async (accountId) => {
     if (!accountId) return;
     setLoadingTransactions(true);
@@ -227,6 +254,8 @@ const ExpenseManager = ({ language = 'en' }) => {
     setExpenseForm(EXPENSE_INITIAL_FORM);
     setSelectedTransaction(null);
     setSelectedAccount(null);
+    setSelectedRestaurant(null);
+    setSelectedSparePart(null);
     setTransactions([]);
     setShowExpenseModal(true);
   };
@@ -245,6 +274,8 @@ const ExpenseManager = ({ language = 'en' }) => {
       setSelectedTransaction(expense.transaction);
       setSelectedAccount(expense.transaction.company_account);
     }
+    setSelectedRestaurant(restaurants.find((r) => r.id === Number(expense.restaurant)) || null);
+    setSelectedSparePart(expense.spare_part || null);
     setShowExpenseModal(true);
     setOpenMenuId(null);
   };
@@ -303,8 +334,11 @@ const ExpenseManager = ({ language = 'en' }) => {
       category: value,
       category_name: selectedCategory?.name || '',
     }));
-    if (selectedCategory?.name.toLowerCase().includes('food')) {
+    if (!selectedCategory?.name?.toLowerCase().includes('food')) {
       setSelectedRestaurant(null);
+    }
+    if (selectedCategory?.name?.trim().toUpperCase() !== 'SPARE PARTS') {
+      setSelectedSparePart(null);
     }
   };
 
@@ -342,6 +376,7 @@ const ExpenseManager = ({ language = 'en' }) => {
         category_name: expenseForm.category_name,
         transaction: selectedTransaction ? selectedTransaction.id : null,
         restaurant: selectedRestaurant ? selectedRestaurant.id : null,
+        spare_part: selectedSparePart ? selectedSparePart.id : null,
       };
 
       const response = await apiRequest(endpoint, {
@@ -359,6 +394,8 @@ const ExpenseManager = ({ language = 'en' }) => {
       setExpenseForm(EXPENSE_INITIAL_FORM);
       setEditingExpense(null);
       setSelectedTransaction(null);
+      setSelectedRestaurant(null);
+      setSelectedSparePart(null);
       await fetchExpenses();
     } catch (error) {
       toast.error(error.message || 'Failed to save expense');
@@ -530,6 +567,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <th>{t.date}</th>
                   <th>Title</th>
                   <th>{t.category}</th>
+                  <th>Spare Part</th>
                   <th>{t.description}</th>
                   <th>Transaction</th>
                   <th>{t.amount}</th>
@@ -543,6 +581,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     <td>{expense.date}</td>
                     <td>{expense.title}</td>
                     <td>{expense.category_name || '-'}</td>
+                    <td>{expense.spare_part ? `${expense.spare_part.name}${expense.spare_part.part_number ? ` (${expense.spare_part.part_number})` : ''}` : '-'}</td>
                     <td>{expense.description || '-'}</td>
                     <td>
                       {expense.transaction ? (
@@ -561,7 +600,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 ))}
                 {expenses.length === 0 && (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center' }}>
+                    <td colSpan="9" style={{ textAlign: 'center' }}>
                       No expenses found
                     </td>
                   </tr>
@@ -760,7 +799,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </div>
               </div>
               
-              {expenseForm.category && allCategories.find(c => c.id === Number(expenseForm.category))?.name.toLowerCase().includes('food') && (
+              {isFoodCategory(expenseForm.category) && (
                 <div className="form-group">
                   <label>Restaurant (Optional)</label>
                   <select
@@ -770,6 +809,24 @@ const ExpenseManager = ({ language = 'en' }) => {
                     <option value="">Select Restaurant</option>
                     {restaurants.map(r => (
                       <option key={r.id} value={r.id}>{r.name} - {r.location}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {isSparePartsCategory(expenseForm.category) && (
+                <div className="form-group">
+                  <label>Spare Part</label>
+                  <select
+                    value={selectedSparePart?.id || ''}
+                    onChange={(e) => setSelectedSparePart(spareParts.find((p) => p.id === Number(e.target.value)) || null)}
+                    required
+                  >
+                    <option value="">Select Spare Part</option>
+                    {spareParts.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}{p.part_number ? ` (${p.part_number})` : ''}
+                      </option>
                     ))}
                   </select>
                 </div>
