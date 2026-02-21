@@ -4,7 +4,7 @@ import { apiRequest } from '../api';
 import '../shared.css';
 import './OrderManager.css';
 
-const INITIAL_FORM = { name: '', location: '', description: '' };
+const INITIAL_FORM = { name: '', address: '', description: '' };
 
 const SparePartManager = () => {
   const [spareParts, setSpareParts] = useState([]);
@@ -48,7 +48,7 @@ const SparePartManager = () => {
     setEditingSparePart(sparePart);
     setFormData({
       name: sparePart.name || '',
-      location: sparePart.location || '',
+      address: sparePart.address || '',
       description: sparePart.description || '',
     });
     setShowModal(true);
@@ -111,7 +111,7 @@ const SparePartManager = () => {
           <tr>
             <th>Sr.</th>
             <th>Name</th>
-            <th>Location</th>
+            <th>Address</th>
             <th>Description</th>
             <th style={{ width: '60px' }}>Actions</th>
           </tr>
@@ -121,7 +121,7 @@ const SparePartManager = () => {
             <tr key={item.id}>
               <td>{idx + 1}</td>
               <td>{item.name}</td>
-              <td>{item.location || '-'}</td>
+              <td>{item.address || '-'}</td>
               <td>{item.description || '-'}</td>
               <td>
                 <button className="btn-menu" onClick={(e) => handleMenuClick(e, item.id)}>⋮</button>
@@ -148,8 +148,8 @@ const SparePartManager = () => {
                 <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
               <div className="form-group">
-                <label>Location</label>
-                <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+                <label>Address</label>
+                <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
               </div>
               <div className="form-group">
                 <label>Description</label>
