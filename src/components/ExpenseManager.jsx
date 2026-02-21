@@ -148,7 +148,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       if (filterCategory) params.append('category', filterCategory);
       if (filterDate) params.append('date', filterDate);
       if (searchText) params.append('search', searchText);
-      
+
       const response = await apiRequest(`/expenses/?${params}`);
       if (!response.ok) {
         const message = await getErrorMessage(response, 'Failed to load expenses');
@@ -220,7 +220,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       const params = new URLSearchParams({ account_id: accountId });
       if (transactionSearch) params.append('search', transactionSearch);
       if (transactionDate) params.append('date', transactionDate);
-      
+
       const response = await apiRequest(`/expenses/available_transactions/?${params}`);
       if (!response.ok) throw new Error('Failed to load transactions');
       const data = await response.json();
@@ -461,7 +461,7 @@ const ExpenseManager = ({ language = 'en' }) => {
     try {
       const response = await apiRequest(`/expenses/${expense.id}/generate_receipt/`);
       if (!response.ok) throw new Error('Failed to generate PDF');
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -471,7 +471,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast.success('PDF exported successfully');
     } catch (error) {
       console.error('PDF export error:', error);
@@ -489,10 +489,10 @@ const ExpenseManager = ({ language = 'en' }) => {
       if (filterDate) params.append('date', filterDate);
       if (filterCategory) params.append('category', filterCategory);
       if (searchText) params.append('search', searchText);
-      
+
       const response = await apiRequest(`/expenses/export_pdf/?${params}`);
       if (!response.ok) throw new Error('Failed to generate PDF');
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -502,7 +502,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast.success('PDF exported successfully');
     } catch (error) {
       console.error('PDF export error:', error);
@@ -517,7 +517,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       <div className="table-section">
         <div className="table-header">
           <h3>{t.expenses}</h3>
-          <div style={{display: 'flex', gap: '0.5rem'}}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button className="btn-secondary" onClick={exportToPDF}>
               📄 Export PDF
             </button>
@@ -571,7 +571,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <th>{t.description}</th>
                   <th>Transaction</th>
                   <th>{t.amount}</th>
-                  <th style={{width: '60px'}}>{t.actions}</th>
+                  <th style={{ width: '60px' }}>{t.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -642,7 +642,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <th>Sr</th>
                   <th>Category</th>
                   <th>{t.description}</th>
-                  <th style={{width: '60px'}}>{t.actions}</th>
+                  <th style={{ width: '60px' }}>{t.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -743,7 +743,7 @@ const ExpenseManager = ({ language = 'en' }) => {
         <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingExpense ? 'Edit Expense' : t.addNewExpense}</h3>
-            
+
             <form onSubmit={handleExpenseSubmit}>
               <div className="form-row">
                 <div className="form-group">
@@ -766,11 +766,11 @@ const ExpenseManager = ({ language = 'en' }) => {
                     min="0"
                     required
                     readOnly={selectedTransaction && selectedTransaction.id}
-                    style={selectedTransaction && selectedTransaction.id ? {backgroundColor: '#f3f4f6', cursor: 'not-allowed'} : {}}
+                    style={selectedTransaction && selectedTransaction.id ? { backgroundColor: '#f3f4f6', cursor: 'not-allowed' } : {}}
                   />
                 </div>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label>{t.category}</label>
@@ -794,21 +794,27 @@ const ExpenseManager = ({ language = 'en' }) => {
                     onChange={(e) => setExpenseForm((prev) => ({ ...prev, date: e.target.value }))}
                     required
                     readOnly={selectedTransaction && selectedTransaction.id}
-                    style={selectedTransaction && selectedTransaction.id ? {backgroundColor: '#f3f4f6', cursor: 'not-allowed'} : {}}
+                    style={selectedTransaction && selectedTransaction.id ? { backgroundColor: '#f3f4f6', cursor: 'not-allowed' } : {}}
                   />
                 </div>
               </div>
-              
+
               {isFoodCategory(expenseForm.category) && (
                 <div className="form-group">
                   <label>Restaurant (Optional)</label>
                   <select
                     value={selectedRestaurant?.id || ''}
-                    onChange={(e) => setSelectedRestaurant(restaurants.find(r => r.id === Number(e.target.value)))}
+                    onChange={(e) =>
+                      setSelectedRestaurant(
+                        restaurants.find(r => r.id === Number(e.target.value)) || null
+                      )
+                    }
                   >
                     <option value="">Select Restaurant</option>
                     {restaurants.map(r => (
-                      <option key={r.id} value={r.id}>{r.name} - {r.location}</option>
+                      <option key={r.id} value={r.id}>
+                        {r.name} - {r.location}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -816,14 +822,17 @@ const ExpenseManager = ({ language = 'en' }) => {
 
               {isSparePartsCategory(expenseForm.category) && (
                 <div className="form-group">
-                  <label>Shop</label>
+                  <label>Shop (Optional)</label>
                   <select
                     value={selectedSparePart?.id || ''}
-                    onChange={(e) => setSelectedSparePart(spareParts.find((p) => p.id === Number(e.target.value)) || null)}
-                    required
+                    onChange={(e) =>
+                      setSelectedSparePart(
+                        spareParts.find(p => p.id === Number(e.target.value)) || null
+                      )
+                    }
                   >
                     <option value="">Select Shop</option>
-                    {spareParts.map((p) => (
+                    {spareParts.map(p => (
                       <option key={p.id} value={p.id}>
                         {p.name}{p.address ? ` - ${p.address}` : ''}
                       </option>
@@ -831,7 +840,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   </select>
                 </div>
               )}
-              
+
               <div className="form-group">
                 <label>{t.description}</label>
                 <textarea
@@ -841,9 +850,9 @@ const ExpenseManager = ({ language = 'en' }) => {
                   rows="3"
                 />
               </div>
-              
-              <div style={{borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '1rem'}}>
-                <h4 style={{marginBottom: '1rem'}}>Link Transaction (Optional)</h4>
+
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '1rem' }}>
+                <h4 style={{ marginBottom: '1rem' }}>Link Transaction (Optional)</h4>
                 <div className="form-group">
                   <label>Company Account</label>
                   <select
@@ -884,11 +893,11 @@ const ExpenseManager = ({ language = 'en' }) => {
                       </div>
                       <button type="button" className="btn-secondary" onClick={() => fetchTransactions(selectedAccount)}>Search</button>
                     </div>
-                    
+
                     {loadingTransactions ? (
                       <div>Loading transactions...</div>
                     ) : (
-                      <div style={{maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+                      <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
                         {transactions.map(t => (
                           <div
                             key={t.id}
@@ -906,29 +915,29 @@ const ExpenseManager = ({ language = 'en' }) => {
                             onMouseEnter={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : '#f9fafb'}
                             onMouseLeave={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'}
                           >
-                            <div style={{fontWeight: '500'}}>{t.description}</div>
-                            <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
+                            <div style={{ fontWeight: '500' }}>{t.description}</div>
+                            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                               {t.date} - ¥{Number(t.withdraw).toLocaleString()}
                             </div>
                           </div>
                         ))}
                         {transactions.length === 0 && (
-                          <div style={{padding: '1rem', textAlign: 'center', color: '#9ca3af'}}>No transactions found</div>
+                          <div style={{ padding: '1rem', textAlign: 'center', color: '#9ca3af' }}>No transactions found</div>
                         )}
                       </div>
                     )}
                   </>
                 )}
-                
+
                 {selectedTransaction && selectedTransaction.id && (
-                  <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginTop: '1rem'}}>
-                    <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
-                    <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
-                    <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}>Remove Transaction</button>
+                  <div style={{ padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginTop: '1rem' }}>
+                    <div style={{ fontWeight: '500', color: '#166534' }}>Selected Transaction</div>
+                    <div style={{ fontSize: '0.875rem', color: '#15803d' }}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
+                    <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{ marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>Remove Transaction</button>
                   </div>
                 )}
               </div>
-              
+
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowExpenseModal(false)}>
                   {t.cancel}
