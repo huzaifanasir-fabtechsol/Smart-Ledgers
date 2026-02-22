@@ -43,6 +43,22 @@ const getErrorMessage = async (response, fallback) => {
   return fallback;
 };
 
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 const ExpenseManager = ({ language = 'en' }) => {
   const t = translations[language];
 
@@ -72,6 +88,8 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [spareParts, setSpareParts] = useState([]);
   const [selectedSparePart, setSelectedSparePart] = useState(null);
+  const [titleSuggestions, setTitleSuggestions] = useState([]);
+  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
 
   const [categoryPage, setCategoryPage] = useState(1);
   const [expensePage, setExpensePage] = useState(1);
@@ -87,6 +105,9 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [menuType, setMenuType] = useState('');
   const menuRef = useRef(null);
+  const titleInputRef = useRef(null);
+
+  const debouncedTitle = useDebounce(expenseForm.title, 1000);
 
   useEffect(() => {
     fetchCategories();
@@ -105,10 +126,21 @@ const ExpenseManager = ({ language = 'en' }) => {
       if (menuRef.current && !menuRef.current.contains(e.target) && !e.target.closest('.btn-menu')) {
         setOpenMenuId(null);
       }
+      if (titleInputRef.current && !titleInputRef.current.contains(e.target)) {
+        setShowTitleSuggestions(false);
+      }
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (debouncedTitle && debouncedTitle.trim().length > 0) {
+      fetchTitleSuggestions(debouncedTitle);
+    } else {
+      setTitleSuggestions([]);
+    }
+  }, [debouncedTitle]);
 
   const fetchCategories = async () => {
     setLoadingCategories(true);
@@ -198,6 +230,17 @@ const ExpenseManager = ({ language = 'en' }) => {
     } catch (error) {
       toast.error(error.message || 'Failed to load spare parts');
       setSpareParts([]);
+    }
+  };
+
+  const fetchTitleSuggestions = async (query) => {
+    try {
+      const response = await apiRequest(`/expenses/search_titles/?q=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error('Failed to search titles');
+      const data = await response.json();
+      setTitleSuggestions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setTitleSuggestions([]);
     }
   };
 
@@ -746,14 +789,52 @@ const ExpenseManager = ({ language = 'en' }) => {
 
             <form onSubmit={handleExpenseSubmit}>
               <div className="form-row">
-                <div className="form-group">
+                <div className="form-group" style={{ position: 'relative' }} ref={titleInputRef}>
                   <label>Title</label>
                   <input
                     type="text"
                     value={expenseForm.title}
-                    onChange={(e) => setExpenseForm((prev) => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) => {
+                      setExpenseForm((prev) => ({ ...prev, title: e.target.value }));
+                      setShowTitleSuggestions(true);
+                    }}
+                    onFocus={() => setShowTitleSuggestions(true)}
                     required
                   />
+                  {showTitleSuggestions && titleSuggestions.length > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '6px',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}>
+                      {titleSuggestions.map((title, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setExpenseForm((prev) => ({ ...prev, title }));
+                            setShowTitleSuggestions(false);
+                          }}
+                          style={{
+                            padding: '0.5rem',
+                            cursor: 'pointer',
+                            borderBottom: idx < titleSuggestions.length - 1 ? '1px solid #f3f4f6' : 'none'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                        >
+                          {title}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>{t.amount}</label>
