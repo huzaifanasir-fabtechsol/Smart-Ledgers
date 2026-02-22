@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
@@ -62,14 +62,39 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     chassis_number: '',
     year: new Date().getFullYear(),
     venue: '',
-    year_type: '',
     vehicle_price: 0,
-    recycling_fee: 0,
-    automobile_tax: 0,
-    auction_fee: 0,
-    service_fee: 0,
+    vehicle_price_tax: 0,
+    recycle_fee: 0,
+    listing_fee: 0,
+    listing_fee_tax: 0,
+    successful_bid: 0,
+    successful_bid_tax: 0,
+    commission_fee: 0,
+    commission_fee_tax: 0,
+    transport_fee: 0,
+    transport_fee_tax: 0,
+    registration_fee: 0,
+    registration_fee_tax: 0,
+    canceling_fee: 0,
     notes: ''
   });
+
+  const getItemTotal = (item) => (
+    Number(item.vehicle_price || 0) +
+    Number(item.vehicle_price_tax || 0) +
+    Number(item.recycle_fee || 0) +
+    Number(item.listing_fee || 0) +
+    Number(item.listing_fee_tax || 0) +
+    Number(item.successful_bid || 0) +
+    Number(item.successful_bid_tax || 0) +
+    Number(item.commission_fee || 0) +
+    Number(item.commission_fee_tax || 0) +
+    Number(item.transport_fee || 0) +
+    Number(item.transport_fee_tax || 0) +
+    Number(item.registration_fee || 0) +
+    Number(item.registration_fee_tax || 0) +
+    Number(item.canceling_fee || 0)
+  );
 
   useEffect(() => {
     fetchCategories();
@@ -242,12 +267,20 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         chassis_number: item.car.chassis_number,
         year: item.car.year,
         venue: item.venue || '',
-        year_type: item.year_type || '',
-        vehicle_price: item.vehicle_price,
-        recycling_fee: item.recycling_fee,
-        automobile_tax: item.automobile_tax,
-        auction_fee: item.auction_fee,
-        service_fee: item.service_fee,
+        vehicle_price: item.vehicle_price || 0,
+        vehicle_price_tax: item.vehicle_price_tax || 0,
+        recycle_fee: item.recycle_fee || 0,
+        listing_fee: item.listing_fee || 0,
+        listing_fee_tax: item.listing_fee_tax || 0,
+        successful_bid: item.successful_bid || 0,
+        successful_bid_tax: item.successful_bid_tax || 0,
+        commission_fee: item.commission_fee || 0,
+        commission_fee_tax: item.commission_fee_tax || 0,
+        transport_fee: item.transport_fee || 0,
+        transport_fee_tax: item.transport_fee_tax || 0,
+        registration_fee: item.registration_fee || 0,
+        registration_fee_tax: item.registration_fee_tax || 0,
+        canceling_fee: item.canceling_fee || 0,
         notes: item.notes || ''
       })) || []
     });
@@ -306,10 +339,6 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       toast.error('Chassis number is required');
       return;
     }
-    if (!currentItem.vehicle_price) {
-      toast.error('Vehicle price is required');
-      return;
-    }
     setFormData({
       ...formData,
       items: [...formData.items, { ...currentItem, id: Date.now() }]
@@ -320,12 +349,20 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       chassis_number: '',
       year: new Date().getFullYear(),
       venue: '',
-      year_type: '',
       vehicle_price: 0,
-      recycling_fee: 0,
-      automobile_tax: 0,
-      auction_fee: 0,
-      service_fee: 0,
+      vehicle_price_tax: 0,
+      recycle_fee: 0,
+      listing_fee: 0,
+      listing_fee_tax: 0,
+      successful_bid: 0,
+      successful_bid_tax: 0,
+      commission_fee: 0,
+      commission_fee_tax: 0,
+      transport_fee: 0,
+      transport_fee_tax: 0,
+      registration_fee: 0,
+      registration_fee_tax: 0,
+      canceling_fee: 0,
       notes: ''
     });
     setCategorySearch('');
@@ -529,7 +566,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                     key={t.id}
                     onClick={() => {
                       setSelectedTransaction(t);
-                      const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.vehicle_price || 0), 0);
+                      const totalAmount = formData.items.reduce((sum, item) => sum + getItemTotal(item), 0);
                       if (totalAmount === 0) {
                         setFormData(prev => ({ ...prev, transaction_date: t.date }));
                       }
@@ -848,26 +885,89 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
             <div className="form-row">
               <div className="form-group">
                 <label>{t.vehiclePrice}</label>
-                <input type="number" value={currentItem.vehicle_price} onChange={(e) => setCurrentItem({...currentItem, vehicle_price: e.target.value})} />
+                <input type="number" value={currentItem.vehicle_price} onChange={(e) => {
+                  const val = e.target.value;
+                  setCurrentItem({...currentItem, vehicle_price: val, vehicle_price_tax: (val * 0.1).toFixed(0)});
+                }} />
               </div>
               <div className="form-group">
-                <label>Auction Fee</label>
-                <input type="number" value={currentItem.auction_fee} onChange={(e) => setCurrentItem({...currentItem, auction_fee: e.target.value})} />
+                <label>Vehicle Price Tax</label>
+                <input type="number" value={currentItem.vehicle_price_tax} onChange={(e) => setCurrentItem({...currentItem, vehicle_price_tax: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Recycling Fee</label>
-                <input type="number" value={currentItem.recycling_fee} onChange={(e) => setCurrentItem({...currentItem, recycling_fee: e.target.value})} />
+                <label>Recycle Fee</label>
+                <input type="number" value={currentItem.recycle_fee} onChange={(e) => setCurrentItem({...currentItem, recycle_fee: e.target.value})} />
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Automobile Tax</label>
-                <input type="number" value={currentItem.automobile_tax} onChange={(e) => setCurrentItem({...currentItem, automobile_tax: e.target.value})} />
+                <label>Listing Fee</label>
+                <input type="number" value={currentItem.listing_fee} onChange={(e) => {
+                  const val = e.target.value;
+                  setCurrentItem({...currentItem, listing_fee: val, listing_fee_tax: (val * 0.1).toFixed(0)});
+                }} />
               </div>
               <div className="form-group">
-                <label>Service Fee</label>
-                <input type="number" value={currentItem.service_fee} onChange={(e) => setCurrentItem({...currentItem, service_fee: e.target.value})} />
+                <label>Listing Fee Tax</label>
+                <input type="number" value={currentItem.listing_fee_tax} onChange={(e) => setCurrentItem({...currentItem, listing_fee_tax: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Successful Bid</label>
+                <input type="number" value={currentItem.successful_bid} onChange={(e) => {
+                  const val = e.target.value;
+                  setCurrentItem({...currentItem, successful_bid: val, successful_bid_tax: (val * 0.1).toFixed(0)});
+                }} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Successful Bid Tax</label>
+                <input type="number" value={currentItem.successful_bid_tax} onChange={(e) => setCurrentItem({...currentItem, successful_bid_tax: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Commission Fee</label>
+                <input type="number" value={currentItem.commission_fee} onChange={(e) => {
+                  const val = e.target.value;
+                  setCurrentItem({...currentItem, commission_fee: val, commission_fee_tax: (val * 0.1).toFixed(0)});
+                }} />
+              </div>
+              <div className="form-group">
+                <label>Commission Fee Tax</label>
+                <input type="number" value={currentItem.commission_fee_tax} onChange={(e) => setCurrentItem({...currentItem, commission_fee_tax: e.target.value})} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Transport Fee</label>
+                <input type="number" value={currentItem.transport_fee} onChange={(e) => {
+                  const val = e.target.value;
+                  setCurrentItem({...currentItem, transport_fee: val, transport_fee_tax: (val * 0.1).toFixed(0)});
+                }} />
+              </div>
+              <div className="form-group">
+                <label>Transport Fee Tax</label>
+                <input type="number" value={currentItem.transport_fee_tax} onChange={(e) => setCurrentItem({...currentItem, transport_fee_tax: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Registration Fee</label>
+                <input type="number" value={currentItem.registration_fee} onChange={(e) => {
+                  const val = e.target.value;
+                  setCurrentItem({...currentItem, registration_fee: val, registration_fee_tax: (val * 0.1).toFixed(0)});
+                }} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Registration Fee Tax</label>
+                <input type="number" value={currentItem.registration_fee_tax} onChange={(e) => setCurrentItem({...currentItem, registration_fee_tax: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Canceling Fee</label>
+                <input type="number" value={currentItem.canceling_fee} onChange={(e) => setCurrentItem({...currentItem, canceling_fee: e.target.value})} />
               </div>
             </div>
 
@@ -882,10 +982,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                   <div className="item-info">
                     <strong>{category?.company} - {category?.name} ({item.model})</strong> - {item.chassis_number} ({item.year})
                     <div className="item-details">
-                      {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Price: ¥{Number(item.vehicle_price).toLocaleString()}
+                      {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Total: ¥{getItemTotal(item).toLocaleString()}
                     </div>
                   </div>
-                  <button type="button" className="btn-remove" onClick={() => removeItem(item.id)}>×</button>
+                  <button type="button" className="btn-remove" onClick={() => removeItem(item.id)}>❌</button>
                 </div>
               );
             })}

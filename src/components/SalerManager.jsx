@@ -119,7 +119,7 @@ const SalerManager = () => {
               <td>{s.bank_name}</td>
               <td>{s.account_number}</td>
               <td>
-                <button className="btn-menu" onClick={(e) => handleMenuClick(e, s.id)}>â‹®</button>
+                <button className="btn-menu" onClick={(e) => handleMenuClick(e, s.id)}>⋮</button>
               </td>
             </tr>
           ))}
