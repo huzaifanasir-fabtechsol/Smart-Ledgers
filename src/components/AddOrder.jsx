@@ -337,11 +337,15 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   };
 
   const addItem = () => {
-    if (!currentItem.category) {
-      toast.error('Please select a car name');
+    const fallbackCarName = (categorySearch || '').trim();
+    const resolvedCategory = currentItem.category || fallbackCarName;
+    const resolvedModel = currentItem.model || fallbackCarName;
+
+    if (!resolvedCategory) {
+      toast.error('Please enter a car name');
       return;
     }
-    if (!currentItem.model) {
+    if (!resolvedModel) {
       toast.error('Model is required');
       return;
     }
@@ -355,7 +359,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       setFormData({
         ...formData,
         items: formData.items.map(item => 
-          item.id === editingItemId ? { ...currentItem, id: editingItemId } : item
+          item.id === editingItemId ? { ...currentItem, category: resolvedCategory, model: resolvedModel, id: editingItemId } : item
         )
       });
       setEditingItemId(null);
@@ -363,7 +367,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       // Add new item
       setFormData({
         ...formData,
-        items: [...formData.items, { ...currentItem, id: Date.now() }]
+        items: [...formData.items, { ...currentItem, category: resolvedCategory, model: resolvedModel, id: Date.now() }]
       });
     }
     
@@ -402,6 +406,8 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     const category = categories.find(c => String(c.id) === String(item.category));
     if (category) {
       setCategorySearch(`${category.company} - ${category.name}`);
+    } else {
+      setCategorySearch(item.category || '');
     }
     setCarSearch(item.model || '');
     setCurrentItem({
@@ -1050,7 +1056,8 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
           <div className="items-list">
             {formData.items.map((item) => {
-              const category = categories.find(c => c.id === item.category);
+              const category = categories.find(c => String(c.id) === String(item.category));
+              const categoryLabel = category ? `${category.company} - ${category.name}` : item.category;
               const isEditing = editingItemId === item.id;
               return (
                 <div 
@@ -1064,7 +1071,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                   onClick={() => editItem(item)}
                 >
                   <div className="item-info">
-                    <strong>{category?.company} - {category?.name} ({item.model})</strong> - {item.chassis_number} ({item.year})
+                    <strong>{categoryLabel} ({item.model})</strong> - {item.chassis_number} ({item.year})
                     <div className="item-details">
                       {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Total: ¥{getItemTotal(item).toLocaleString()}
                     </div>
