@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
@@ -34,6 +34,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   const [carSearch, setCarSearch] = useState('');
   const [showCarDropdown, setShowCarDropdown] = useState(false);
   const [useExistingCar, setUseExistingCar] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
 
   const [formData, setFormData] = useState({
     transaction_type: 'sale',
@@ -96,6 +97,35 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     Number(item.canceling_fee || 0)
   );
 
+  const normalizeOrderItem = useCallback((item) => {
+    const carId = typeof item.car === 'object' ? item.car?.id : item.car;
+    const matchedCar = cars.find((c) => String(c.id) === String(carId));
+
+    return {
+      id: item.id,
+      category: item.category || item.car_category || item.car?.category || matchedCar?.category || '',
+      model: item.model || item.car?.model || matchedCar?.model || '',
+      chassis_number: item.chassis_number || item.car?.chassis_number || matchedCar?.chassis_number || '',
+      year: item.year || item.car?.year || matchedCar?.year || new Date().getFullYear(),
+      venue: item.venue || '',
+      vehicle_price: item.vehicle_price || 0,
+      vehicle_price_tax: item.vehicle_price_tax || 0,
+      recycle_fee: item.recycle_fee || 0,
+      listing_fee: item.listing_fee || 0,
+      listing_fee_tax: item.listing_fee_tax || 0,
+      successful_bid: item.successful_bid || 0,
+      successful_bid_tax: item.successful_bid_tax || 0,
+      commission_fee: item.commission_fee || 0,
+      commission_fee_tax: item.commission_fee_tax || 0,
+      transport_fee: item.transport_fee || 0,
+      transport_fee_tax: item.transport_fee_tax || 0,
+      registration_fee: item.registration_fee || 0,
+      registration_fee_tax: item.registration_fee_tax || 0,
+      canceling_fee: item.canceling_fee || 0,
+      notes: item.notes || ''
+    };
+  }, [cars]);
+
   useEffect(() => {
     fetchCategories();
     fetchCustomers();
@@ -103,11 +133,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     fetchCompanyAccounts();
     fetchAuctions();
     fetchCars();
-    
-    if (editingOrder) {
-      loadOrderData(editingOrder);
-    }
-  }, [editingOrder]);
+  }, []);
 
   useEffect(() => {
     setFilteredCategories(
@@ -241,7 +267,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     }
   };
 
-  const loadOrderData = (order) => {
+  const loadOrderData = useCallback((order) => {
     setFormData({
       transaction_type: order.transaction_type,
       transaction_date: order.transaction_date,
@@ -260,29 +286,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       auction_house: order.other_details?.auction_house || '',
       payment_status: order.payment_status,
       notes: order.notes || '',
-      items: order.items?.map(item => ({
-        id: item.id,
-        category: item.car.category,
-        model: item.car.model,
-        chassis_number: item.car.chassis_number,
-        year: item.car.year,
-        venue: item.venue || '',
-        vehicle_price: item.vehicle_price || 0,
-        vehicle_price_tax: item.vehicle_price_tax || 0,
-        recycle_fee: item.recycle_fee || 0,
-        listing_fee: item.listing_fee || 0,
-        listing_fee_tax: item.listing_fee_tax || 0,
-        successful_bid: item.successful_bid || 0,
-        successful_bid_tax: item.successful_bid_tax || 0,
-        commission_fee: item.commission_fee || 0,
-        commission_fee_tax: item.commission_fee_tax || 0,
-        transport_fee: item.transport_fee || 0,
-        transport_fee_tax: item.transport_fee_tax || 0,
-        registration_fee: item.registration_fee || 0,
-        registration_fee_tax: item.registration_fee_tax || 0,
-        canceling_fee: item.canceling_fee || 0,
-        notes: item.notes || ''
-      })) || []
+      items: order.items?.map((item) => normalizeOrderItem(item)) || []
     });
     
     if (order.customer) {
@@ -304,7 +308,13 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     if (order.transaction) {
       setSelectedTransaction(order.transaction);
     }
-  };
+  }, [allCustomers, allSalers, normalizeOrderItem]);
+
+  useEffect(() => {
+    if (editingOrder) {
+      loadOrderData(editingOrder);
+    }
+  }, [editingOrder, loadOrderData]);
 
   const fetchTransactions = async (accountId) => {
     if (!accountId) return;
@@ -339,10 +349,28 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       toast.error('Chassis number is required');
       return;
     }
-    setFormData({
-      ...formData,
-      items: [...formData.items, { ...currentItem, id: Date.now() }]
-    });
+    
+    if (editingItemId) {
+      // Update existing item
+      setFormData({
+        ...formData,
+        items: formData.items.map(item => 
+          item.id === editingItemId ? { ...currentItem, id: editingItemId } : item
+        )
+      });
+      setEditingItemId(null);
+    } else {
+      // Add new item
+      setFormData({
+        ...formData,
+        items: [...formData.items, { ...currentItem, id: Date.now() }]
+      });
+    }
+    
+    resetCurrentItem();
+  };
+
+  const resetCurrentItem = () => {
     setCurrentItem({
       category: '',
       model: '',
@@ -366,6 +394,40 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       notes: ''
     });
     setCategorySearch('');
+    setCarSearch('');
+    setEditingItemId(null);
+  };
+
+  const editItem = (item) => {
+    const category = categories.find(c => String(c.id) === String(item.category));
+    if (category) {
+      setCategorySearch(`${category.company} - ${category.name}`);
+    }
+    setCarSearch(item.model || '');
+    setCurrentItem({
+      category: item.category,
+      model: item.model,
+      chassis_number: item.chassis_number,
+      year: item.year,
+      venue: item.venue || '',
+      vehicle_price: item.vehicle_price || 0,
+      vehicle_price_tax: item.vehicle_price_tax || 0,
+      recycle_fee: item.recycle_fee || 0,
+      listing_fee: item.listing_fee || 0,
+      listing_fee_tax: item.listing_fee_tax || 0,
+      successful_bid: item.successful_bid || 0,
+      successful_bid_tax: item.successful_bid_tax || 0,
+      commission_fee: item.commission_fee || 0,
+      commission_fee_tax: item.commission_fee_tax || 0,
+      transport_fee: item.transport_fee || 0,
+      transport_fee_tax: item.transport_fee_tax || 0,
+      registration_fee: item.registration_fee || 0,
+      registration_fee_tax: item.registration_fee_tax || 0,
+      canceling_fee: item.canceling_fee || 0,
+      notes: item.notes || ''
+    });
+    setEditingItemId(item.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const removeItem = (id) => {
@@ -373,6 +435,9 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       ...formData,
       items: formData.items.filter(item => item.id !== id)
     });
+    if (editingItemId === id) {
+      resetCurrentItem();
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -971,21 +1036,47 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
               </div>
             </div>
 
-            <button type="button" className="btn-secondary" onClick={addItem}>{t.addItem}</button>
+            <div style={{display: 'flex', gap: '1rem'}}>
+              <button type="button" className="btn-secondary" onClick={addItem}>
+                {editingItemId ? 'Update Item' : t.addItem}
+              </button>
+              {editingItemId && (
+                <button type="button" className="btn-secondary" onClick={resetCurrentItem}>
+                  Cancel Edit
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="items-list">
             {formData.items.map((item) => {
               const category = categories.find(c => c.id === item.category);
+              const isEditing = editingItemId === item.id;
               return (
-                <div key={item.id} className="item-card">
+                <div 
+                  key={item.id} 
+                  className="item-card" 
+                  style={{
+                    cursor: 'pointer',
+                    border: isEditing ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                    backgroundColor: isEditing ? '#eff6ff' : 'white'
+                  }}
+                  onClick={() => editItem(item)}
+                >
                   <div className="item-info">
                     <strong>{category?.company} - {category?.name} ({item.model})</strong> - {item.chassis_number} ({item.year})
                     <div className="item-details">
                       {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Total: ¥{getItemTotal(item).toLocaleString()}
                     </div>
                   </div>
-                  <button type="button" className="btn-remove" onClick={() => removeItem(item.id)}>❌</button>
+                  <button 
+                    type="button" 
+                    className="btn-remove" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeItem(item.id);
+                    }}
+                  >❌</button>
                 </div>
               );
             })}
