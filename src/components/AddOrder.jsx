@@ -81,6 +81,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   });
 
   const toNumber = (value) => Number(value) || 0;
+  const toRows = (data) => (Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : []));
 
   const getItemTotal = (item) => (
     toNumber(item.vehicle_price) +
@@ -101,7 +102,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
   const normalizeOrderItem = useCallback((item) => {
     const carId = typeof item.car === 'object' ? item.car?.id : item.car;
-    const matchedCar = cars.find((c) => String(c.id) === String(carId));
+    const matchedCar = (Array.isArray(cars) ? cars : []).find((c) => String(c.id) === String(carId));
 
     return {
       id: item.id,
@@ -208,8 +209,9 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     try {
       const response = await apiRequest('/revenue/categories/all/');
       const data = await response.json();
-      setCategories(data);
-      setFilteredCategories(data);
+      const rows = toRows(data);
+      setCategories(rows);
+      setFilteredCategories(rows);
     } catch (error) {
       toast.error('Failed to load categories');
     }
@@ -219,7 +221,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     try {
       const response = await apiRequest('/revenue/customers/?pageSize=1000');
       const data = await response.json();
-      const rows = data.results || data;
+      const rows = toRows(data);
       setAllCustomers(rows);
       setCustomers(rows);
     } catch (error) {
@@ -231,7 +233,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     try {
       const response = await apiRequest('/revenue/salers/?pageSize=1000');
       const data = await response.json();
-      const rows = data.results || data;
+      const rows = toRows(data);
       setAllSalers(rows);
       setSalers(rows);
     } catch (error) {
@@ -243,7 +245,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     try {
       const response = await apiRequest('/revenue/company-accounts/?pageSize=1000');
       const data = await response.json();
-      setCompanyAccounts(data.results || data);
+      setCompanyAccounts(toRows(data));
     } catch (error) {
       toast.error('Failed to load company accounts');
     }
@@ -253,7 +255,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     try {
       const response = await apiRequest('/revenue/auctions/?pageSize=1000');
       const data = await response.json();
-      setAuctions(data.results || data);
+      setAuctions(toRows(data));
     } catch (error) {
       toast.error('Failed to load auctions');
     }
@@ -263,7 +265,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     try {
       const response = await apiRequest('/revenue/cars/');
       const data = await response.json();
-      setCars(data);
+      setCars(toRows(data));
     } catch (error) {
       toast.error('Failed to load cars');
     }
