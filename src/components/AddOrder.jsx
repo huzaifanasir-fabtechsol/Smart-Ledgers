@@ -405,7 +405,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   };
 
   const editItem = (item) => {
-    const category = categories.find(c => String(c.id) === String(item.category));
+    const category = Array.isArray(categories) ? categories.find(c => String(c.id) === String(item.category)) : null;
     if (category) {
       setCategorySearch(`${category.company} - ${category.name}`);
     } else {
@@ -1061,7 +1061,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
           <div className="items-list">
             {formData.items.map((item) => {
-              const category = categories.find(c => String(c.id) === String(item.category));
+              const category = Array.isArray(categories) ? categories.find(c => String(c.id) === String(item.category)) : null;
               const categoryLabel = category ? `${category.company} - ${category.name}` : item.category;
               const isEditing = editingItemId === item.id;
               return (
