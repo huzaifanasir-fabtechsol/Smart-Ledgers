@@ -12,7 +12,6 @@ const TransactionManager = () => {
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
@@ -36,7 +35,7 @@ const TransactionManager = () => {
   useEffect(() => {
     fetchTransactions();
     fetchCompanyAccounts();
-  }, [currentPage, filters, pageSize]);
+  }, [currentPage, filters]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -53,14 +52,13 @@ const TransactionManager = () => {
     try {
       const params = new URLSearchParams({
         page: currentPage,
-        pageSize: pageSize,
         ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
       });
       
       const response = await apiRequest(`/revenue/transactions/?${params}`);
       const data = await response.json();
       setTransactions(data.results || []);
-      setTotalPages(Math.ceil((data.count || 0) / pageSize));
+      setTotalPages(Math.ceil((data.count || 0) / 10));
     } catch (error) {
       toast.error('Failed to load transactions');
     } finally {
@@ -217,12 +215,6 @@ const TransactionManager = () => {
               </option>
             ))}
           </select>
-          <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className="filter-select">
-            <option value={10}>10 per page</option>
-            <option value={25}>25 per page</option>
-            <option value={50}>50 per page</option>
-            <option value={100}>100 per page</option>
-          </select>
           <button onClick={handleClearFilters} className="btn-secondary">
             Clear
           </button>
@@ -249,7 +241,7 @@ const TransactionManager = () => {
               <tbody>
                 {transactions.map((transaction, index) => (
                   <tr key={transaction.id}>
-                    <td>{(currentPage - 1) * pageSize + index + 1}</td>
+                    <td>{(currentPage - 1) * 10 + index + 1}</td>
                     <td>{transaction.date}</td>
                     <td>{transaction.transaction_id || '-'}</td>
                     <td>{transaction.description}</td>

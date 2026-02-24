@@ -15,8 +15,10 @@ const SparePartManager = () => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [formData, setFormData] = useState(INITIAL_FORM);
   const menuRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-  useEffect(() => { fetchSpareParts(); }, [search]);
+  useEffect(() => { fetchSpareParts(); }, [search, currentPage]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -30,9 +32,10 @@ const SparePartManager = () => {
 
   const fetchSpareParts = async () => {
     try {
-      const response = await apiRequest(`/spare-parts/?page_size=1000&search=${encodeURIComponent(search)}`);
+      const response = await apiRequest(`/spare-parts/?search=${encodeURIComponent(search)}&page=${currentPage}`);
       const data = await response.json();
       setSpareParts(data.results || data || []);
+      setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load spare parts');
     }
@@ -68,6 +71,7 @@ const SparePartManager = () => {
       setShowModal(false);
       setEditingSparePart(null);
       setFormData(INITIAL_FORM);
+      setCurrentPage(1);
       fetchSpareParts();
     } catch (error) {
       toast.error('Failed to save shop');
@@ -103,7 +107,7 @@ const SparePartManager = () => {
       </div>
 
       <div className="filters">
-        <input type="text" placeholder="Search shops..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input type="text" placeholder="Search shops..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
       </div>
 
       <table className="data-table">
@@ -119,7 +123,7 @@ const SparePartManager = () => {
         <tbody>
           {spareParts.map((item, idx) => (
             <tr key={item.id}>
-              <td>{idx + 1}</td>
+              <td>{(currentPage - 1) * 10 + idx + 1}</td>
               <td>{item.name}</td>
               <td>{item.address || '-'}</td>
               <td>{item.description || '-'}</td>
@@ -130,6 +134,12 @@ const SparePartManager = () => {
           ))}
         </tbody>
       </table>
+
+      <div className="pagination">
+        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+      </div>
 
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>

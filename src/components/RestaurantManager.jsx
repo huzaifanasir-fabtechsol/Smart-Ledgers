@@ -12,9 +12,11 @@ const RestaurantManager = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({ name: '', location: '', description: '' });
 
-  useEffect(() => { fetchRestaurants(); }, [search]);
+  useEffect(() => { fetchRestaurants(); }, [search, currentPage]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -28,9 +30,10 @@ const RestaurantManager = () => {
 
   const fetchRestaurants = async () => {
     try {
-      const response = await apiRequest(`/restaurants/?search=${search}`);
+      const response = await apiRequest(`/restaurants/?search=${search}&page=${currentPage}`);
       const data = await response.json();
       setRestaurants(data.results || data);
+      setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load restaurants');
     }
@@ -49,6 +52,7 @@ const RestaurantManager = () => {
       setShowModal(false);
       setEditingRestaurant(null);
       setFormData({ name: '', location: '', description: '' });
+      setCurrentPage(1);
       fetchRestaurants();
     } catch (error) {
       toast.error('Failed to save restaurant');
@@ -91,7 +95,7 @@ const RestaurantManager = () => {
       </div>
 
       <div className="filters">
-        <input type="text" placeholder="Search restaurants..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input type="text" placeholder="Search restaurants..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
       </div>
 
       <table className="data-table">
@@ -107,7 +111,7 @@ const RestaurantManager = () => {
         <tbody>
           {restaurants.map((r, idx) => (
             <tr key={r.id}>
-              <td>{idx+1}</td>
+              <td>{(currentPage - 1) * 10 + idx + 1}</td>
               <td>{r.name}</td>
               <td>{r.location}</td>
               <td>{r.description}</td>
@@ -118,6 +122,12 @@ const RestaurantManager = () => {
           ))}
         </tbody>
       </table>
+
+      <div className="pagination">
+        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+      </div>
 
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>

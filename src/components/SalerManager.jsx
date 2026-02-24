@@ -12,14 +12,13 @@ const SalerManager = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
-  const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({
     name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: ''
   });
 
-  useEffect(() => { fetchSalers(); }, [search, pageSize, currentPage]);
+  useEffect(() => { fetchSalers(); }, [search, currentPage]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -33,7 +32,7 @@ const SalerManager = () => {
 
   const fetchSalers = async () => {
     try {
-      const response = await apiRequest(`/revenue/salers/?search=${search}&pageSize=${pageSize}&page=${currentPage}`);
+      const response = await apiRequest(`/revenue/salers/?search=${search}&page=${currentPage}`);
       const data = await response.json();
       setSalers(data.results || data);
       setTotalCount(data.count || 0);
@@ -100,12 +99,6 @@ const SalerManager = () => {
 
       <div className="filters">
         <input type="text" placeholder="Search salers..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
-        <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
-          <option value={10}>10 per page</option>
-          <option value={25}>25 per page</option>
-          <option value={50}>50 per page</option>
-          <option value={100}>100 per page</option>
-        </select>
       </div>
 
       <table className="data-table">
@@ -123,7 +116,7 @@ const SalerManager = () => {
         <tbody>
           {salers.map((s, index )=> (
             <tr key={s.id}>
-              <td>{index + 1}</td>
+              <td>{(currentPage - 1) * 10 + index + 1}</td>
               <td>{s.name}</td>
               <td>{s.email}</td>
               <td>{s.phone}</td>
@@ -139,8 +132,8 @@ const SalerManager = () => {
 
       <div className="pagination">
         <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-        <span>Page {currentPage} of {Math.ceil(totalCount / pageSize) || 1}</span>
-        <button disabled={currentPage >= Math.ceil(totalCount / pageSize)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
       </div>
 
       {openMenuId && (
