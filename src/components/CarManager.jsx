@@ -13,11 +13,13 @@ const CarManager = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({
     category: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear()
   });
 
-  useEffect(() => { fetchCars(); fetchCategories(); }, [search]);
+  useEffect(() => { fetchCars(); fetchCategories(); }, [search, currentPage]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -31,9 +33,10 @@ const CarManager = () => {
 
   const fetchCars = async () => {
     try {
-      const response = await apiRequest(`/revenue/cars/?search=${search}`);
+      const response = await apiRequest(`/revenue/cars/?search=${search}&page=${currentPage}`);
       const data = await response.json();
       setCars(data.results || data);
+      setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load cars');
     }
@@ -62,6 +65,7 @@ const CarManager = () => {
       setShowModal(false);
       setEditingCar(null);
       setFormData({ category: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear() });
+      setCurrentPage(1);
       fetchCars();
     } catch (error) {
       toast.error('Failed to save car');
@@ -104,7 +108,7 @@ const CarManager = () => {
       </div>
 
       <div className="filters">
-        <input type="text" placeholder="Search cars..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input type="text" placeholder="Search cars..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
       </div>
 
       <table className="data-table">
@@ -122,7 +126,7 @@ const CarManager = () => {
         <tbody>
           {cars.map((c, index) => (
             <tr key={c.id}>
-              <td>{index+1}</td>
+              <td>{(currentPage - 1) * 10 + index + 1}</td>
               <td>{c.company_name}</td>
               <td>{c.category_name}</td>
               <td>{c.model}</td>
@@ -135,6 +139,12 @@ const CarManager = () => {
           ))}
         </tbody>
       </table>
+
+      <div className="pagination">
+        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+      </div>
 
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>

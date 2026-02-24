@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
-import { apiRequest } from '../api';
+import { apiRequest, getErrorMessage } from '../api';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -44,32 +44,39 @@ const CustomerManager = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingCustomer) {
-        await apiRequest(`/revenue/customers/${editingCustomer.id}/`, { method: 'PUT', body: JSON.stringify(formData) });
-        toast.success('Customer updated');
-      } else {
-        await apiRequest('/revenue/customers/', { method: 'POST', body: JSON.stringify(formData) });
-        toast.success('Customer added');
+      const response = editingCustomer
+        ? await apiRequest(`/revenue/customers/${editingCustomer.id}/`, { method: 'PUT', body: JSON.stringify(formData) })
+        : await apiRequest('/revenue/customers/', { method: 'POST', body: JSON.stringify(formData) });
+      
+      if (!response.ok) {
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
+      
+      toast.success(editingCustomer ? 'Customer updated' : 'Customer added');
       setShowModal(false);
       setEditingCustomer(null);
       setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' });
       setCurrentPage(1);
       fetchCustomers();
     } catch (error) {
-      toast.error('Failed to save customer');
+      toast.error(error.message || 'Failed to save customer');
     }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this customer? This will also delete all related orders.')) return;
     try {
-      await apiRequest(`/revenue/customers/${id}/`, { method: 'DELETE' });
+      const response = await apiRequest(`/revenue/customers/${id}/`, { method: 'DELETE' });
+      if (!response.ok) {
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
+      }
       toast.success('Customer deleted');
       fetchCustomers();
       setOpenMenuId(null);
     } catch (error) {
-      toast.error('Failed to delete customer');
+      toast.error(error.message || 'Failed to delete customer');
     }
   };
 

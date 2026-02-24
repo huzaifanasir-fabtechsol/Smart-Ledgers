@@ -2,7 +2,7 @@
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
-import { apiRequest } from '../api';
+import { apiRequest, getErrorMessage } from '../api';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -487,13 +487,16 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         method,
         body: JSON.stringify(payload)
       });
+      
       if (!response.ok) {
-        throw new Error('Order operation failed');
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
+      
       toast.success(editingOrder ? 'Order updated successfully' : 'Order created successfully');
       setTimeout(() => onSave(), 900);
     } catch (error) {
-      toast.error(editingOrder ? 'Failed to update order' : 'Failed to create order');
+      toast.error(error.message || (editingOrder ? 'Failed to update order' : 'Failed to create order'));
     } finally {
       setLoading(false);
     }
