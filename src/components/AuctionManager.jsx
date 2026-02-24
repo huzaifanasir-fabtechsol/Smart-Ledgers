@@ -12,9 +12,12 @@ const AuctionManager = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({ name: '', description: '' });
 
-  useEffect(() => { fetchAuctions(); }, [search]);
+  useEffect(() => { fetchAuctions(); }, [search, pageSize, currentPage]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -28,9 +31,10 @@ const AuctionManager = () => {
 
   const fetchAuctions = async () => {
     try {
-      const response = await apiRequest(`/revenue/auctions/?search=${search}`);
+      const response = await apiRequest(`/revenue/auctions/?search=${search}&pageSize=${pageSize}&page=${currentPage}`);
       const data = await response.json();
       setAuctions(data.results || data);
+      setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load auctions');
     }
@@ -49,6 +53,7 @@ const AuctionManager = () => {
       setShowModal(false);
       setEditingAuction(null);
       setFormData({ name: '', description: '' });
+      setCurrentPage(1);
       fetchAuctions();
     } catch (error) {
       toast.error('Failed to save auction');
@@ -91,7 +96,13 @@ const AuctionManager = () => {
       </div>
 
       <div className="filters">
-        <input type="text" placeholder="Search auctions..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input type="text" placeholder="Search auctions..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
+        <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
+          <option value={10}>10 per page</option>
+          <option value={25}>25 per page</option>
+          <option value={50}>50 per page</option>
+          <option value={100}>100 per page</option>
+        </select>
       </div>
 
       <table className="data-table">
@@ -115,6 +126,12 @@ const AuctionManager = () => {
           ))}
         </tbody>
       </table>
+
+      <div className="pagination">
+        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+        <span>Page {currentPage} of {Math.ceil(totalCount / pageSize) || 1}</span>
+        <button disabled={currentPage >= Math.ceil(totalCount / pageSize)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+      </div>
 
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>

@@ -80,21 +80,23 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     notes: ''
   });
 
+  const toNumber = (value) => Number(value) || 0;
+
   const getItemTotal = (item) => (
-    Number(item.vehicle_price || 0) +
-    Number(item.vehicle_price_tax || 0) +
-    Number(item.recycle_fee || 0) +
-    Number(item.listing_fee || 0) +
-    Number(item.listing_fee_tax || 0) +
-    Number(item.successful_bid || 0) +
-    Number(item.successful_bid_tax || 0) +
-    Number(item.commission_fee || 0) +
-    Number(item.commission_fee_tax || 0) +
-    Number(item.transport_fee || 0) +
-    Number(item.transport_fee_tax || 0) +
-    Number(item.registration_fee || 0) +
-    Number(item.registration_fee_tax || 0) +
-    Number(item.canceling_fee || 0)
+    toNumber(item.vehicle_price) +
+    toNumber(item.vehicle_price_tax) +
+    toNumber(item.recycle_fee) +
+    toNumber(item.listing_fee) +
+    toNumber(item.listing_fee_tax) +
+    toNumber(item.canceling_fee) -
+    toNumber(item.successful_bid) -
+    toNumber(item.successful_bid_tax) -
+    toNumber(item.commission_fee) -
+    toNumber(item.commission_fee_tax) -
+    toNumber(item.transport_fee) -
+    toNumber(item.transport_fee_tax) -
+    toNumber(item.registration_fee) -
+    toNumber(item.registration_fee_tax)
   );
 
   const normalizeOrderItem = useCallback((item) => {
@@ -215,7 +217,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
   const fetchCustomers = async () => {
     try {
-      const response = await apiRequest('/revenue/customers/');
+      const response = await apiRequest('/revenue/customers/?pageSize=1000');
       const data = await response.json();
       const rows = data.results || data;
       setAllCustomers(rows);
@@ -227,7 +229,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
   const fetchSalers = async () => {
     try {
-      const response = await apiRequest('/revenue/salers/');
+      const response = await apiRequest('/revenue/salers/?pageSize=1000');
       const data = await response.json();
       const rows = data.results || data;
       setAllSalers(rows);
@@ -239,7 +241,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
   const fetchCompanyAccounts = async () => {
     try {
-      const response = await apiRequest('/revenue/company-accounts/');
+      const response = await apiRequest('/revenue/company-accounts/?pageSize=1000');
       const data = await response.json();
       setCompanyAccounts(data.results || data);
     } catch (error) {
@@ -249,7 +251,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
   const fetchAuctions = async () => {
     try {
-      const response = await apiRequest('/revenue/auctions/');
+      const response = await apiRequest('/revenue/auctions/?pageSize=1000');
       const data = await response.json();
       setAuctions(data.results || data);
     } catch (error) {

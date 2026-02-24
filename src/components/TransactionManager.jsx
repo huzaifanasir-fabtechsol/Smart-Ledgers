@@ -12,7 +12,7 @@ const TransactionManager = () => {
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(10);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
@@ -36,7 +36,7 @@ const TransactionManager = () => {
   useEffect(() => {
     fetchTransactions();
     fetchCompanyAccounts();
-  }, [currentPage, filters]);
+  }, [currentPage, filters, pageSize]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -53,7 +53,7 @@ const TransactionManager = () => {
     try {
       const params = new URLSearchParams({
         page: currentPage,
-        page_size: pageSize,
+        pageSize: pageSize,
         ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
       });
       
@@ -216,6 +216,12 @@ const TransactionManager = () => {
                 {account.bank_name} - {account.account_number}
               </option>
             ))}
+          </select>
+          <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className="filter-select">
+            <option value={10}>10 per page</option>
+            <option value={25}>25 per page</option>
+            <option value={50}>50 per page</option>
+            <option value={100}>100 per page</option>
           </select>
           <button onClick={handleClearFilters} className="btn-secondary">
             Clear

@@ -12,11 +12,14 @@ const SalerManager = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({
     name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: ''
   });
 
-  useEffect(() => { fetchSalers(); }, [search]);
+  useEffect(() => { fetchSalers(); }, [search, pageSize, currentPage]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -30,9 +33,10 @@ const SalerManager = () => {
 
   const fetchSalers = async () => {
     try {
-      const response = await apiRequest(`/revenue/salers/?search=${search}`);
+      const response = await apiRequest(`/revenue/salers/?search=${search}&pageSize=${pageSize}&page=${currentPage}`);
       const data = await response.json();
       setSalers(data.results || data);
+      setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load salers');
     }
@@ -51,6 +55,7 @@ const SalerManager = () => {
       setShowModal(false);
       setEditingSaler(null);
       setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' });
+      setCurrentPage(1);
       fetchSalers();
     } catch (error) {
       toast.error('Failed to save saler');
@@ -94,7 +99,13 @@ const SalerManager = () => {
       </div>
 
       <div className="filters">
-        <input type="text" placeholder="Search salers..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input type="text" placeholder="Search salers..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
+        <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
+          <option value={10}>10 per page</option>
+          <option value={25}>25 per page</option>
+          <option value={50}>50 per page</option>
+          <option value={100}>100 per page</option>
+        </select>
       </div>
 
       <table className="data-table">
@@ -125,6 +136,12 @@ const SalerManager = () => {
           ))}
         </tbody>
       </table>
+
+      <div className="pagination">
+        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+        <span>Page {currentPage} of {Math.ceil(totalCount / pageSize) || 1}</span>
+        <button disabled={currentPage >= Math.ceil(totalCount / pageSize)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+      </div>
 
       {openMenuId && (
         <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
