@@ -87,9 +87,9 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     toNumber(item.vehicle_price) +
     toNumber(item.vehicle_price_tax) +
     toNumber(item.recycle_fee) +
-    toNumber(item.listing_fee) +
-    toNumber(item.listing_fee_tax) +
     toNumber(item.canceling_fee) -
+    toNumber(item.listing_fee) -
+    toNumber(item.listing_fee_tax) -
     toNumber(item.successful_bid) -
     toNumber(item.successful_bid_tax) -
     toNumber(item.commission_fee) -
