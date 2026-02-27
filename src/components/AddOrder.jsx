@@ -83,22 +83,42 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   const toNumber = (value) => Number(value) || 0;
   const toRows = (data) => (Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : []));
 
-  const getItemTotal = (item) => (
-    toNumber(item.vehicle_price) +
-    toNumber(item.vehicle_price_tax) +
-    toNumber(item.recycle_fee) +
-    toNumber(item.canceling_fee) -
-    toNumber(item.listing_fee) -
-    toNumber(item.listing_fee_tax) -
-    toNumber(item.successful_bid) -
-    toNumber(item.successful_bid_tax) -
-    toNumber(item.commission_fee) -
-    toNumber(item.commission_fee_tax) -
-    toNumber(item.transport_fee) -
-    toNumber(item.transport_fee_tax) -
-    toNumber(item.registration_fee) -
-    toNumber(item.registration_fee_tax)
-  );
+  const getItemTotal = (item) => {
+    if (formData.transaction_type === 'nagare') {
+      return (
+        toNumber(item.vehicle_price) +
+        toNumber(item.vehicle_price_tax) +
+        toNumber(item.recycle_fee) +
+        toNumber(item.listing_fee) +
+        toNumber(item.listing_fee_tax) +
+        toNumber(item.canceling_fee) -
+        toNumber(item.successful_bid) -
+        toNumber(item.successful_bid_tax) -
+        toNumber(item.commission_fee) -
+        toNumber(item.commission_fee_tax) -
+        toNumber(item.transport_fee) -
+        toNumber(item.transport_fee_tax) -
+        toNumber(item.registration_fee) -
+        toNumber(item.registration_fee_tax)
+      );
+    }
+    return (
+      toNumber(item.vehicle_price) +
+      toNumber(item.vehicle_price_tax) +
+      toNumber(item.recycle_fee) +
+      toNumber(item.canceling_fee) -
+      toNumber(item.listing_fee) -
+      toNumber(item.listing_fee_tax) -
+      toNumber(item.successful_bid) -
+      toNumber(item.successful_bid_tax) -
+      toNumber(item.commission_fee) -
+      toNumber(item.commission_fee_tax) -
+      toNumber(item.transport_fee) -
+      toNumber(item.transport_fee_tax) -
+      toNumber(item.registration_fee) -
+      toNumber(item.registration_fee_tax)
+    );
+  };
 
   const normalizeOrderItem = useCallback((item) => {
     const carId = typeof item.car === 'object' ? item.car?.id : item.car;
@@ -538,6 +558,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
             <select value={formData.transaction_type} onChange={(e) => handleTransactionTypeChange(e.target.value)}>
               <option value="sale">{t.sale}</option>
               <option value="purchase">{t.purchase}</option>
+              <option value="nagare">Nagare (流れ)</option>
               {/* <option value="auction">{t.auction}</option> */}
             </select>
           </div>

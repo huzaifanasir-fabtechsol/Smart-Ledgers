@@ -213,6 +213,7 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
             <option value="">All Types</option>
             <option value="sale">Sale</option>
             <option value="purchase">Purchase</option>
+            <option value="nagare">Nagare (流れ)</option>
             <option value="auction">Auction</option>
           </select>
           <select
