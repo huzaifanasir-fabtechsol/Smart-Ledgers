@@ -703,7 +703,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         )}
 
         <div className="form-group customer-dropdown-wrapper">
-          <label>{formData.transaction_type === 'purchase' ? 'Saler' : 'Customer'}</label>
+          <label>{formData.transaction_type === 'purchase' ? 'Saler' : 'Customer'} {formData.transaction_type === 'nagare' && '(Optional)'}</label>
           <input
             type="text"
             placeholder={formData.transaction_type === 'purchase' ? 'Search salers...' : 'Search customers...'}
