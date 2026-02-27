@@ -253,9 +253,9 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                   <th>{t.date}</th>
                   <th>{t.type}</th>
                   <th>Name</th>
-                  <th>Phone</th>
+                  <th>Auction</th>
                   <th>{t.items}</th>
-                  <th>Transaction</th>
+                  {/* <th>Transaction</th> */}
                   <th>{t.paymentStatus}</th>
                   <th>{t.totalAmount}</th>
                   <th style={{width: '60px'}}>{t.actions}</th>
@@ -270,9 +270,9 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                       <td>{order.transaction_date}</td>
                       <td>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
                       <td>{contact.name}</td>
-                      <td>{contact.phone}</td>
+                      <td>{order.auction_name}</td>
                       <td>{order.items?.length || 0}</td>
-                      <td>
+                      {/* <td>
                         {order.transaction ? (
                           <span className="transaction-link" title={order.transaction.description}>
                             ¥{Number(order.transaction.withdraw || 0).toLocaleString()}
@@ -280,7 +280,7 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                         ) : (
                           <span className="no-transaction">-</span>
                         )}
-                      </td>
+                      </td> */}
                       <td><span className={`status-badge status-${order.payment_status}`} onClick={() => handleEditStatus(order)} style={{cursor: 'pointer'}}>{t[order.payment_status]}</span></td>
                                             <td>¥{Number(order.total_amount || 0).toLocaleString()}</td>
                       <td>
