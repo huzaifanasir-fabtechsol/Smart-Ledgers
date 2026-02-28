@@ -831,7 +831,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         {formData.transaction_type !== 'uction' && (
           <div className="form-group">
             <label>Auction House</label>
-            <select value={formData.auction_id || ''} onChange={(e) => setFormData({...formData, auction_id: e.target.value})} required>
+            <select value={formData.auction_id || ''} onChange={(e) => setFormData({...formData, auction_id: e.target.value})}>
               <option value="">Select Auction</option>
               {auctions.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
