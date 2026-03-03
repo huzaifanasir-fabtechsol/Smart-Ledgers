@@ -116,7 +116,7 @@ const CarManager = () => {
           <tr>
             <th>Sr</th>
             <th>Company</th>
-            <th>Name</th>
+            {/* <th>Name</th> */}
             <th>Model</th>
             <th>Chassis Number</th>
             <th>Year</th>
@@ -127,9 +127,9 @@ const CarManager = () => {
           {cars.map((c, index) => (
             <tr key={c.id}>
               <td>{(currentPage - 1) * 10 + index + 1}</td>
-              <td>{c.company_name}</td>
-              <td>{c.category_name}</td>
-              <td>{c.model}</td>
+              <td>{c.category_company}</td>
+              {/* <td>{c.category_name}</td> */}
+              <td>{c.category_model}</td>
               <td>{c.chassis_number}</td>
               <td>{c.year}</td>
               <td>

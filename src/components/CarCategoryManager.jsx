@@ -179,7 +179,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
                 <tr>
                   <th style={{width: '80px'}}>{t.id}</th>
                   <th>Company</th>
-                  <th>{t.categoryName}</th>
+                  <th>Model</th>
                   <th>{t.description}</th>
                   <th style={{width: '60px'}}>{t.actions}</th>
                 </tr>
@@ -189,7 +189,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
                   <tr key={category.id}>
                     <td>{(currentPage - 1) * pageSize + index + 1}</td>
                     <td>{category.company}</td>
-                    <td>{category.name}</td>
+                    <td>{category.model}</td>
                     <td>{category.description || '-'}</td>
                     <td>
                       <button className="btn-menu" onClick={(e) => handleMenuClick(e, category.id)}>⋮</button>

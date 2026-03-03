@@ -3,6 +3,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
 import { apiRequest, getErrorMessage } from '../api';
+import DateInput from './DateInput';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -102,6 +103,24 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         toNumber(item.registration_fee_tax)
       );
     }
+    if (formData.transaction_type === 'sale') {
+      return (
+        toNumber(item.vehicle_price) +
+        toNumber(item.vehicle_price_tax) +
+        toNumber(item.recycle_fee) +
+        toNumber(item.transport_fee) +
+        toNumber(item.transport_fee_tax) +
+        toNumber(item.registration_fee) +
+        toNumber(item.registration_fee_tax) +
+        toNumber(item.canceling_fee) -
+        toNumber(item.listing_fee) -
+        toNumber(item.listing_fee_tax) -
+        toNumber(item.successful_bid) -
+        toNumber(item.successful_bid_tax) -
+        toNumber(item.commission_fee) -
+        toNumber(item.commission_fee_tax)
+      );
+    }
     return (
       toNumber(item.vehicle_price) +
       toNumber(item.vehicle_price_tax) +
@@ -126,8 +145,8 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
     return {
       id: item.id,
-      category: item.category || item.car_category || item.car?.category || matchedCar?.category || '',
-      model: item.model || item.car?.model || matchedCar?.model || '',
+      category: item.category || item.car_category?.id || item.car?.category?.id || matchedCar?.category?.id || '',
+      model: item.model || item.car_category?.model || item.car?.category?.model || matchedCar?.category?.model || '',
       chassis_number: item.chassis_number || item.car?.chassis_number || matchedCar?.chassis_number || '',
       year: item.year || item.car?.year || matchedCar?.year || new Date().getFullYear(),
       venue: item.venue || '',
@@ -160,7 +179,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
   useEffect(() => {
     setFilteredCategories(
-      categories.filter(cat => cat.name.toLowerCase().includes(categorySearch.toLowerCase()))
+      categories.filter(cat => 
+        (cat.company && cat.company.toLowerCase().includes(categorySearch.toLowerCase())) ||
+        (cat.model && cat.model.toLowerCase().includes(categorySearch.toLowerCase()))
+      )
     );
   }, [categorySearch, categories]);
 
@@ -429,7 +451,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   const editItem = (item) => {
     const category = Array.isArray(categories) ? categories.find(c => String(c.id) === String(item.category)) : null;
     if (category) {
-      setCategorySearch(`${category.company} - ${category.name}`);
+      setCategorySearch(`${category.company} - ${category.model}`);
     } else {
       setCategorySearch(item.category || '');
     }
@@ -564,8 +586,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
           </div>
           <div className="form-group">
             <label>{t.date}</label>
-            <input 
-              type="date" 
+            <DateInput 
               value={formData.transaction_date} 
               onChange={(e) => setFormData({...formData, transaction_date: e.target.value})} 
               readOnly={selectedTransaction && selectedTransaction.id}
@@ -647,8 +668,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                 />
               </div>
               <div className="form-group">
-                <input
-                  type="date"
+                <DateInput
                   value={transactionDate}
                   onChange={(e) => setTransactionDate(e.target.value)}
                 />
@@ -876,12 +896,12 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                             key={cat.id}
                             className="category-option"
                             onClick={() => {
-                              setCurrentItem({...currentItem, category: cat.id});
-                              setCategorySearch(`${cat.company} - ${cat.name}`);
+                              setCurrentItem({...currentItem, category: cat.id, model: cat.model});
+                              setCategorySearch(`${cat.company} - ${cat.model}`);
                               setShowCategoryDropdown(false);
                             }}
                           >
-                            {cat.company} - {cat.name}
+                            {cat.company} - {cat.model}
                           </div>
                         ))
                       ) : (
@@ -902,18 +922,18 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                     />
                     {showCarDropdown && (
                       <div className="category-dropdown-list">
-                        {filteredCars.filter(c => c.model.toLowerCase().includes(carSearch.toLowerCase())).length > 0 ? (
-                          filteredCars.filter(c => c.model.toLowerCase().includes(carSearch.toLowerCase())).map(car => (
+                        {filteredCars.filter(c => (c.category_model && c.category_model.toLowerCase().includes(carSearch.toLowerCase()))).length > 0 ? (
+                          filteredCars.filter(c => (c.category_model && c.category_model.toLowerCase().includes(carSearch.toLowerCase()))).map(car => (
                             <div
                               key={car.id}
                               className="category-option"
                               onClick={() => {
-                                setCurrentItem({...currentItem, model: car.model, chassis_number: car.chassis_number, year: car.year});
-                                setCarSearch(car.model);
+                                setCurrentItem({...currentItem, model: car.category_model, chassis_number: car.chassis_number, year: car.year});
+                                setCarSearch(car.category_model);
                                 setShowCarDropdown(false);
                               }}
                             >
-                              {car.model} ({car.chassis_number})
+                              {car.category_model} ({car.chassis_number})
                             </div>
                           ))
                         ) : (
@@ -943,12 +963,12 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                             key={cat.id}
                             className="category-option"
                             onClick={() => {
-                              setCurrentItem({...currentItem, category: cat.id});
-                              setCategorySearch(`${cat.company} - ${cat.name}`);
+                              setCurrentItem({...currentItem, category: cat.id, model: cat.model});
+                              setCategorySearch(`${cat.company} - ${cat.model}`);
                               setShowCategoryDropdown(false);
                             }}
                           >
-                            {cat.company} - {cat.name}
+                            {cat.company} - {cat.model}
                           </div>
                         ))
                       ) : (
@@ -959,7 +979,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                 </div>
                 <div className="form-group">
                   <label>{t.model}</label>
-                  <input type="text" value={currentItem.model} onChange={(e) => setCurrentItem({...currentItem, model: e.target.value})} />
+                  <input type="text" value={currentItem.model} onChange={(e) => setCurrentItem({...currentItem, model: e.target.value})} readOnly />
                 </div>
               </div>
             )}
@@ -1085,7 +1105,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
           <div className="items-list">
             {formData.items.map((item) => {
               const category = Array.isArray(categories) ? categories.find(c => String(c.id) === String(item.category)) : null;
-              const categoryLabel = category ? `${category.company} - ${category.name}` : item.category;
+              const categoryLabel = category ? `${category.company} - ${category.model}` : item.category;
               const isEditing = editingItemId === item.id;
               return (
                 <div 
