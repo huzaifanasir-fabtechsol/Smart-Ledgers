@@ -142,11 +142,13 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   const normalizeOrderItem = useCallback((item) => {
     const carId = typeof item.car === 'object' ? item.car?.id : item.car;
     const matchedCar = (Array.isArray(cars) ? cars : []).find((c) => String(c.id) === String(carId));
-
+    
     return {
       id: item.id,
-      category: item.category || item.car_category?.id || item.car?.category?.id || matchedCar?.category?.id || '',
-      model: item.model || item.car_category?.model || item.car?.category?.model || matchedCar?.category?.model || '',
+      category: item.car_category || item.category || matchedCar?.category?.id || '',
+      model: item.car_model || item.model || matchedCar?.category?.model || '',
+      car_company: item.car_company || '',
+      car_model: item.car_model || '',
       chassis_number: item.chassis_number || item.car?.chassis_number || matchedCar?.chassis_number || '',
       year: item.year || item.car?.year || matchedCar?.year || new Date().getFullYear(),
       venue: item.venue || '',
@@ -1105,7 +1107,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
           <div className="items-list">
             {formData.items.map((item) => {
               const category = Array.isArray(categories) ? categories.find(c => String(c.id) === String(item.category)) : null;
-              const categoryLabel = category ? `${category.company} - ${category.model}` : item.category;
+              const categoryLabel = category ? `${category.company} - ${category.model}` : (item.category || 'Unknown Category');
               const isEditing = editingItemId === item.id;
               return (
                 <div 
@@ -1119,7 +1121,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                   onClick={() => editItem(item)}
                 >
                   <div className="item-info">
-                    <strong>{categoryLabel} ({item.model})</strong> - {item.chassis_number} ({item.year})
+                    <strong>{item.car_company && item.car_model ? `${item.car_company} - ${item.car_model}` : categoryLabel}</strong> - {item.chassis_number} ({item.year})
                     <div className="item-details">
                       {formData.transaction_type === 'auction' ? `Venue: ${item.venue}` : ''} | Total: ¥{getItemTotal(item).toLocaleString()}
                     </div>
