@@ -162,13 +162,13 @@ const CarManager = () => {
                 <label>Car Name (Company - Model)</label>
                 <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required>
                   <option value="">Select Car Name</option>
-                  {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.company} - {cat.name}</option>)}
+                  {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.company} - {cat.model}</option>)}
                 </select>
               </div>
-              <div className="form-group">
+              {/* <div className="form-group">
                 <label>Model</label>
                 <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} required />
-              </div>
+              </div> */}
               <div className="form-group">
                 <label>Chassis Number</label>
                 <input type="text" value={formData.chassis_number} onChange={(e) => setFormData({...formData, chassis_number: e.target.value})} required />

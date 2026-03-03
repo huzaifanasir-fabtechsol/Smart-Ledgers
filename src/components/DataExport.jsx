@@ -87,6 +87,7 @@ const DataExport = ({ language = 'en' }) => {
             <option value="auctions">{t.auction}</option>
             <option value="expenses">{t.expenses}</option>
             <option value="orders">{t.orders}</option>
+            <option value="nagare">Nagare</option>
           </select>
 
           <select value={period} onChange={(e) => { setPeriod(e.target.value); setCurrentPage(1); }} className="filter-select">
