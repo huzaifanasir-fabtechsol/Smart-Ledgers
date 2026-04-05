@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
@@ -84,7 +84,50 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   const toNumber = (value) => Number(value) || 0;
   const toRows = (data) => (Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : []));
 
+  // Helper function to get the sign for each field based on transaction type
+  const getFieldSign = (fieldName) => {
+    const transactionType = formData.transaction_type;
+    
+    if (transactionType === 'purchase') {
+      // For purchase, all fields are positive (added to total cost)
+      return '+';
+    }
+    
+    if (transactionType === 'sale') {
+      const positiveFields = ['vehicle_price', 'vehicle_price_tax', 'recycle_fee', 'transport_fee', 'transport_fee_tax', 'registration_fee', 'registration_fee_tax', 'canceling_fee'];
+      return positiveFields.includes(fieldName) ? '+' : '-';
+    }
+    
+    if (transactionType === 'nagare') {
+      const positiveFields = ['vehicle_price', 'vehicle_price_tax', 'recycle_fee', 'listing_fee', 'listing_fee_tax', 'canceling_fee'];
+      return positiveFields.includes(fieldName) ? '+' : '-';
+    }
+    
+    // Default (auction)
+    const positiveFields = ['vehicle_price', 'vehicle_price_tax', 'recycle_fee', 'canceling_fee'];
+    return positiveFields.includes(fieldName) ? '+' : '-';
+  };
+
   const getItemTotal = (item) => {
+    if (formData.transaction_type === 'purchase') {
+      // For purchase: sum all values (everything is positive)
+      return (
+        toNumber(item.vehicle_price) +
+        toNumber(item.vehicle_price_tax) +
+        toNumber(item.recycle_fee) +
+        toNumber(item.listing_fee) +
+        toNumber(item.listing_fee_tax) +
+        toNumber(item.successful_bid) +
+        toNumber(item.successful_bid_tax) +
+        toNumber(item.commission_fee) +
+        toNumber(item.commission_fee_tax) +
+        toNumber(item.transport_fee) +
+        toNumber(item.transport_fee_tax) +
+        toNumber(item.registration_fee) +
+        toNumber(item.registration_fee_tax) +
+        toNumber(item.canceling_fee)
+      );
+    }
     if (formData.transaction_type === 'nagare') {
       return (
         toNumber(item.vehicle_price) +
@@ -1005,36 +1048,36 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
             <div className="form-row">
               <div className="form-group">
-                <label>{t.vehiclePrice}</label>
+                <label><span className={getFieldSign('vehicle_price') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('vehicle_price')})</span> {t.vehiclePrice}</label>
                 <input type="number" value={currentItem.vehicle_price} onChange={(e) => {
                   const val = e.target.value;
                   setCurrentItem({...currentItem, vehicle_price: val, vehicle_price_tax: (val * 0.1).toFixed(0)});
                 }} />
               </div>
               <div className="form-group">
-                <label>Vehicle Price Tax</label>
+                <label><span className={getFieldSign('vehicle_price_tax') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('vehicle_price_tax')})</span> Vehicle Price Tax</label>
                 <input type="number" value={currentItem.vehicle_price_tax} onChange={(e) => setCurrentItem({...currentItem, vehicle_price_tax: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Recycle Fee</label>
+                <label><span className={getFieldSign('recycle_fee') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('recycle_fee')})</span> Recycle Fee</label>
                 <input type="number" value={currentItem.recycle_fee} onChange={(e) => setCurrentItem({...currentItem, recycle_fee: e.target.value})} />
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Listing Fee</label>
+                <label><span className={getFieldSign('listing_fee') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('listing_fee')})</span> Listing Fee</label>
                 <input type="number" value={currentItem.listing_fee} onChange={(e) => {
                   const val = e.target.value;
                   setCurrentItem({...currentItem, listing_fee: val, listing_fee_tax: (val * 0.1).toFixed(0)});
                 }} />
               </div>
               <div className="form-group">
-                <label>Listing Fee Tax</label>
+                <label><span className={getFieldSign('listing_fee_tax') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('listing_fee_tax')})</span> Listing Fee Tax</label>
                 <input type="number" value={currentItem.listing_fee_tax} onChange={(e) => setCurrentItem({...currentItem, listing_fee_tax: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Successful Bid</label>
+                <label><span className={getFieldSign('successful_bid') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('successful_bid')})</span> Successful Bid</label>
                 <input type="number" value={currentItem.successful_bid} onChange={(e) => {
                   const val = e.target.value;
                   setCurrentItem({...currentItem, successful_bid: val, successful_bid_tax: (val * 0.1).toFixed(0)});
@@ -1044,36 +1087,36 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Successful Bid Tax</label>
+                <label><span className={getFieldSign('successful_bid_tax') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('successful_bid_tax')})</span> Successful Bid Tax</label>
                 <input type="number" value={currentItem.successful_bid_tax} onChange={(e) => setCurrentItem({...currentItem, successful_bid_tax: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Commission Fee</label>
+                <label><span className={getFieldSign('commission_fee') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('commission_fee')})</span> Commission Fee</label>
                 <input type="number" value={currentItem.commission_fee} onChange={(e) => {
                   const val = e.target.value;
                   setCurrentItem({...currentItem, commission_fee: val, commission_fee_tax: (val * 0.1).toFixed(0)});
                 }} />
               </div>
               <div className="form-group">
-                <label>Commission Fee Tax</label>
+                <label><span className={getFieldSign('commission_fee_tax') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('commission_fee_tax')})</span> Commission Fee Tax</label>
                 <input type="number" value={currentItem.commission_fee_tax} onChange={(e) => setCurrentItem({...currentItem, commission_fee_tax: e.target.value})} />
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Transport Fee</label>
+                <label><span className={getFieldSign('transport_fee') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('transport_fee')})</span> Transport Fee</label>
                 <input type="number" value={currentItem.transport_fee} onChange={(e) => {
                   const val = e.target.value;
                   setCurrentItem({...currentItem, transport_fee: val, transport_fee_tax: (val * 0.1).toFixed(0)});
                 }} />
               </div>
               <div className="form-group">
-                <label>Transport Fee Tax</label>
+                <label><span className={getFieldSign('transport_fee_tax') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('transport_fee_tax')})</span> Transport Fee Tax</label>
                 <input type="number" value={currentItem.transport_fee_tax} onChange={(e) => setCurrentItem({...currentItem, transport_fee_tax: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Registration Fee</label>
+                <label><span className={getFieldSign('registration_fee') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('registration_fee')})</span> Registration Fee</label>
                 <input type="number" value={currentItem.registration_fee} onChange={(e) => {
                   const val = e.target.value;
                   setCurrentItem({...currentItem, registration_fee: val, registration_fee_tax: (val * 0.1).toFixed(0)});
@@ -1083,11 +1126,11 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Registration Fee Tax</label>
+                <label><span className={getFieldSign('registration_fee_tax') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('registration_fee_tax')})</span> Registration Fee Tax</label>
                 <input type="number" value={currentItem.registration_fee_tax} onChange={(e) => setCurrentItem({...currentItem, registration_fee_tax: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Canceling Fee</label>
+                <label><span className={getFieldSign('canceling_fee') === '+' ? 'sign-positive' : 'sign-negative'}>({getFieldSign('canceling_fee')})</span> Canceling Fee</label>
                 <input type="number" value={currentItem.canceling_fee} onChange={(e) => setCurrentItem({...currentItem, canceling_fee: e.target.value})} />
               </div>
             </div>
