@@ -181,14 +181,14 @@ const TransactionManager = () => {
     <div className="transaction-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       
-      <div className="table-section">
-        <div className="table-header">
-          <h3>Transactions</h3>
-          <button className="btn-primary" onClick={openCreateModal}>
-            Add Transaction
-          </button>
-        </div>
+      <div className="page-header">
+        <h2>Transactions</h2>
+        <button className="btn-primary" onClick={openCreateModal}>
+          Add Transaction
+        </button>
+      </div>
 
+      <div className="table-section">
         <div className="filters">
           <input
             type="text"
@@ -221,25 +221,38 @@ const TransactionManager = () => {
         </div>
 
         <div className="table-container">
-          {loading ? (
-            <div className="loader">Loading transactions...</div>
-          ) : (
-            <table>
-              <thead>
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Date</th>
+                <th>Transaction ID</th>
+                <th>Description</th>
+                <th>Withdraw</th>
+                <th>Deposit</th>
+                <th>Balance</th>
+                <th>Account</th>
+                <th style={{width: '60px'}}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
                 <tr>
-                  <th>Sr</th>
-                  <th>Date</th>
-                  <th>Transaction ID</th>
-                  <th>Description</th>
-                  <th>Withdraw</th>
-                  <th>Deposit</th>
-                  <th>Balance</th>
-                  <th>Account</th>
-                  <th style={{width: '60px'}}>Actions</th>
+                  <td colSpan="9">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading transactions...</span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {transactions.map((transaction, index) => (
+              ) : transactions.length === 0 ? (
+                <tr>
+                  <td colSpan="9" style={{ textAlign: 'center' }}>
+                    No transactions found
+                  </td>
+                </tr>
+              ) : (
+                transactions.map((transaction, index) => (
                   <tr key={transaction.id}>
                     <td>{(currentPage - 1) * 10 + index + 1}</td>
                     <td>{transaction.date}</td>
@@ -259,17 +272,10 @@ const TransactionManager = () => {
                       <button className="btn-menu" onClick={(e) => handleMenuClick(e, transaction.id)}>⋮</button>
                     </td>
                   </tr>
-                ))}
-                {transactions.length === 0 && (
-                  <tr>
-                    <td colSpan="9" style={{ textAlign: 'center' }}>
-                      No transactions found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
         <div className="pagination">

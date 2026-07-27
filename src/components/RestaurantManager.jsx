@@ -15,6 +15,7 @@ const RestaurantManager = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({ name: '', location: '', description: '' });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => { fetchRestaurants(); }, [search, currentPage]);
 
@@ -29,6 +30,7 @@ const RestaurantManager = () => {
   }, []);
 
   const fetchRestaurants = async () => {
+    setLoading(true);
     try {
       const response = await apiRequest(`/restaurants/?search=${search}&page=${currentPage}`);
       const data = await response.json();
@@ -36,6 +38,8 @@ const RestaurantManager = () => {
       setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load restaurants');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,46 +91,67 @@ const RestaurantManager = () => {
   };
 
   return (
-    <div className="order-manager">
+    <div className="restaurant-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h2>Restaurant Management</h2>
         <button className="btn-primary" onClick={() => { setShowModal(true); setEditingRestaurant(null); setFormData({ name: '', location: '', description: '' }); }}>Add Restaurant</button>
       </div>
 
-      <div className="filters">
-        <input type="text" placeholder="Search restaurants..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
-      </div>
+      <div className="table-section">
+        <div className="filters">
+          <input type="text" placeholder="Search restaurants..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="filter-input" />
+        </div>
 
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Sr.</th>
-            <th>Name</th>
-            <th>Location</th>
-            <th>Description</th>
-            <th style={{width: '60px'}}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {restaurants.map((r, idx) => (
-            <tr key={r.id}>
-              <td>{(currentPage - 1) * 10 + idx + 1}</td>
-              <td>{r.name}</td>
-              <td>{r.location}</td>
-              <td>{r.description}</td>
-              <td>
-                <button className="btn-menu" onClick={(e) => handleMenuClick(e, r.id)}>⋮</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Sr.</th>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Description</th>
+                <th style={{width: '60px'}}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="5">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading restaurants...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : restaurants.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center' }}>
+                    No restaurants found
+                  </td>
+                </tr>
+              ) : (
+                restaurants.map((r, idx) => (
+                  <tr key={r.id}>
+                    <td>{(currentPage - 1) * 10 + idx + 1}</td>
+                    <td>{r.name}</td>
+                    <td>{r.location}</td>
+                    <td>{r.description}</td>
+                    <td>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, r.id)}>⋮</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        </div>
       </div>
 
       {openMenuId && (
@@ -138,7 +163,7 @@ const RestaurantManager = () => {
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingRestaurant ? 'Edit Restaurant' : 'Add Restaurant'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -153,7 +178,7 @@ const RestaurantManager = () => {
                 <label>Description</label>
                 <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
               </div>
-              <div className="form-actions">
+              <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn-primary">Save</button>
               </div>

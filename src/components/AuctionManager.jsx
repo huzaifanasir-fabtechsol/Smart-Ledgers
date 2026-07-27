@@ -15,6 +15,7 @@ const AuctionManager = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({ name: '', description: '' });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => { fetchAuctions(); }, [search, currentPage]);
 
@@ -29,6 +30,7 @@ const AuctionManager = () => {
   }, []);
 
   const fetchAuctions = async () => {
+    setLoading(true);
     try {
       const response = await apiRequest(`/revenue/auctions/?search=${search}&page=${currentPage}`);
       const data = await response.json();
@@ -36,6 +38,8 @@ const AuctionManager = () => {
       setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load auctions');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,43 +91,65 @@ const AuctionManager = () => {
   };
 
   return (
-    <div className="order-manager">
+    <div className="auction-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h2>Auction Management</h2>
         <button className="btn-primary" onClick={() => { setShowModal(true); setEditingAuction(null); setFormData({ name: '', description: '' }); }}>Add Auction</button>
       </div>
 
-      <div className="filters">
-        <input type="text" placeholder="Search auctions..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
-      </div>
+      <div className="table-section">
+        <div className="filters">
+          <input type="text" placeholder="Search auctions..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="filter-input" />
+        </div>
 
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th style={{width: '60px'}}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {auctions.map((a, index )=> (
-            <tr key={a.id}>
-              <td>{(currentPage - 1) * 10 + index + 1}</td>
-              <td>{a.name}</td>
-              <td>{a.description}</td>
-              <td>
-                <button className="btn-menu" onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th style={{width: '60px'}}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="4">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading auctions...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : auctions.length === 0 ? (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center' }}>
+                    No auctions found
+                  </td>
+                </tr>
+              ) : (
+                auctions.map((a, index )=> (
+                  <tr key={a.id}>
+                    <td>{(currentPage - 1) * 10 + index + 1}</td>
+                    <td>{a.name}</td>
+                    <td>{a.description}</td>
+                    <td>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        </div>
       </div>
 
       {openMenuId && (
@@ -135,7 +161,7 @@ const AuctionManager = () => {
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingAuction ? 'Edit Auction' : 'Add Auction'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -146,7 +172,7 @@ const AuctionManager = () => {
                 <label>Description</label>
                 <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
               </div>
-              <div className="form-actions">
+              <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn-primary">Save</button>
               </div>

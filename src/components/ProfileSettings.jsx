@@ -218,6 +218,31 @@ const ProfileSettings = ({ onUserUpdate }) => {
         <div className="table-header">
           <h3>Account & Company Information</h3>
         </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '2rem', padding: '0 0.5rem' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'var(--color-violet-soft)',
+            color: 'var(--color-ink)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.5rem',
+            fontWeight: '800',
+            fontFamily: 'var(--font-display)',
+            textTransform: 'uppercase',
+            boxShadow: 'var(--shadow-card)'
+          }}>
+            {profile.username ? profile.username.substring(0, 2) : 'SL'}
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--ink)' }}>{profile.username || 'User'}</h4>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>{profile.email || 'No email set'}</p>
+          </div>
+        </div>
+
         <form onSubmit={handleProfileSubmit}>
           <div className="form-row">
             <div className="form-group">

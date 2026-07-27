@@ -1,6 +1,8 @@
-/* Google Translate Styling */
-/* Hide Google Translate attribution */
-.goog-te-banner-frame.skiptranslate {
+/* Modern Premium Google Translate Styling */
+
+/* Hide Google Translate top banner & body offset */
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame {
   display: none !important;
 }
 
@@ -8,98 +10,142 @@ body {
   top: 0px !important;
 }
 
-/* Style the main translate element */
+/* Container */
 #google_translate_element {
-  font-family: inherit !important;
+  font-family: var(--font-sans) !important;
   position: relative;
   z-index: 20;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
+/* Gadget container - hide plain text nodes ("Powered by", etc.) */
 #google_translate_element .goog-te-gadget {
-  font-family: inherit !important;
-  font-size: 10px !important;
-  color: #1f2937 !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0px !important;
+  color: transparent !important;
+  line-height: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
 }
 
-#google_translate_element .goog-te-combo {
-  min-width: 130px;
-  height: 34px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 0 0.5rem;
-  font-size: 0.8rem;
-  color: #111827;
-  background: #ffffff;
+/* Hide branding text, links, logos, and breaks */
+#google_translate_element .goog-te-gadget > span,
+#google_translate_element .goog-te-gadget > a,
+#google_translate_element .goog-te-gadget .goog-logo-link,
+#google_translate_element .goog-te-gadget img,
+#google_translate_element .goog-te-gadget br {
+  display: none !important;
 }
 
-#google_translate_element .goog-te-gadget-simple {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  border: none !important;
-  border-radius: 25px !important;
-  padding: 8px 16px !important;
-  font-size: 14px !important;
-  color: white !important;
+/* CRITICAL: Target language container div MUST be visible */
+#google_translate_element .goog-te-gadget > div {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Select dropdown styling */
+#google_translate_element select.goog-te-combo {
+  display: block !important;
+  width: 100% !important;
+  min-width: unset !important;
+  max-width: 100% !important;
+  height: 38px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px !important;
+  padding: 0 1rem 0 2.25rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>') no-repeat 0.75rem center !important;
+  box-shadow: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   cursor: pointer !important;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
-  transition: all 0.3s ease !important;
+  outline: none !important;
+  appearance: auto !important;
+  box-sizing: border-box !important;
+}
+
+#google_translate_element select.goog-te-combo option {
+  background-color: #18181c !important;
+  color: #ffffff !important;
+  font-size: 0.85rem !important;
+  padding: 8px !important;
+}
+
+#google_translate_element select.goog-te-combo:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+#google_translate_element select.goog-te-combo:focus {
+  border-color: var(--primary, #a3e635) !important;
+  box-shadow: 0 0 0 3px oklch(0.93 0.18 125 / 0.3) !important;
+}
+
+/* Simple gadget fallback styling */
+#google_translate_element .goog-te-gadget-simple {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px !important;
+  padding: 6px 14px !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
   text-decoration: none !important;
-  display: inline-block !important;
-  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
 }
 
 #google_translate_element .goog-te-gadget-simple:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
 }
 
 #google_translate_element .goog-te-gadget-simple .goog-te-menu-value {
-  color: white !important;
-  font-weight: 500 !important;
-  font-size: 14px !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
 }
 
 #google_translate_element .goog-te-gadget-simple .goog-te-menu-value span {
-  color: white !important;
+  color: #ffffff !important;
   border-left: none !important;
   background: none !important;
 }
 
-#google_translate_element .goog-te-gadget-simple .goog-te-menu-value span:first-child {
-  display: none !important;
-}
-
-#google_translate_element .goog-te-gadget-simple .goog-te-menu-value:before {
-  content: "🌐";
-  color: white !important;
-  font-weight: 500 !important;
-  margin-right: 5px;
-}
-
-/* Style the dropdown menu */
+/* Dropdown menu frame */
 .goog-te-menu-frame {
-  border-radius: 8px !important;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-  border: none !important;
-  z-index: 998 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  z-index: 2000 !important;
 }
 
 .goog-te-menu2 {
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   border: none !important;
-  background: white !important;
+  background: #18181c !important;
 }
 
 .goog-te-menu2-item {
-  padding: 8px 16px !important;
-  font-size: 14px !important;
+  padding: 8px 14px !important;
+  font-size: 0.875rem !important;
+  color: #ffffff !important;
   transition: background 0.2s ease !important;
 }
 
 .goog-te-menu2-item:hover {
-  background: #f3f4f6 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
 }
 
 .goog-te-menu2-item-selected {
-  background: #667eea !important;
-  color: white !important;
+  background: var(--lime, #a3e635) !important;
+  color: #18181c !important;
+  font-weight: 700 !important;
 }

@@ -17,6 +17,7 @@ const CustomerManager = () => {
   const [formData, setFormData] = useState({
     name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: ''
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => { fetchCustomers(); }, [search, currentPage]);
 
@@ -31,6 +32,7 @@ const CustomerManager = () => {
   }, []);
 
   const fetchCustomers = async () => {
+    setLoading(true);
     try {
       const response = await apiRequest(`/revenue/customers/?search=${search}&page=${currentPage}`);
       const data = await response.json();
@@ -38,6 +40,8 @@ const CustomerManager = () => {
       setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load customers');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,50 +101,71 @@ const CustomerManager = () => {
   };
 
   return (
-    <div className="order-manager">
+    <div className="customer-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h2>Customer Management</h2>
         <button className="btn-primary" onClick={() => { setShowModal(true); setEditingCustomer(null); setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '' }); }}>Add Customer</button>
       </div>
 
-      <div className="filters">
-        <input type="text" placeholder="Search customers..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
-      </div>
+      <div className="table-section">
+        <div className="filters">
+          <input type="text" placeholder="Search customers..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="filter-input" />
+        </div>
 
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Sr</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Bank</th>
-            <th>Account</th>
-            <th style={{width: '60px'}}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {customers.map((c, index )=> (
-            <tr key={c.id}>
-              <td>{(currentPage - 1) * 10 + index + 1}</td>
-              <td>{c.name}</td>
-              <td>{c.email}</td>
-              <td>{c.phone}</td>
-              <td>{c.bank_name}</td>
-              <td>{c.account_number}</td>
-              <td>
-                <button className="btn-menu" onClick={(e) => handleMenuClick(e, c.id)}>⋮</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Bank</th>
+                <th>Account</th>
+                <th style={{width: '60px'}}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="7">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading customers...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : customers.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center' }}>
+                    No customers found
+                  </td>
+                </tr>
+              ) : (
+                customers.map((c, index )=> (
+                  <tr key={c.id}>
+                    <td>{(currentPage - 1) * 10 + index + 1}</td>
+                    <td>{c.name}</td>
+                    <td>{c.email}</td>
+                    <td>{c.phone}</td>
+                    <td>{c.bank_name}</td>
+                    <td>{c.account_number}</td>
+                    <td>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, c.id)}>⋮</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        </div>
       </div>
 
       {openMenuId && (
@@ -152,7 +177,7 @@ const CustomerManager = () => {
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingCustomer ? 'Edit Customer' : 'Add Customer'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -187,7 +212,7 @@ const CustomerManager = () => {
                 <label>Swift Code</label>
                 <input type="text" value={formData.swift_code} onChange={(e) => setFormData({...formData, swift_code: e.target.value})} required />
               </div>
-              <div className="form-actions">
+              <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn-primary">Save</button>
               </div>

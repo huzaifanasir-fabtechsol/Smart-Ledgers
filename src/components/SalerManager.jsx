@@ -17,6 +17,7 @@ const SalerManager = () => {
   const [formData, setFormData] = useState({
     name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: ''
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => { fetchSalers(); }, [search, currentPage]);
 
@@ -31,6 +32,7 @@ const SalerManager = () => {
   }, []);
 
   const fetchSalers = async () => {
+    setLoading(true);
     try {
       const response = await apiRequest(`/revenue/salers/?search=${search}&page=${currentPage}`);
       const data = await response.json();
@@ -38,6 +40,8 @@ const SalerManager = () => {
       setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load salers');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,50 +94,71 @@ const SalerManager = () => {
   };
 
   return (
-    <div className="order-manager">
+    <div className="saler-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h2>Saler Management</h2>
         <button className="btn-primary" onClick={() => { setShowModal(true); setEditingSaler(null); setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' }); }}>Add Saler</button>
       </div>
 
-      <div className="filters">
-        <input type="text" placeholder="Search salers..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
-      </div>
+      <div className="table-section">
+        <div className="filters">
+          <input type="text" placeholder="Search salers..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="filter-input" />
+        </div>
 
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Sr</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Bank</th>
-            <th>Account</th>
-            <th style={{width: '60px'}}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {salers.map((s, index )=> (
-            <tr key={s.id}>
-              <td>{(currentPage - 1) * 10 + index + 1}</td>
-              <td>{s.name}</td>
-              <td>{s.email}</td>
-              <td>{s.phone}</td>
-              <td>{s.bank_name}</td>
-              <td>{s.account_number}</td>
-              <td>
-                <button className="btn-menu" onClick={(e) => handleMenuClick(e, s.id)}>⋮</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Bank</th>
+                <th>Account</th>
+                <th style={{width: '60px'}}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="7">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading salers...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : salers.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center' }}>
+                    No salers found
+                  </td>
+                </tr>
+              ) : (
+                salers.map((s, index )=> (
+                  <tr key={s.id}>
+                    <td>{(currentPage - 1) * 10 + index + 1}</td>
+                    <td>{s.name}</td>
+                    <td>{s.email}</td>
+                    <td>{s.phone}</td>
+                    <td>{s.bank_name}</td>
+                    <td>{s.account_number}</td>
+                    <td>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, s.id)}>⋮</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        </div>
       </div>
 
       {openMenuId && (
@@ -145,7 +170,7 @@ const SalerManager = () => {
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingSaler ? 'Edit Saler' : 'Add Saler'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -180,7 +205,7 @@ const SalerManager = () => {
                 <label>Swift Code</label>
                 <input type="text" value={formData.swift_code} onChange={(e) => setFormData({...formData, swift_code: e.target.value})} required />
               </div>
-              <div className="form-actions">
+              <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn-primary">Save</button>
               </div>

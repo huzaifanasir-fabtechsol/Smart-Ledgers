@@ -129,16 +129,20 @@ const DataExport = ({ language = 'en' }) => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="4" style={{textAlign: 'center'}}>Loading...</td></tr>
+                <tr><td colSpan="5" style={{textAlign: 'center'}}>Loading...</td></tr>
               ) : data.length === 0 ? (
-                <tr><td colSpan="4" style={{textAlign: 'center'}}>No data found</td></tr>
+                <tr><td colSpan="5" style={{textAlign: 'center'}}>No data found</td></tr>
               ) : (
                 data.map((item, idx) => (
                   <tr key={idx}>
                     <td>{idx + 1}</td>
                     <td>{item.transaction_date}</td>
                     <td>{item.transaction_type?.[0].toUpperCase() + item.transaction_type?.slice(1)}</td>
-                    <td>{item.payment_status}</td>
+                    <td>
+                      <span className={`status-badge status-${item.payment_status?.toLowerCase() || 'pending'}`}>
+                        {item.payment_status || 'Pending'}
+                      </span>
+                    </td>
                     <td className="amount-cell">¥{parseFloat(item.total_amount).toLocaleString()}</td>
                   </tr>
                 ))

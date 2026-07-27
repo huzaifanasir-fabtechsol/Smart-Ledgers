@@ -702,7 +702,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
         {formData.company_account_id && !selectedTransaction && (
           <div style={{marginBottom: '1.5rem'}}>
-            <h4 style={{marginBottom: '1rem'}}>Select Transaction (Optional)</h4>
+            <h4 style={{marginBottom: '1rem', fontSize: '0.95rem', fontWeight: '700'}}>Select Transaction (Optional)</h4>
             <div className="form-row">
               <div className="form-group">
                 <input
@@ -710,21 +710,23 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                   placeholder="Search transactions..."
                   value={transactionSearch}
                   onChange={(e) => setTransactionSearch(e.target.value)}
+                  className="filter-input"
                 />
               </div>
               <div className="form-group">
                 <DateInput
                   value={transactionDate}
                   onChange={(e) => setTransactionDate(e.target.value)}
+                  className="filter-input"
                 />
               </div>
               <button type="button" className="btn-secondary" onClick={() => fetchTransactions(formData.company_account_id)}>Search</button>
             </div>
             
             {loadingTransactions ? (
-              <div>Loading transactions...</div>
+              <div className="loader">Loading transactions...</div>
             ) : (
-              <div style={{maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+              <div style={{maxHeight: '220px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '16px', background: 'var(--card)', padding: '0.25rem'}}>
                 {transactions.map(t => (
                   <div
                     key={t.id}
@@ -736,22 +738,29 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                       }
                     }}
                     style={{
-                      padding: '0.75rem',
+                      padding: '0.75rem 1rem',
                       cursor: 'pointer',
-                      borderBottom: '1px solid #f3f4f6',
-                      transition: 'background 0.2s'
+                      borderBottom: '1px solid var(--border)',
+                      transition: 'all 0.2s ease',
+                      borderRadius: '8px'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'var(--secondary)';
+                      e.currentTarget.style.color = 'var(--ink)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'inherit';
+                    }}
                   >
-                    <div style={{fontWeight: '500'}}>{t.description}</div>
-                    <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
+                    <div style={{fontWeight: '600', fontSize: '0.875rem'}}>{t.description}</div>
+                    <div style={{fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.25rem'}}>
                       {t.date} - ¥{Number(t.withdraw).toLocaleString()}
                     </div>
                   </div>
                 ))}
                 {transactions.length === 0 && (
-                  <div style={{padding: '1rem', textAlign: 'center', color: '#9ca3af'}}>No transactions found</div>
+                  <div style={{padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.875rem'}}>No transactions found</div>
                 )}
               </div>
             )}
@@ -760,10 +769,10 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         )}
 
         {selectedTransaction && selectedTransaction.id && (
-          <div style={{padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '1rem'}}>
-            <div style={{fontWeight: '500', color: '#166534'}}>Selected Transaction</div>
-            <div style={{fontSize: '0.875rem', color: '#15803d'}}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
-            <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}>Change Transaction</button>
+          <div style={{padding: '1.25rem', background: 'var(--color-lime)', color: 'var(--color-ink)', borderRadius: '16px', marginBottom: '1.5rem', border: '1px solid var(--color-lime)', boxShadow: 'var(--shadow-card)'}}>
+            <div style={{fontWeight: '700', fontSize: '0.9rem'}}>Selected Transaction</div>
+            <div style={{fontSize: '0.8125rem', marginTop: '0.25rem', opacity: 0.9}}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
+            <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{marginTop: '0.75rem', fontSize: '0.75rem', padding: '0.4rem 0.8rem', borderRadius: '8px', background: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)'}}>Change Transaction</button>
           </div>
         )}
 
@@ -1158,8 +1167,9 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                   className="item-card" 
                   style={{
                     cursor: 'pointer',
-                    border: isEditing ? '2px solid #3b82f6' : '1px solid #e5e7eb',
-                    backgroundColor: isEditing ? '#eff6ff' : 'white'
+                    border: isEditing ? '2px solid var(--color-violet-soft)' : '1px solid var(--border)',
+                    backgroundColor: isEditing ? 'rgba(199, 184, 255, 0.12)' : 'var(--card)',
+                    boxShadow: 'var(--shadow-card)'
                   }}
                   onClick={() => editItem(item)}
                 >

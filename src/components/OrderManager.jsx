@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
@@ -181,12 +181,12 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
   return (
     <div className="order-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="table-section">
-        <div className="table-header">
-          <h3>{t.orders}</h3>
-          <button className="btn-primary" onClick={onAddOrder}>{t.addOrder}</button>
-        </div>
+      <div className="page-header">
+        <h2>{t.orders}</h2>
+        <button className="btn-primary" onClick={onAddOrder}>{t.addOrder}</button>
+      </div>
 
+      <div className="table-section">
         <div className="filters">
           <input
             type="text"
@@ -227,42 +227,53 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
           </select>
           <input
             type="date"
+            className="filter-input"
             value={filters.start_date}
             onChange={(e) => handleFilterChange('start_date', e.target.value)}
-            className="filter-input filter-date"
             placeholder="Start Date"
           />
           <input
             type="date"
+            className="filter-input"
             value={filters.end_date}
             onChange={(e) => handleFilterChange('end_date', e.target.value)}
-            className="filter-input filter-date"
             placeholder="End Date"
           />
-          {/* <button className="btn-secondary" onClick={handleClearFilters}>Clear</button> */}
         </div>
 
         <div className="table-container">
-          {loading ? (
-            <div className="loader">Loading...</div>
-          ) : (
-            <table>
-              <thead>
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>{t.date}</th>
+                <th>{t.type}</th>
+                <th>Name</th>
+                <th>Auction</th>
+                <th>{t.items}</th>
+                <th>{t.paymentStatus}</th>
+                <th>{t.totalAmount}</th>
+                <th style={{width: '60px'}}>{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
                 <tr>
-                  <th>Sr</th>
-                  <th>{t.date}</th>
-                  <th>{t.type}</th>
-                  <th>Name</th>
-                  <th>Auction</th>
-                  <th>{t.items}</th>
-                  {/* <th>Transaction</th> */}
-                  <th>{t.paymentStatus}</th>
-                  <th>{t.totalAmount}</th>
-                  <th style={{width: '60px'}}>{t.actions}</th>
+                  <td colSpan="9">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading orders...</span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {orders.map((order, index) => {
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan="9" style={{ textAlign: 'center' }}>
+                    No orders found
+                  </td>
+                </tr>
+              ) : (
+                orders.map((order, index) => {
                   const contact = getContactInfo(order);
                   return (
                     <tr key={order.id}>
@@ -282,16 +293,16 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                         )}
                       </td> */}
                       <td><span className={`status-badge status-${order.payment_status}`} onClick={() => handleEditStatus(order)} style={{cursor: 'pointer'}}>{t[order.payment_status]}</span></td>
-                                            <td>¥{Number(order.total_amount || 0).toLocaleString()}</td>
+                      <td>¥{Number(order.total_amount || 0).toLocaleString()}</td>
                       <td>
                         <button className="btn-menu" onClick={(e) => handleMenuClick(e, order.id)}>⋮</button>
                       </td>
                     </tr>
                   );
-                })}
-              </tbody>
-            </table>
-          )}
+                })
+              )}
+            </tbody>
+          </table>
         </div>
 
         <div className="pagination">

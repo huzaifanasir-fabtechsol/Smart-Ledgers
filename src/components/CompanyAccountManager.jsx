@@ -17,6 +17,7 @@ const CompanyAccountManager = () => {
   const [formData, setFormData] = useState({
     bank_name: '', account_number: '', branch_code: '', account_holder: '', swift_code: ''
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => { fetchAccounts(); }, [search, currentPage]);
 
@@ -31,6 +32,7 @@ const CompanyAccountManager = () => {
   }, []);
 
   const fetchAccounts = async () => {
+    setLoading(true);
     try {
       const response = await apiRequest(`/revenue/company-accounts/?search=${search}&page=${currentPage}`);
       const data = await response.json();
@@ -38,6 +40,8 @@ const CompanyAccountManager = () => {
       setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load accounts');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,50 +94,71 @@ const CompanyAccountManager = () => {
   };
 
   return (
-    <div className="order-manager">
+    <div className="company-account-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h2>Company Bank Accounts</h2>
         <button className="btn-primary" onClick={() => { setShowModal(true); setEditingAccount(null); setFormData({ bank_name: '', account_number: '', branch_code: '', account_holder: '', swift_code: '' }); }}>Add Account</button>
       </div>
 
-      <div className="filters">
-        <input type="text" placeholder="Search accounts..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
-      </div>
+      <div className="table-section">
+        <div className="filters">
+          <input type="text" placeholder="Search accounts..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="filter-input" />
+        </div>
 
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Sr</th>
-            <th>Bank Name</th>
-            <th>Account Holder</th>
-            <th>Account Number</th>
-            <th>Branch Code</th>
-            <th>SWIFT Code</th>
-            <th style={{width: '60px'}}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {accounts.map((a, index )=> (
-            <tr key={a.id}>
-              <td>{(currentPage - 1) * 10 + index + 1}</td>
-              <td>{a.bank_name}</td>
-              <td>{a.account_holder}</td>
-              <td>{a.account_number}</td>
-              <td>{a.branch_code}</td>
-              <td>{a.swift_code}</td>
-              <td>
-                <button className="btn-menu" onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Bank Name</th>
+                <th>Account Holder</th>
+                <th>Account Number</th>
+                <th>Branch Code</th>
+                <th>SWIFT Code</th>
+                <th style={{width: '60px'}}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="7">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading bank accounts...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : accounts.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center' }}>
+                    No accounts found
+                  </td>
+                </tr>
+              ) : (
+                accounts.map((a, index )=> (
+                  <tr key={a.id}>
+                    <td>{(currentPage - 1) * 10 + index + 1}</td>
+                    <td>{a.bank_name}</td>
+                    <td>{a.account_holder}</td>
+                    <td>{a.account_number}</td>
+                    <td>{a.branch_code}</td>
+                    <td>{a.swift_code}</td>
+                    <td>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        </div>
       </div>
 
       {openMenuId && (
@@ -145,7 +170,7 @@ const CompanyAccountManager = () => {
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingAccount ? 'Edit Account' : 'Add Account'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -168,7 +193,7 @@ const CompanyAccountManager = () => {
                 <label>SWIFT Code</label>
                 <input type="text" value={formData.swift_code} onChange={(e) => setFormData({...formData, swift_code: e.target.value})} />
               </div>
-              <div className="form-actions">
+              <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn-primary">Save</button>
               </div>

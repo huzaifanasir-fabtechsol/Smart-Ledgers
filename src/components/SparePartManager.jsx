@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest } from '../api';
 import '../shared.css';
@@ -17,6 +17,7 @@ const SparePartManager = () => {
   const menuRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => { fetchSpareParts(); }, [search, currentPage]);
 
@@ -31,6 +32,7 @@ const SparePartManager = () => {
   }, []);
 
   const fetchSpareParts = async () => {
+    setLoading(true);
     try {
       const response = await apiRequest(`/spare-parts/?search=${encodeURIComponent(search)}&page=${currentPage}`);
       const data = await response.json();
@@ -38,6 +40,8 @@ const SparePartManager = () => {
       setTotalCount(data.count || 0);
     } catch (error) {
       toast.error('Failed to load spare parts');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -99,46 +103,67 @@ const SparePartManager = () => {
   };
 
   return (
-    <div className="order-manager">
+    <div className="spare-part-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="page-header">
         <h2>Shops Management</h2>
         <button className="btn-primary" onClick={openCreate}>Add Shop</button>
       </div>
 
-      <div className="filters">
-        <input type="text" placeholder="Search shops..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
-      </div>
+      <div className="table-section">
+        <div className="filters">
+          <input type="text" placeholder="Search shops..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="filter-input" />
+        </div>
 
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Sr.</th>
-            <th>Name</th>
-            <th>Address</th>
-            <th>Description</th>
-            <th style={{ width: '60px' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {spareParts.map((item, idx) => (
-            <tr key={item.id}>
-              <td>{(currentPage - 1) * 10 + idx + 1}</td>
-              <td>{item.name}</td>
-              <td>{item.address || '-'}</td>
-              <td>{item.description || '-'}</td>
-              <td>
-                <button className="btn-menu" onClick={(e) => handleMenuClick(e, item.id)}>⋮</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Sr.</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Description</th>
+                <th style={{ width: '60px' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="5">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading shops...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : spareParts.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center' }}>
+                    No shops found
+                  </td>
+                </tr>
+              ) : (
+                spareParts.map((item, idx) => (
+                  <tr key={item.id}>
+                    <td>{(currentPage - 1) * 10 + idx + 1}</td>
+                    <td>{item.name}</td>
+                    <td>{item.address || '-'}</td>
+                    <td>{item.description || '-'}</td>
+                    <td>
+                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, item.id)}>⋮</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-        <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-        <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
+          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        </div>
       </div>
 
       {openMenuId && (
@@ -150,7 +175,7 @@ const SparePartManager = () => {
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingSparePart ? 'Edit Shop' : 'Add Shop'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -165,7 +190,7 @@ const SparePartManager = () => {
                 <label>Description</label>
                 <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
               </div>
-              <div className="form-actions">
+              <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn-primary">Save</button>
               </div>

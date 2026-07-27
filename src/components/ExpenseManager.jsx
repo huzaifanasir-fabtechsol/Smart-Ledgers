@@ -557,18 +557,19 @@ const ExpenseManager = ({ language = 'en' }) => {
     <div className="expense-manager">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="table-section">
-        <div className="table-header">
-          <h3>{t.expenses}</h3>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="btn-secondary" onClick={exportToPDF}>
-              📄 Export PDF
-            </button>
-            <button className="btn-primary" onClick={openCreateExpenseModal}>
-              {t.addExpense}
-            </button>
-          </div>
+      <div className="page-header">
+        <h2>{t.expenses}</h2>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn-secondary" onClick={exportToPDF}>
+            📄 Export PDF
+          </button>
+          <button className="btn-primary" onClick={openCreateExpenseModal}>
+            {t.addExpense}
+          </button>
         </div>
+      </div>
+
+      <div className="table-section">
         <div className="filters">
           <input
             type="text"
@@ -600,25 +601,38 @@ const ExpenseManager = ({ language = 'en' }) => {
           </button>
         </div>
         <div className="table-container">
-          {loadingExpenses ? (
-            <div className="loader">Loading expenses...</div>
-          ) : (
-            <table>
-              <thead>
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>{t.date}</th>
+                <th>Title</th>
+                <th>{t.category}</th>
+                <th>Shop</th>
+                <th>{t.description}</th>
+                <th>Transaction</th>
+                <th>{t.amount}</th>
+                <th style={{ width: '60px' }}>{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadingExpenses ? (
                 <tr>
-                  <th>Sr</th>
-                  <th>{t.date}</th>
-                  <th>Title</th>
-                  <th>{t.category}</th>
-                  <th>Shop</th>
-                  <th>{t.description}</th>
-                  <th>Transaction</th>
-                  <th>{t.amount}</th>
-                  <th style={{ width: '60px' }}>{t.actions}</th>
+                  <td colSpan="9">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading expenses...</span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {expenses.map((expense, idx) => (
+              ) : expenses.length === 0 ? (
+                <tr>
+                  <td colSpan="9" style={{ textAlign: 'center' }}>
+                    No expenses found
+                  </td>
+                </tr>
+              ) : (
+                expenses.map((expense, idx) => (
                   <tr key={expense.id}>
                     <td>{(expensePage - 1) * itemsPerPage + idx + 1}</td>
                     <td>{expense.date}</td>
@@ -640,17 +654,10 @@ const ExpenseManager = ({ language = 'en' }) => {
                       <button className="btn-menu" onClick={(e) => handleMenuClick(e, expense.id, 'expense')}>⋮</button>
                     </td>
                   </tr>
-                ))}
-                {expenses.length === 0 && (
-                  <tr>
-                    <td colSpan="9" style={{ textAlign: 'center' }}>
-                      No expenses found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
         <div className="pagination">
           <button onClick={() => setExpensePage((p) => Math.max(1, p - 1))} disabled={expensePage === 1}>
@@ -676,20 +683,30 @@ const ExpenseManager = ({ language = 'en' }) => {
         </div>
 
         <div className="table-container">
-          {loadingCategories ? (
-            <div className="loader">Loading categories...</div>
-          ) : (
-            <table>
-              <thead>
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Category</th>
+                <th>{t.description}</th>
+                <th style={{ width: '60px' }}>{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadingCategories ? (
                 <tr>
-                  <th>Sr</th>
-                  <th>Category</th>
-                  <th>{t.description}</th>
-                  <th style={{ width: '60px' }}>{t.actions}</th>
+                  <td colSpan="4">
+                    <div className="loader">Loading categories...</div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {categories.map((category, index) => (
+              ) : categories.length === 0 ? (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center' }}>
+                    No categories found
+                  </td>
+                </tr>
+              ) : (
+                categories.map((category, index) => (
                   <tr key={category.id}>
                     <td>{(categoryPage - 1) * itemsPerPage + index + 1}</td>
                     <td>{category.name}</td>
@@ -698,17 +715,10 @@ const ExpenseManager = ({ language = 'en' }) => {
                       <button className="btn-menu" onClick={(e) => handleMenuClick(e, category.id, 'category')}>⋮</button>
                     </td>
                   </tr>
-                ))}
-                {categories.length === 0 && (
-                  <tr>
-                    <td colSpan="4" style={{ textAlign: 'center' }}>
-                      No categories found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
         <div className="pagination">
           <button onClick={() => setCategoryPage((p) => Math.max(1, p - 1))} disabled={categoryPage === 1}>
@@ -807,13 +817,13 @@ const ExpenseManager = ({ language = 'en' }) => {
                       top: '100%',
                       left: 0,
                       right: 0,
-                      background: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
+                      background: 'var(--card)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px',
                       maxHeight: '200px',
                       overflowY: 'auto',
                       zIndex: 1000,
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                      boxShadow: 'var(--shadow-lift)'
                     }}>
                       {titleSuggestions.map((title, idx) => (
                         <div
@@ -823,12 +833,20 @@ const ExpenseManager = ({ language = 'en' }) => {
                             setShowTitleSuggestions(false);
                           }}
                           style={{
-                            padding: '0.5rem',
+                            padding: '0.75rem 1rem',
                             cursor: 'pointer',
-                            borderBottom: idx < titleSuggestions.length - 1 ? '1px solid #f3f4f6' : 'none'
+                            borderBottom: idx < titleSuggestions.length - 1 ? '1px solid var(--border)' : 'none',
+                            transition: 'all 0.2s ease',
+                            fontSize: '0.875rem'
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'var(--secondary)';
+                            e.currentTarget.style.color = 'var(--ink)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'inherit';
+                          }}
                         >
                           {title}
                         </div>
@@ -932,7 +950,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 />
               </div>
 
-              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '1rem' }}>
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '1rem' }}>
                 <h4 style={{ marginBottom: '1rem' }}>Link Transaction (Optional)</h4>
                 <div className="form-group">
                   <label>Company Account</label>
@@ -978,7 +996,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     {loadingTransactions ? (
                       <div>Loading transactions...</div>
                     ) : (
-                      <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
+                      <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--card)', padding: '0.25rem' }}>
                         {transactions.map(t => (
                           <div
                             key={t.id}
@@ -987,23 +1005,35 @@ const ExpenseManager = ({ language = 'en' }) => {
                               setExpenseForm(prev => ({ ...prev, amount: t.withdraw, date: t.date }));
                             }}
                             style={{
-                              padding: '0.75rem',
+                              padding: '0.75rem 1rem',
                               cursor: 'pointer',
-                              borderBottom: '1px solid #f3f4f6',
-                              transition: 'background 0.2s',
-                              background: selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'
+                              borderBottom: '1px solid var(--border)',
+                              transition: 'all 0.2s ease',
+                              borderRadius: '8px',
+                              background: selectedTransaction?.id === t.id ? 'var(--color-lime)' : 'transparent',
+                              color: selectedTransaction?.id === t.id ? 'var(--color-ink)' : 'inherit'
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : '#f9fafb'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = selectedTransaction?.id === t.id ? '#f0fdf4' : 'white'}
+                            onMouseEnter={(e) => {
+                              if (selectedTransaction?.id !== t.id) {
+                                e.currentTarget.style.background = 'var(--secondary)';
+                                e.currentTarget.style.color = 'var(--ink)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (selectedTransaction?.id !== t.id) {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'inherit';
+                              }
+                            }}
                           >
-                            <div style={{ fontWeight: '500' }}>{t.description}</div>
-                            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                            <div style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t.description}</div>
+                            <div style={{ fontSize: '0.75rem', color: selectedTransaction?.id === t.id ? 'var(--color-ink)' : 'var(--muted-foreground)', marginTop: '0.25rem', opacity: selectedTransaction?.id === t.id ? 0.9 : 1 }}>
                               {t.date} - ¥{Number(t.withdraw).toLocaleString()}
                             </div>
                           </div>
                         ))}
                         {transactions.length === 0 && (
-                          <div style={{ padding: '1rem', textAlign: 'center', color: '#9ca3af' }}>No transactions found</div>
+                          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>No transactions found</div>
                         )}
                       </div>
                     )}
@@ -1011,10 +1041,10 @@ const ExpenseManager = ({ language = 'en' }) => {
                 )}
 
                 {selectedTransaction && selectedTransaction.id && (
-                  <div style={{ padding: '1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginTop: '1rem' }}>
-                    <div style={{ fontWeight: '500', color: '#166534' }}>Selected Transaction</div>
-                    <div style={{ fontSize: '0.875rem', color: '#15803d' }}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
-                    <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{ marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>Remove Transaction</button>
+                  <div style={{ padding: '1.25rem', background: 'var(--color-lime)', color: 'var(--color-ink)', borderRadius: '16px', marginTop: '1rem', border: '1px solid var(--color-lime)', boxShadow: 'var(--shadow-card)' }}>
+                    <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Selected Transaction</div>
+                    <div style={{ fontSize: '0.8125rem', marginTop: '0.25rem', opacity: 0.9 }}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
+                    <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{ marginTop: '0.75rem', fontSize: '0.75rem', padding: '0.4rem 0.8rem', borderRadius: '8px', background: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' }}>Remove Transaction</button>
                   </div>
                 )}
               </div>

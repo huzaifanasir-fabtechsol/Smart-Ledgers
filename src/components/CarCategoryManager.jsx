@@ -154,12 +154,12 @@ const CarCategoryManager = ({ language = 'en' }) => {
   return (
     <div className="car-category-manager">
       <ToastContainer position="top-right" autoClose={3000} />
+      <div className="page-header">
+        <h2>{t.carCategories}</h2>
+        <button className="btn-primary" onClick={handleAdd}>{t.addCarCategory}</button>
+      </div>
+
       <div className="table-section">
-        <div className="table-header">
-          <h3>{t.carCategories}</h3>
-          <button className="btn-primary" onClick={handleAdd}>{t.addCarCategory}</button>
-        </div>
-        
         <div className="filters">
           <input 
             type="text" 
@@ -171,21 +171,34 @@ const CarCategoryManager = ({ language = 'en' }) => {
         </div>
 
         <div className="table-container">
-          {loading ? (
-            <div className="loader">Loading...</div>
-          ) : (
-            <table>
-              <thead>
+          <table>
+            <thead>
+              <tr>
+                <th style={{width: '80px'}}>{t.id}</th>
+                <th>Company</th>
+                <th>Model</th>
+                <th>{t.description}</th>
+                <th style={{width: '60px'}}>{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
                 <tr>
-                  <th style={{width: '80px'}}>{t.id}</th>
-                  <th>Company</th>
-                  <th>Model</th>
-                  <th>{t.description}</th>
-                  <th style={{width: '60px'}}>{t.actions}</th>
+                  <td colSpan="5">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading car categories...</span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {translatedCategories.map((category, index) => (
+              ) : translatedCategories.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center' }}>
+                    No categories found
+                  </td>
+                </tr>
+              ) : (
+                translatedCategories.map((category, index) => (
                   <tr key={category.id}>
                     <td>{(currentPage - 1) * pageSize + index + 1}</td>
                     <td>{category.company}</td>
@@ -195,10 +208,10 @@ const CarCategoryManager = ({ language = 'en' }) => {
                       <button className="btn-menu" onClick={(e) => handleMenuClick(e, category.id)}>⋮</button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
         <div className="pagination">
