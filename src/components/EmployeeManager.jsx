@@ -47,8 +47,15 @@ const EmployeeManager = () => {
         setOpenMenuId(null);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   const fetchEmployees = async () => {
@@ -194,9 +201,17 @@ const EmployeeManager = () => {
 
   const openMenu = (e, id) => {
     e.stopPropagation();
+    if (openMenuId === id) {
+      setOpenMenuId(null);
+      return;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
-    setMenuPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX - 120 });
-    setOpenMenuId(openMenuId === id ? null : id);
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
+    setOpenMenuId(id);
   };
 
   const formatMonthDisplay = (dateStr) => {
@@ -274,7 +289,7 @@ const EmployeeManager = () => {
                       </span>
                     </td>
                     <td>
-                      <button className="btn-menu" onClick={(e) => openMenu(e, emp.id)}>⋮</button>
+                      <button className={`btn-menu ${openMenuId === emp.id ? 'active' : ''}`} onClick={(e) => openMenu(e, emp.id)}>⋮</button>
                     </td>
                   </tr>
                 ))}
