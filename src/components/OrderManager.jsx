@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import InvoiceDetailsModal from './InvoiceDetailsModal';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -21,6 +22,8 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [selectedViewOrder, setSelectedViewOrder] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
   
   const [filters, setFilters] = useState({
     payment_status: '',
@@ -128,6 +131,12 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
       setOpenMenuId(null);
       onEditOrder(order);
     }
+  };
+
+  const handleViewDetails = (order) => {
+    setOpenMenuId(null);
+    setSelectedViewOrder(order);
+    setShowViewModal(true);
   };
 
   const handleGenerateInvoice = async (orderId) => {
@@ -286,25 +295,29 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                 orders.map((order, index) => {
                   const contact = getContactInfo(order);
                   return (
-                    <tr key={order.id}>
+                    <tr 
+                      key={order.id} 
+                      onClick={() => handleViewDetails(order)}
+                      style={{ cursor: 'pointer' }}
+                      className="table-row-hover"
+                    >
                       <td>{(currentPage - 1) * pageSize + index + 1}</td>
-                      <td>{order.transaction_date}</td>
+                      <td>
+                        <span style={{ fontWeight: 600, color: 'var(--primary)', textDecoration: 'underline' }}>
+                          {order.transaction_date}
+                        </span>
+                      </td>
                       <td>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
                       <td>{contact.name}</td>
                       <td>{order.auction_name}</td>
                       <td>{order.items?.length || 0}</td>
-                      {/* <td>
-                        {order.transaction ? (
-                          <span className="transaction-link" title={order.transaction.description}>
-                            ¥{Number(order.transaction.withdraw || 0).toLocaleString()}
-                          </span>
-                        ) : (
-                          <span className="no-transaction">-</span>
-                        )}
-                      </td> */}
-                      <td><span className={`status-badge status-${order.payment_status}`} onClick={() => handleEditStatus(order)} style={{cursor: 'pointer'}}>{t[order.payment_status]}</span></td>
-                      <td>¥{Number(order.total_amount || 0).toLocaleString()}</td>
-                      <td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <span className={`status-badge status-${order.payment_status}`} onClick={() => handleEditStatus(order)} style={{cursor: 'pointer'}}>
+                          {t[order.payment_status]}
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: 700 }}>¥{Number(order.total_amount || 0).toLocaleString()}</td>
+                      <td onClick={(e) => e.stopPropagation()}>
                         <button className={`btn-menu ${openMenuId === order.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, order.id)}>⋮</button>
                       </td>
                     </tr>
@@ -328,8 +341,9 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
             const order = orders.find(o => o.id === openMenuId);
             return order ? (
               <>
+                <button onClick={() => handleViewDetails(order)}>👁️ View Details</button>
                 <button onClick={() => handleEdit(openMenuId)}>✏️ Edit</button>
-                <button onClick={() => handleGenerateInvoice(openMenuId)}>📄 Invoice</button>
+                <button onClick={() => handleGenerateInvoice(openMenuId)}>📄 Download PDF</button>
                 <button className="danger" onClick={() => { setShowDeleteConfirm(order); setOpenMenuId(null); }}>🗑️ Delete</button>
               </>
             ) : null;
@@ -369,6 +383,14 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
           </div>
         </div>
       )}
+      {/* Invoice Details Modal */}
+      <InvoiceDetailsModal
+        isOpen={showViewModal}
+        onClose={() => { setShowViewModal(false); setSelectedViewOrder(null); }}
+        orderId={selectedViewOrder?.id}
+        initialOrder={selectedViewOrder}
+        onEdit={(order) => { onEditOrder(order); }}
+      />
     </div>
   );
 };

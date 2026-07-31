@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { TrendingUp, TrendingDown, MoreHorizontal, ArrowUpRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, MoreHorizontal, ArrowUpRight, Eye } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
 import { apiRequest } from '../api';
 import { translations } from '../translations';
+import InvoiceDetailsModal from './InvoiceDetailsModal';
 import './Dashboard.css';
 
 const Dashboard = ({ language = 'en' }) => {
   const t = translations[language];
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     approved_amount: 0,
     pending_amount: 0,
@@ -16,6 +19,8 @@ const Dashboard = ({ language = 'en' }) => {
     latest_orders: []
   });
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -183,7 +188,10 @@ const Dashboard = ({ language = 'en' }) => {
       <div className="table-section">
         <div className="table-header">
           <h3>Latest Invoices</h3>
-          <button style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted-foreground)' }}>
+          <button 
+            onClick={() => navigate('/orders')} 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted-foreground)' }}
+          >
             View all <ArrowUpRight size={14} />
           </button>
         </div>
@@ -195,11 +203,16 @@ const Dashboard = ({ language = 'en' }) => {
                 <th>Type</th>
                 <th>Status</th>
                 <th>Amount</th>
+                <th style={{ width: 60 }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {dashboardData.latest_orders?.map((order, idx) => (
-                <tr key={idx}>
+                <tr 
+                  key={order.id || idx} 
+                  onClick={() => { setSelectedInvoice(order); setShowViewModal(true); }}
+                  style={{ cursor: 'pointer' }}
+                >
                   <td>{order.transaction_date}</td>
                   <td style={{ fontWeight: 600 }}>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
                   <td>
@@ -208,12 +221,31 @@ const Dashboard = ({ language = 'en' }) => {
                     </span>
                   </td>
                   <td className="amount-cell">¥{order.total_amount?.toLocaleString()}</td>
+                  <td>
+                    <button 
+                      className="btn-menu"
+                      onClick={(e) => { e.stopPropagation(); setSelectedInvoice(order); setShowViewModal(true); }}
+                      title="View Invoice Details"
+                      style={{ padding: '4px 8px' }}
+                    >
+                      <Eye size={15} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Invoice Details Modal */}
+      <InvoiceDetailsModal
+        isOpen={showViewModal}
+        onClose={() => { setShowViewModal(false); setSelectedInvoice(null); }}
+        orderId={selectedInvoice?.id}
+        initialOrder={selectedInvoice}
+        onEdit={(order) => navigate('/orders/edit', { state: { order } })}
+      />
     </div>
   );
 };
