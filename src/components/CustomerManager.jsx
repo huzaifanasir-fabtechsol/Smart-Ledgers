@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest, getErrorMessage } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -18,6 +19,7 @@ const CustomerManager = () => {
     name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   useEffect(() => { fetchCustomers(); }, [search, currentPage]);
 
@@ -27,8 +29,15 @@ const CustomerManager = () => {
         setOpenMenuId(null);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   const fetchCustomers = async () => {
@@ -68,17 +77,16 @@ const CustomerManager = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this customer? This will also delete all related orders.')) return;
+  const handleDelete = async () => {
     try {
-      const response = await apiRequest(`/revenue/customers/${id}/`, { method: 'DELETE' });
+      const response = await apiRequest(`/revenue/customers/${showDeleteConfirm.id}/`, { method: 'DELETE' });
       if (!response.ok) {
         const errorMessage = await getErrorMessage(response);
         throw new Error(errorMessage);
       }
       toast.success('Customer deleted');
+      setShowDeleteConfirm(null);
       fetchCustomers();
-      setOpenMenuId(null);
     } catch (error) {
       toast.error(error.message || 'Failed to delete customer');
     }
@@ -93,11 +101,14 @@ const CustomerManager = () => {
 
   const handleMenuClick = (e, id) => {
     e.stopPropagation();
+    if (openMenuId === id) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 80;
-    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
-    setMenuPos({ top, left: rect.right - 120 });
-    setOpenMenuId(openMenuId === id ? null : id);
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
+    setOpenMenuId(id);
   };
 
   return (
@@ -143,7 +154,7 @@ const CustomerManager = () => {
                   </td>
                 </tr>
               ) : (
-                customers.map((c, index )=> (
+                customers.map((c, index) => (
                   <tr key={c.id}>
                     <td>{(currentPage - 1) * 10 + index + 1}</td>
                     <td>{c.name}</td>
@@ -152,7 +163,7 @@ const CustomerManager = () => {
                     <td>{c.bank_name}</td>
                     <td>{c.account_number}</td>
                     <td>
-                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, c.id)}>⋮</button>
+                      <button className={`btn-menu ${openMenuId === c.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, c.id)}>⋮</button>
                     </td>
                   </tr>
                 ))
@@ -168,49 +179,61 @@ const CustomerManager = () => {
         </div>
       </div>
 
+      {/* Context Menu */}
       {openMenuId && (
-        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          <button className="menu-item" onClick={() => openEdit(customers.find(c => c.id === openMenuId))}>Edit</button>
-          <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>Delete</button>
+        <div ref={menuRef} className="context-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+          {(() => {
+            const customer = customers.find(c => c.id === openMenuId);
+            return customer ? (
+              <>
+                <button onClick={() => openEdit(customer)}>✏️ Edit</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm(customer); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
         </div>
       )}
 
+      {/* Create / Edit Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingCustomer ? 'Edit Customer' : 'Add Customer'}</h3>
-            <form onSubmit={handleSubmit}>
+          <div className="modal-box" style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingCustomer ? 'Edit Customer' : 'Add Customer'}</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Name</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Email</label>
-                <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
+                <input type="email" className="form-input" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Phone</label>
-                <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
+                <input type="tel" className="form-input" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Address</label>
-                <textarea value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} required />
+                <textarea className="form-input" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Bank Name</label>
-                <input type="text" value={formData.bank_name} onChange={(e) => setFormData({...formData, bank_name: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.bank_name} onChange={(e) => setFormData({...formData, bank_name: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Account Number</label>
-                <input type="text" value={formData.account_number} onChange={(e) => setFormData({...formData, account_number: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.account_number} onChange={(e) => setFormData({...formData, account_number: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Branch Code</label>
-                <input type="text" value={formData.branch_code} onChange={(e) => setFormData({...formData, branch_code: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.branch_code} onChange={(e) => setFormData({...formData, branch_code: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Swift Code</label>
-                <input type="text" value={formData.swift_code} onChange={(e) => setFormData({...formData, swift_code: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.swift_code} onChange={(e) => setFormData({...formData, swift_code: e.target.value})} required />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
@@ -220,6 +243,15 @@ const CustomerManager = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Customer"
+        message={`Are you sure you want to delete "${showDeleteConfirm?.name}"? This will also delete all related orders.`}
+      />
     </div>
   );
 };

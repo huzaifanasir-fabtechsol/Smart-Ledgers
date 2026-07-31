@@ -6,6 +6,7 @@ import { apiRequest } from '../api';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import DateInput from './DateInput';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import './ExpenseManager.css';
 
 const CATEGORY_INITIAL_FORM = {
@@ -106,6 +107,7 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [menuType, setMenuType] = useState('');
   const menuRef = useRef(null);
   const titleInputRef = useRef(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   const debouncedTitle = useDebounce(expenseForm.title, 1000);
 
@@ -130,8 +132,15 @@ const ExpenseManager = ({ language = 'en' }) => {
         setShowTitleSuggestions(false);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   useEffect(() => {
@@ -325,12 +334,15 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   const handleMenuClick = (e, id, type) => {
     e.stopPropagation();
+    if (openMenuId === id) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 80;
-    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
-    setMenuPos({ top, left: rect.right - 120 });
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
     setMenuType(type);
-    setOpenMenuId(openMenuId === id ? null : id);
+    setOpenMenuId(id);
   };
 
   const handleCategorySubmit = async (event) => {
@@ -469,14 +481,12 @@ const ExpenseManager = ({ language = 'en' }) => {
     setExpensePage(1);
   };
 
-  const handleDeleteCategory = async (category) => {
-    if (!window.confirm(`Are you sure you want to delete "${category.name}"? This will also delete all expenses linked to this category.`)) {
-      return;
-    }
+  const handleDeleteCategory = async () => {
     try {
-      const response = await apiRequest(`/categories/${category.id}/`, { method: 'DELETE' });
+      const response = await apiRequest(`/categories/${showDeleteConfirm.item.id}/`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete category');
       toast.success('Category deleted successfully');
+      setShowDeleteConfirm(null);
       await fetchCategories();
       await fetchExpenses();
     } catch (error) {
@@ -485,14 +495,12 @@ const ExpenseManager = ({ language = 'en' }) => {
     setOpenMenuId(null);
   };
 
-  const handleDeleteExpense = async (expense) => {
-    if (!window.confirm(`Are you sure you want to delete "${expense.title}"?`)) {
-      return;
-    }
+  const handleDeleteExpense = async () => {
     try {
-      const response = await apiRequest(`/expenses/${expense.id}/`, { method: 'DELETE' });
+      const response = await apiRequest(`/expenses/${showDeleteConfirm.item.id}/`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete expense');
       toast.success('Expense deleted successfully');
+      setShowDeleteConfirm(null);
       await fetchExpenses();
     } catch (error) {
       toast.error('Failed to delete expense');
@@ -651,7 +659,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     </td>
                     <td className="amount-cell">¥{Number(expense.amount || 0).toLocaleString()}</td>
                     <td>
-                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, expense.id, 'expense')}>⋮</button>
+                      <button className={`btn-menu ${openMenuId === expense.id && menuType === 'expense' ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, expense.id, 'expense')}>⋮</button>
                     </td>
                   </tr>
                 ))
@@ -738,22 +746,37 @@ const ExpenseManager = ({ language = 'en' }) => {
 
 
       {openMenuId && (
-        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          {menuType === 'category' && (
-            <>
-              <button className="menu-item" onClick={() => openEditCategoryModal(categories.find(c => c.id === openMenuId))}>Edit</button>
-              <button className="menu-item" onClick={() => handleDeleteCategory(categories.find(c => c.id === openMenuId))}>Delete</button>
-            </>
-          )}
-          {menuType === 'expense' && (
-            <>
-              <button className="menu-item" onClick={() => openEditExpenseModal(expenses.find(e => e.id === openMenuId))}>Edit</button>
-              <button className="menu-item" onClick={() => exportExpenseToPDF(expenses.find(e => e.id === openMenuId))}>Export PDF</button>
-              <button className="menu-item" onClick={() => handleDeleteExpense(expenses.find(e => e.id === openMenuId))}>Delete</button>
-            </>
-          )}
+        <div className="context-menu" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
+          {menuType === 'category' && (() => {
+            const cat = categories.find(c => c.id === openMenuId);
+            return cat ? (
+              <>
+                <button onClick={() => openEditCategoryModal(cat)}>✏️ Edit</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm({ type: 'category', item: cat, label: `"${cat.name}"`, warning: 'This will also delete all expenses linked to this category.' }); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
+          {menuType === 'expense' && (() => {
+            const exp = expenses.find(e => e.id === openMenuId);
+            return exp ? (
+              <>
+                <button onClick={() => openEditExpenseModal(exp)}>✏️ Edit</button>
+                <button onClick={() => exportExpenseToPDF(exp)}>📄 Export PDF</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm({ type: 'expense', item: exp, label: `"${exp.title}"`, warning: '' }); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={showDeleteConfirm?.type === 'category' ? handleDeleteCategory : handleDeleteExpense}
+        title={showDeleteConfirm?.type === 'category' ? 'Delete Category' : 'Delete Expense'}
+        message={`Are you sure you want to delete ${showDeleteConfirm?.label}? ${showDeleteConfirm?.warning || 'This action cannot be undone.'}`}
+      />
 
       {showCategoryModal && (
         <div className="modal-overlay" onClick={() => setShowCategoryModal(false)}>

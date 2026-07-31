@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { apiRequest, getErrorMessage } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -179,9 +180,9 @@ const SalaryManager = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async () => {
     try {
-      const response = await apiRequest(`/hr/salaries/${id}/`, { method: 'DELETE' });
+      const response = await apiRequest(`/hr/salaries/${showDeleteConfirm.id}/`, { method: 'DELETE' });
       if (!response.ok && response.status !== 204) {
         const msg = await getErrorMessage(response);
         throw new Error(msg);
@@ -478,23 +479,13 @@ const SalaryManager = () => {
       )}
 
       {/* Delete Confirmation */}
-      {showDeleteConfirm && (
-        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(null)}>
-          <div className="modal-box" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Delete Salary Record</h3>
-              <button className="modal-close" onClick={() => setShowDeleteConfirm(null)}>×</button>
-            </div>
-            <div style={{ padding: '1rem 1.5rem' }}>
-              <p>Delete salary record for <strong>{showDeleteConfirm.employee_name}</strong> ({showDeleteConfirm.salary_month})?</p>
-            </div>
-            <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setShowDeleteConfirm(null)}>Cancel</button>
-              <button className="btn-danger" onClick={() => handleDelete(showDeleteConfirm.id)}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Salary Record"
+        message={`Delete salary record for ${showDeleteConfirm?.employee_name} (${showDeleteConfirm?.salary_month})? This action cannot be undone.`}
+      />
     </div>
   );
 };

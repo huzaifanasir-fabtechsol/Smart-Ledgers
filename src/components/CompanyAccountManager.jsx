@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -18,6 +19,7 @@ const CompanyAccountManager = () => {
     bank_name: '', account_number: '', branch_code: '', account_holder: '', swift_code: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   useEffect(() => { fetchAccounts(); }, [search, currentPage]);
 
@@ -27,8 +29,15 @@ const CompanyAccountManager = () => {
         setOpenMenuId(null);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   const fetchAccounts = async () => {
@@ -65,13 +74,12 @@ const CompanyAccountManager = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this account? This will also delete all transactions and orders linked to it.')) return;
+  const handleDelete = async () => {
     try {
-      await apiRequest(`/revenue/company-accounts/${id}/`, { method: 'DELETE' });
+      await apiRequest(`/revenue/company-accounts/${showDeleteConfirm.id}/`, { method: 'DELETE' });
       toast.success('Account deleted');
+      setShowDeleteConfirm(null);
       fetchAccounts();
-      setOpenMenuId(null);
     } catch (error) {
       toast.error('Failed to delete account');
     }
@@ -86,11 +94,14 @@ const CompanyAccountManager = () => {
 
   const handleMenuClick = (e, id) => {
     e.stopPropagation();
+    if (openMenuId === id) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 80;
-    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
-    setMenuPos({ top, left: rect.right - 120 });
-    setOpenMenuId(openMenuId === id ? null : id);
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
+    setOpenMenuId(id);
   };
 
   return (
@@ -136,7 +147,7 @@ const CompanyAccountManager = () => {
                   </td>
                 </tr>
               ) : (
-                accounts.map((a, index )=> (
+                accounts.map((a, index) => (
                   <tr key={a.id}>
                     <td>{(currentPage - 1) * 10 + index + 1}</td>
                     <td>{a.bank_name}</td>
@@ -145,7 +156,7 @@ const CompanyAccountManager = () => {
                     <td>{a.branch_code}</td>
                     <td>{a.swift_code}</td>
                     <td>
-                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
+                      <button className={`btn-menu ${openMenuId === a.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
                     </td>
                   </tr>
                 ))
@@ -161,37 +172,49 @@ const CompanyAccountManager = () => {
         </div>
       </div>
 
+      {/* Context Menu */}
       {openMenuId && (
-        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          <button className="menu-item" onClick={() => openEdit(accounts.find(a => a.id === openMenuId))}>Edit</button>
-          <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>Delete</button>
+        <div ref={menuRef} className="context-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+          {(() => {
+            const account = accounts.find(a => a.id === openMenuId);
+            return account ? (
+              <>
+                <button onClick={() => openEdit(account)}>✏️ Edit</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm(account); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
         </div>
       )}
 
+      {/* Create / Edit Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingAccount ? 'Edit Account' : 'Add Account'}</h3>
-            <form onSubmit={handleSubmit}>
+          <div className="modal-box" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingAccount ? 'Edit Account' : 'Add Account'}</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Bank Name</label>
-                <input type="text" value={formData.bank_name} onChange={(e) => setFormData({...formData, bank_name: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.bank_name} onChange={(e) => setFormData({...formData, bank_name: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Account Holder</label>
-                <input type="text" value={formData.account_holder} onChange={(e) => setFormData({...formData, account_holder: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.account_holder} onChange={(e) => setFormData({...formData, account_holder: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Account Number</label>
-                <input type="text" value={formData.account_number} onChange={(e) => setFormData({...formData, account_number: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.account_number} onChange={(e) => setFormData({...formData, account_number: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Branch Code</label>
-                <input type="text" value={formData.branch_code} onChange={(e) => setFormData({...formData, branch_code: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.branch_code} onChange={(e) => setFormData({...formData, branch_code: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>SWIFT Code</label>
-                <input type="text" value={formData.swift_code} onChange={(e) => setFormData({...formData, swift_code: e.target.value})} />
+                <input type="text" className="form-input" value={formData.swift_code} onChange={(e) => setFormData({...formData, swift_code: e.target.value})} />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
@@ -201,6 +224,15 @@ const CompanyAccountManager = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Account"
+        message={`Are you sure you want to delete "${showDeleteConfirm?.bank_name} — ${showDeleteConfirm?.account_number}"? This will also delete all transactions and orders linked to it.`}
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -19,6 +20,7 @@ const CarManager = () => {
     category: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear()
   });
   const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   useEffect(() => { fetchCars(); fetchCategories(); }, [search, currentPage]);
 
@@ -28,8 +30,15 @@ const CarManager = () => {
         setOpenMenuId(null);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   const fetchCars = async () => {
@@ -76,11 +85,11 @@ const CarManager = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this car?')) return;
+  const handleDelete = async () => {
     try {
-      await apiRequest(`/revenue/cars/${id}/`, { method: 'DELETE' });
+      await apiRequest(`/revenue/cars/${showDeleteConfirm.id}/`, { method: 'DELETE' });
       toast.success('Car deleted');
+      setShowDeleteConfirm(null);
       fetchCars();
     } catch (error) {
       toast.error('Failed to delete car');
@@ -96,11 +105,14 @@ const CarManager = () => {
 
   const handleMenuClick = (e, id) => {
     e.stopPropagation();
+    if (openMenuId === id) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 80;
-    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
-    setMenuPos({ top, left: rect.right - 120 });
-    setOpenMenuId(openMenuId === id ? null : id);
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
+    setOpenMenuId(id);
   };
 
   return (
@@ -155,7 +167,7 @@ const CarManager = () => {
                     <td>{c.chassis_number}</td>
                     <td>{c.year}</td>
                     <td>
-                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, c.id)}>⋮</button>
+                      <button className={`btn-menu ${openMenuId === c.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, c.id)}>⋮</button>
                     </td>
                   </tr>
                 ))
@@ -171,40 +183,48 @@ const CarManager = () => {
         </div>
       </div>
 
+      {/* Context Menu */}
       {openMenuId && (
-        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          <button className="menu-item" onClick={() => openEdit(cars.find(c => c.id === openMenuId))}>Edit</button>
-          <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>Delete</button>
+        <div ref={menuRef} className="context-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+          {(() => {
+            const car = cars.find(c => c.id === openMenuId);
+            return car ? (
+              <>
+                <button onClick={() => openEdit(car)}>✏️ Edit</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm(car); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
         </div>
       )}
 
+      {/* Create / Edit Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingCar ? 'Edit Car' : 'Add Car'}</h3>
-            <form onSubmit={handleSubmit}>
+          <div className="modal-box" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingCar ? 'Edit Car' : 'Add Car'}</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Car Name (Company - Model)</label>
-                <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required>
+                <select className="form-input" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required>
                   <option value="">Select Car Name</option>
                   {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.company} - {cat.model}</option>)}
                 </select>
               </div>
-              {/* <div className="form-group">
-                <label>Model</label>
-                <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} required />
-              </div> */}
               <div className="form-group">
                 <label>Chassis Number</label>
-                <input type="text" value={formData.chassis_number} onChange={(e) => setFormData({...formData, chassis_number: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.chassis_number} onChange={(e) => setFormData({...formData, chassis_number: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Year</label>
-                <input type="number" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} required />
+                <input type="number" className="form-input" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Description</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+                <textarea className="form-input" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
@@ -214,6 +234,15 @@ const CarManager = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Car"
+        message={`Are you sure you want to delete this car (${showDeleteConfirm?.category_company} ${showDeleteConfirm?.category_model})? This action cannot be undone.`}
+      />
     </div>
   );
 };

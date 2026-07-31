@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { apiRequest } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import '../shared.css';
 
 const TransactionManager = () => {
@@ -15,6 +16,7 @@ const TransactionManager = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   const [filters, setFilters] = useState({
     search: '',
@@ -43,8 +45,15 @@ const TransactionManager = () => {
         setOpenMenuId(null);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   const fetchTransactions = async () => {
@@ -155,13 +164,11 @@ const TransactionManager = () => {
     }
   };
 
-  const handleDelete = async (transactionId) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
-    
+  const handleDelete = async () => {
     try {
-      await apiRequest(`/revenue/transactions/${transactionId}/`, { method: 'DELETE' });
+      await apiRequest(`/revenue/transactions/${showDeleteConfirm.id}/`, { method: 'DELETE' });
       toast.success('Transaction deleted successfully');
-      setOpenMenuId(null);
+      setShowDeleteConfirm(null);
       fetchTransactions();
     } catch (error) {
       toast.error('Failed to delete transaction');
@@ -170,11 +177,14 @@ const TransactionManager = () => {
 
   const handleMenuClick = (e, transactionId) => {
     e.stopPropagation();
+    if (openMenuId === transactionId) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 80;
-    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
-    setMenuPos({ top, left: rect.right - 120 });
-    setOpenMenuId(openMenuId === transactionId ? null : transactionId);
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
+    setOpenMenuId(transactionId);
   };
 
   return (
@@ -269,7 +279,7 @@ const TransactionManager = () => {
                       {companyAccounts.find(acc => acc.id === transaction.company_account)?.bank_name || '-'}
                     </td>
                     <td>
-                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, transaction.id)}>⋮</button>
+                      <button className={`btn-menu ${openMenuId === transaction.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, transaction.id)}>⋮</button>
                     </td>
                   </tr>
                 ))
@@ -289,27 +299,36 @@ const TransactionManager = () => {
         </div>
       </div>
 
+      {/* Context Menu */}
       {openMenuId && (
-        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          <button className="menu-item" onClick={() => openEditModal(transactions.find(t => t.id === openMenuId))}>
-            Edit
-          </button>
-          <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>
-            Delete
-          </button>
+        <div ref={menuRef} className="context-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+          {(() => {
+            const transaction = transactions.find(t => t.id === openMenuId);
+            return transaction ? (
+              <>
+                <button onClick={() => openEditModal(transaction)}>✏️ Edit</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm(transaction); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
         </div>
       )}
 
+      {/* Create / Edit Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}</h3>
-            <form onSubmit={handleSubmit}>
-              <div className="form-row">
+          <div className="modal-box" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSubmit} className="modal-form">
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Date</label>
                   <input
                     type="date"
+                    className="form-input"
                     value={formData.date}
                     onChange={(e) => setFormData({...formData, date: e.target.value})}
                     required
@@ -319,6 +338,7 @@ const TransactionManager = () => {
                   <label>Transaction ID</label>
                   <input
                     type="text"
+                    className="form-input"
                     value={formData.transaction_id}
                     onChange={(e) => setFormData({...formData, transaction_id: e.target.value})}
                     placeholder="Optional"
@@ -329,6 +349,7 @@ const TransactionManager = () => {
               <div className="form-group">
                 <label>Company Account</label>
                 <select
+                  className="form-input"
                   value={formData.company_account}
                   onChange={(e) => setFormData({...formData, company_account: e.target.value})}
                   required
@@ -342,13 +363,14 @@ const TransactionManager = () => {
                 </select>
               </div>
 
-              <div className="form-row">
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label>Withdraw Amount</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
+                    className="form-input"
                     value={formData.withdraw}
                     onChange={(e) => setFormData({...formData, withdraw: e.target.value})}
                     placeholder="0.00"
@@ -360,6 +382,7 @@ const TransactionManager = () => {
                     type="number"
                     step="0.01"
                     min="0"
+                    className="form-input"
                     value={formData.deposit}
                     onChange={(e) => setFormData({...formData, deposit: e.target.value})}
                     placeholder="0.00"
@@ -371,6 +394,7 @@ const TransactionManager = () => {
                 <label>Description</label>
                 <input
                   type="text"
+                  className="form-input"
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Transaction description"
@@ -381,6 +405,7 @@ const TransactionManager = () => {
               <div className="form-group">
                 <label>Notes</label>
                 <textarea
+                  className="form-input"
                   value={formData.notes}
                   onChange={(e) => setFormData({...formData, notes: e.target.value})}
                   placeholder="Additional notes"
@@ -400,6 +425,15 @@ const TransactionManager = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Transaction"
+        message={`Are you sure you want to delete this transaction "${showDeleteConfirm?.description}"? This action cannot be undone.`}
+      />
     </div>
   );
 };

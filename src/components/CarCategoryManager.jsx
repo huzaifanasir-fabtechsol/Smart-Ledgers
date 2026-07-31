@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
 import { translateText } from '../translator';
 import { apiRequest } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import './CarCategoryManager.css';
 
 const CarCategoryManager = ({ language = 'en' }) => {
@@ -23,6 +24,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   useEffect(() => {
     fetchCategories();
@@ -48,8 +50,15 @@ const CarCategoryManager = ({ language = 'en' }) => {
         setOpenMenuId(null);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   const fetchCategories = async () => {
@@ -80,13 +89,11 @@ const CarCategoryManager = ({ language = 'en' }) => {
     setCurrentPage(1);
   };
 
-  const handleDelete = async (categoryId) => {
-    if (!window.confirm('Are you sure you want to delete this category?')) return;
-    
+  const handleDelete = async () => {
     try {
-      await apiRequest(`/revenue/categories/${categoryId}/`, { method: 'DELETE' });
+      await apiRequest(`/revenue/categories/${showDeleteConfirm.id}/`, { method: 'DELETE' });
       toast.success('Category deleted successfully');
-      setOpenMenuId(null);
+      setShowDeleteConfirm(null);
       fetchCategories();
     } catch (error) {
       toast.error('Failed to delete category');
@@ -144,11 +151,14 @@ const CarCategoryManager = ({ language = 'en' }) => {
 
   const handleMenuClick = (e, categoryId) => {
     e.stopPropagation();
+    if (openMenuId === categoryId) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 100;
-    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
-    setMenuPos({ top, left: rect.right - 120 });
-    setOpenMenuId(openMenuId === categoryId ? null : categoryId);
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
+    setOpenMenuId(categoryId);
   };
 
   return (
@@ -205,7 +215,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
                     <td>{category.model}</td>
                     <td>{category.description || '-'}</td>
                     <td>
-                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, category.id)}>⋮</button>
+                      <button className={`btn-menu ${openMenuId === category.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, category.id)}>⋮</button>
                     </td>
                   </tr>
                 ))
@@ -222,11 +232,27 @@ const CarCategoryManager = ({ language = 'en' }) => {
       </div>
 
       {openMenuId && (
-        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          <button className="menu-item" onClick={() => handleEdit(translatedCategories.find(c => c.id === openMenuId))}>Edit</button>
-          <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>Delete</button>
+        <div ref={menuRef} className="context-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+          {(() => {
+            const cat = translatedCategories.find(c => c.id === openMenuId);
+            return cat ? (
+              <>
+                <button onClick={() => handleEdit(cat)}>✏️ Edit</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm(cat); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Car Category"
+        message={`Are you sure you want to delete "${showDeleteConfirm?.company} - ${showDeleteConfirm?.name}"? This action cannot be undone.`}
+      />
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>

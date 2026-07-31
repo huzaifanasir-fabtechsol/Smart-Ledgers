@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -16,6 +17,7 @@ const AuctionManager = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   useEffect(() => { fetchAuctions(); }, [search, currentPage]);
 
@@ -25,8 +27,15 @@ const AuctionManager = () => {
         setOpenMenuId(null);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   const fetchAuctions = async () => {
@@ -63,11 +72,11 @@ const AuctionManager = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this auction?')) return;
+  const handleDelete = async () => {
     try {
-      await apiRequest(`/revenue/auctions/${id}/`, { method: 'DELETE' });
+      await apiRequest(`/revenue/auctions/${showDeleteConfirm.id}/`, { method: 'DELETE' });
       toast.success('Auction deleted');
+      setShowDeleteConfirm(null);
       fetchAuctions();
     } catch (error) {
       toast.error('Failed to delete auction');
@@ -83,11 +92,14 @@ const AuctionManager = () => {
 
   const handleMenuClick = (e, id) => {
     e.stopPropagation();
+    if (openMenuId === id) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 80;
-    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
-    setMenuPos({ top, left: rect.right - 120 });
-    setOpenMenuId(openMenuId === id ? null : id);
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
+    setOpenMenuId(id);
   };
 
   return (
@@ -130,13 +142,13 @@ const AuctionManager = () => {
                   </td>
                 </tr>
               ) : (
-                auctions.map((a, index )=> (
+                auctions.map((a, index) => (
                   <tr key={a.id}>
                     <td>{(currentPage - 1) * 10 + index + 1}</td>
                     <td>{a.name}</td>
                     <td>{a.description}</td>
                     <td>
-                      <button className="btn-menu" onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
+                      <button className={`btn-menu ${openMenuId === a.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
                     </td>
                   </tr>
                 ))
@@ -152,25 +164,37 @@ const AuctionManager = () => {
         </div>
       </div>
 
+      {/* Context Menu */}
       {openMenuId && (
-        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          <button className="menu-item" onClick={() => openEdit(auctions.find(a => a.id === openMenuId))}>Edit</button>
-          <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>Delete</button>
+        <div ref={menuRef} className="context-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+          {(() => {
+            const auction = auctions.find(a => a.id === openMenuId);
+            return auction ? (
+              <>
+                <button onClick={() => openEdit(auction)}>✏️ Edit</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm(auction); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
         </div>
       )}
 
+      {/* Create / Edit Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingAuction ? 'Edit Auction' : 'Add Auction'}</h3>
-            <form onSubmit={handleSubmit}>
+          <div className="modal-box" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingAuction ? 'Edit Auction' : 'Add Auction'}</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Name</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                <input type="text" className="form-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Description</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+                <textarea className="form-input" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
@@ -180,6 +204,15 @@ const AuctionManager = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Auction"
+        message={`Are you sure you want to delete "${showDeleteConfirm?.name}"? This action cannot be undone.`}
+      />
     </div>
   );
 };

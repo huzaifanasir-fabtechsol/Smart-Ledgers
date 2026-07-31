@@ -3,6 +3,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -19,6 +20,7 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   
   const [filters, setFilters] = useState({
     payment_status: '',
@@ -39,8 +41,15 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
         setOpenMenuId(null);
       }
     };
+    const handleCloseMenu = () => setOpenMenuId(null);
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
   }, []);
 
   const fetchOrders = async () => {
@@ -102,13 +111,11 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
     setCurrentPage(1);
   };
 
-  const handleDelete = async (orderId) => {
-    if (!window.confirm('Are you sure you want to delete this order?')) return;
-    
+  const handleDelete = async () => {
     try {
-      await apiRequest(`/revenue/orders/${orderId}/`, { method: 'DELETE' });
+      await apiRequest(`/revenue/orders/${showDeleteConfirm.id}/`, { method: 'DELETE' });
       toast.success('Order deleted successfully');
-      setOpenMenuId(null);
+      setShowDeleteConfirm(null);
       fetchOrders();
     } catch (error) {
       toast.error('Failed to delete order');
@@ -171,11 +178,14 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
 
   const handleMenuClick = (e, orderId) => {
     e.stopPropagation();
+    if (openMenuId === orderId) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 100;
-    const top = rect.bottom + 5 + menuHeight > window.innerHeight ? rect.top - menuHeight - 5 : rect.bottom + 5;
-    setMenuPos({ top, left: rect.right - 120 });
-    setOpenMenuId(openMenuId === orderId ? null : orderId);
+    const menuWidth = 180;
+    let left = rect.right - menuWidth;
+    if (left < 10) left = rect.left;
+    let top = rect.bottom + 6;
+    setMenuPos({ top, left });
+    setOpenMenuId(orderId);
   };
 
   return (
@@ -295,7 +305,7 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                       <td><span className={`status-badge status-${order.payment_status}`} onClick={() => handleEditStatus(order)} style={{cursor: 'pointer'}}>{t[order.payment_status]}</span></td>
                       <td>¥{Number(order.total_amount || 0).toLocaleString()}</td>
                       <td>
-                        <button className="btn-menu" onClick={(e) => handleMenuClick(e, order.id)}>⋮</button>
+                        <button className={`btn-menu ${openMenuId === order.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, order.id)}>⋮</button>
                       </td>
                     </tr>
                   );
@@ -313,12 +323,28 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
       </div>
 
       {openMenuId && (
-        <div className="menu-dropdown" ref={menuRef} style={{ top: menuPos.top, left: menuPos.left }}>
-          <button className="menu-item" onClick={() => handleEdit(openMenuId)}>Edit</button>
-          <button className="menu-item" onClick={() => handleGenerateInvoice(openMenuId)}>Invoice</button>
-          <button className="menu-item delete" onClick={() => handleDelete(openMenuId)}>Delete</button>
+        <div ref={menuRef} className="context-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+          {(() => {
+            const order = orders.find(o => o.id === openMenuId);
+            return order ? (
+              <>
+                <button onClick={() => handleEdit(openMenuId)}>✏️ Edit</button>
+                <button onClick={() => handleGenerateInvoice(openMenuId)}>📄 Invoice</button>
+                <button className="danger" onClick={() => { setShowDeleteConfirm(order); setOpenMenuId(null); }}>🗑️ Delete</button>
+              </>
+            ) : null;
+          })()}
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmModal
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Order"
+        message={`Are you sure you want to delete this order? This action cannot be undone.`}
+      />
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
