@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { 
-  FileText, 
-  X, 
-  Download, 
-  Printer, 
-  Calendar, 
-  User, 
-  Building2, 
-  Car, 
-  CreditCard, 
-  CheckCircle2, 
-  Clock, 
+import {
+  FileText,
+  X,
+  Download,
+  Printer,
+  Calendar,
+  User,
+  Building2,
+  Car,
+  CreditCard,
+  CheckCircle2,
+  Clock,
   AlertCircle,
   Tag,
   MapPin,
@@ -125,11 +125,11 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
 
   return (
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 9999 }}>
-      <div 
-        className="modal-box invoice-details-modal" 
+      <div
+        className="modal-box invoice-details-modal"
         onClick={(e) => e.stopPropagation()}
-        style={{ 
-          maxWidth: 900, 
+        style={{
+          maxWidth: 900,
           width: '95%',
           maxHeight: '92vh',
           display: 'flex',
@@ -139,10 +139,10 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
         }}
       >
         {/* Modal Top Bar */}
-        <div 
-          className="modal-header" 
-          style={{ 
-            padding: '1.25rem 1.75rem', 
+        <div
+          className="modal-header"
+          style={{
+            padding: '1.25rem 1.75rem',
             background: 'var(--card)',
             borderBottom: '1px solid var(--border)',
             display: 'flex',
@@ -152,14 +152,14 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div 
-              style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: 12, 
-                background: 'var(--secondary)', 
-                display: 'flex', 
-                alignItems: 'center', 
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                background: 'var(--secondary)',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
                 color: 'var(--ink)'
               }}
@@ -177,8 +177,8 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <button 
-              className="btn-secondary" 
+            <button
+              className="btn-secondary"
               onClick={handleDownloadPdf}
               disabled={downloadingPdf || loading || !order}
               style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', padding: '0.5rem 0.9rem' }}
@@ -188,7 +188,7 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
               {downloadingPdf ? 'Downloading...' : 'PDF'}
             </button>
 
-            <button 
+            {/* <button 
               className="btn-secondary" 
               onClick={handlePrint}
               disabled={loading || !order}
@@ -197,11 +197,11 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
             >
               <Printer size={15} />
               Print
-            </button>
+            </button> */}
 
             {onEdit && order && (
-              <button 
-                className="btn-primary" 
+              <button
+                className="btn-primary"
                 onClick={() => { onClose(); onEdit(order); }}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', padding: '0.5rem 0.9rem' }}
               >
@@ -217,13 +217,13 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
         </div>
 
         {/* Modal Scrollable Content */}
-        <div 
-          className="modal-body print-area" 
-          style={{ 
-            padding: '1.75rem', 
-            overflowY: 'auto', 
-            flex: 1, 
-            background: 'var(--background)' 
+        <div
+          className="modal-body print-area"
+          style={{
+            padding: '1.75rem',
+            overflowY: 'auto',
+            flex: 1,
+            background: 'var(--background)'
           }}
         >
           {loading && !order ? (
@@ -238,11 +238,11 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* Header Banner */}
-              <div 
-                style={{ 
-                  background: 'var(--card)', 
-                  borderRadius: 16, 
-                  padding: '1.5rem', 
+              <div
+                style={{
+                  background: 'var(--card)',
+                  borderRadius: 16,
+                  padding: '1.5rem',
                   border: '1px solid var(--border)',
                   boxShadow: 'var(--shadow-card)',
                   display: 'grid',
@@ -278,20 +278,20 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
                     Transaction Type
                   </span>
                   <div style={{ marginTop: '0.25rem' }}>
-                    <span 
-                      style={{ 
+                    <span
+                      style={{
                         display: 'inline-block',
-                        padding: '0.3rem 0.75rem', 
-                        borderRadius: 8, 
-                        fontWeight: 700, 
+                        padding: '0.3rem 0.75rem',
+                        borderRadius: 8,
+                        fontWeight: 700,
                         fontSize: '0.85rem',
                         textTransform: 'uppercase',
                         background: order.transaction_type === 'sale' ? 'rgba(34, 197, 94, 0.12)' :
-                                    order.transaction_type === 'purchase' ? 'rgba(59, 130, 246, 0.12)' :
-                                    order.transaction_type === 'auction' ? 'rgba(168, 85, 247, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                          order.transaction_type === 'purchase' ? 'rgba(59, 130, 246, 0.12)' :
+                            order.transaction_type === 'auction' ? 'rgba(168, 85, 247, 0.12)' : 'rgba(245, 158, 11, 0.12)',
                         color: order.transaction_type === 'sale' ? '#16a34a' :
-                               order.transaction_type === 'purchase' ? '#2563eb' :
-                               order.transaction_type === 'auction' ? '#9333ea' : '#d97706'
+                          order.transaction_type === 'purchase' ? '#2563eb' :
+                            order.transaction_type === 'auction' ? '#9333ea' : '#d97706'
                       }}
                     >
                       {order.transaction_type}
@@ -312,11 +312,11 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
               {/* Party & Financial Info Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
                 {/* Party Details Card */}
-                <div 
-                  style={{ 
-                    background: 'var(--card)', 
-                    borderRadius: 16, 
-                    padding: '1.25rem 1.5rem', 
+                <div
+                  style={{
+                    background: 'var(--card)',
+                    borderRadius: 16,
+                    padding: '1.25rem 1.5rem',
                     border: '1px solid var(--border)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -327,7 +327,7 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
                     <User size={18} style={{ color: 'var(--primary)' }} />
                     <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
                       {order.transaction_type === 'purchase' ? 'Seller Details' :
-                       order.transaction_type === 'auction' ? 'Auction Details' : 'Customer Details'}
+                        order.transaction_type === 'auction' ? 'Auction Details' : 'Customer Details'}
                     </h4>
                   </div>
 
@@ -358,11 +358,11 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
                 </div>
 
                 {/* Company Account & Summary Card */}
-                <div 
-                  style={{ 
-                    background: 'var(--card)', 
-                    borderRadius: 16, 
-                    padding: '1.25rem 1.5rem', 
+                <div
+                  style={{
+                    background: 'var(--card)',
+                    borderRadius: 16,
+                    padding: '1.25rem 1.5rem',
                     border: '1px solid var(--border)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -389,11 +389,11 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
                       </div>
                     )}
 
-                    <div 
-                      style={{ 
+                    <div
+                      style={{
                         marginTop: '0.5rem',
-                        padding: '0.85rem 1rem', 
-                        background: 'var(--secondary)', 
+                        padding: '0.85rem 1rem',
+                        background: 'var(--secondary)',
                         borderRadius: 12,
                         display: 'flex',
                         alignItems: 'center',
@@ -410,11 +410,11 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
               </div>
 
               {/* Items Section */}
-              <div 
-                style={{ 
-                  background: 'var(--card)', 
-                  borderRadius: 16, 
-                  padding: '1.5rem', 
+              <div
+                style={{
+                  background: 'var(--card)',
+                  borderRadius: 16,
+                  padding: '1.5rem',
                   border: '1px solid var(--border)',
                   boxShadow: 'var(--shadow-card)'
                 }}
@@ -502,12 +502,12 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
 
               {/* Notes Section if any */}
               {order.notes && (
-                <div 
-                  style={{ 
-                    background: 'var(--card)', 
-                    borderRadius: 16, 
-                    padding: '1.25rem 1.5rem', 
-                    border: '1px solid var(--border)' 
+                <div
+                  style={{
+                    background: 'var(--card)',
+                    borderRadius: 16,
+                    padding: '1.25rem 1.5rem',
+                    border: '1px solid var(--border)'
                   }}
                 >
                   <h5 style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>
@@ -523,11 +523,11 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
         </div>
 
         {/* Footer Actions */}
-        <div 
-          className="modal-actions" 
-          style={{ 
-            padding: '1rem 1.75rem', 
-            background: 'var(--card)', 
+        <div
+          className="modal-actions"
+          style={{
+            padding: '1rem 1.75rem',
+            background: 'var(--card)',
             borderTop: '1px solid var(--border)',
             margin: 0
           }}
