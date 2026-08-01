@@ -504,6 +504,8 @@ const TransactionManager = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
       {/* Bulk Upload Modal */}
       {showBulkModal && (
         <div className="modal-overlay" onClick={() => setShowBulkModal(false)}>
