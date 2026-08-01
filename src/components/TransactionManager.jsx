@@ -15,8 +15,13 @@ const TransactionManager = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-  const menuRef = useRef(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkAccount, setBulkAccount] = useState('');
+  const [bulkFile, setBulkFile] = useState(null);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkErrors, setBulkErrors] = useState(null);
 
   const [filters, setFilters] = useState({
     search: '',
@@ -175,6 +180,69 @@ const TransactionManager = () => {
     }
   };
 
+  const handleDownloadSampleTemplate = () => {
+    const csvContent = "date,transection id,withdraw amount,depostie amount,description,notes\n" +
+      "2026-08-01,TXN-1001,500.00,0.00,Office Supplies,Purchased printer paper & ink\n" +
+      "2026-08-02,TXN-1002,0.00,1500.00,Client Payment,Services rendered for July";
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'sample_transactions_import.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBulkSubmit = async (e) => {
+    e.preventDefault();
+    setBulkErrors(null);
+
+    if (!bulkAccount) {
+      toast.error('Please select a company account');
+      return;
+    }
+    if (!bulkFile) {
+      toast.error('Please select an Excel (.xlsx / .xls) file');
+      return;
+    }
+
+    setBulkUploading(true);
+    try {
+      const payload = new FormData();
+      payload.append('company_account', bulkAccount);
+      payload.append('file', bulkFile);
+
+      const response = await apiRequest('/revenue/transactions/bulk_upload/', {
+        method: 'POST',
+        body: payload
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.row_errors && data.row_errors.length > 0) {
+          setBulkErrors(data.row_errors);
+          toast.error(data.error || 'Validation failed. Please check error details.');
+        } else {
+          toast.error(data.error || 'Failed to upload bulk transactions');
+        }
+        return;
+      }
+
+      toast.success(data.message || 'Transactions imported successfully!');
+      setShowBulkModal(false);
+      setBulkFile(null);
+      setBulkAccount('');
+      fetchTransactions();
+    } catch (error) {
+      toast.error('Failed to process file. Please try again.');
+    } finally {
+      setBulkUploading(false);
+    }
+  };
+
   const handleMenuClick = (e, transactionId) => {
     e.stopPropagation();
     if (openMenuId === transactionId) { setOpenMenuId(null); return; }
@@ -193,9 +261,22 @@ const TransactionManager = () => {
       
       <div className="page-header">
         <h2>Transactions</h2>
-        <button className="btn-primary" onClick={openCreateModal}>
-          Add Transaction
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button 
+            className="btn-secondary" 
+            onClick={() => {
+              setBulkErrors(null);
+              setBulkFile(null);
+              setBulkAccount('');
+              setShowBulkModal(true);
+            }}
+          >
+            📥 Bulk Import XLSX
+          </button>
+          <button className="btn-primary" onClick={openCreateModal}>
+            + Add Transaction
+          </button>
+        </div>
       </div>
 
       <div className="table-section">
@@ -419,6 +500,98 @@ const TransactionManager = () => {
                 </button>
                 <button type="submit" className="btn-primary" disabled={loading}>
                   {loading ? 'Saving...' : editingTransaction ? 'Update Transaction' : 'Add Transaction'}
+                </button>
+              </div>
+            </form>
+          </div>
+      {/* Bulk Upload Modal */}
+      {showBulkModal && (
+        <div className="modal-overlay" onClick={() => setShowBulkModal(false)}>
+          <div className="modal-box" style={{ maxWidth: 620 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Bulk Import Transactions</h3>
+              <button className="modal-close" onClick={() => setShowBulkModal(false)}>×</button>
+            </div>
+            
+            <form onSubmit={handleBulkSubmit} className="modal-form">
+              <div style={{ marginBottom: '1rem', background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#475569' }}>
+                <div style={{ fontWeight: '600', marginBottom: '0.35rem', color: '#1e293b' }}>Excel Format Requirements:</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1rem', marginBottom: '0.5rem' }}>
+                  <span>📅 <b>date</b> (YYYY-MM-DD)</span>
+                  <span>🔢 <b>transection id</b></span>
+                  <span>💸 <b>withdraw amount</b></span>
+                  <span>💰 <b>depostie amount</b></span>
+                  <span>📝 <b>description</b> (Required)</span>
+                  <span>📌 <b>notes</b></span>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={handleDownloadSampleTemplate}
+                  style={{ background: 'transparent', border: 'none', color: '#2563eb', padding: 0, fontSize: '0.8125rem', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  📥 Download Sample CSV Template
+                </button>
+              </div>
+
+              <div className="form-group">
+                <label>Company Account <span style={{ color: 'red' }}>*</span></label>
+                <select
+                  className="form-input"
+                  value={bulkAccount}
+                  onChange={(e) => setBulkAccount(e.target.value)}
+                  required
+                >
+                  <option value="">Select Account</option>
+                  {companyAccounts.map(account => (
+                    <option key={account.id} value={account.id}>
+                      {account.bank_name} - {account.account_number}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Excel File (.xlsx / .xls) <span style={{ color: 'red' }}>*</span></label>
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  className="form-input"
+                  onChange={(e) => {
+                    setBulkFile(e.target.files[0] || null);
+                    setBulkErrors(null);
+                  }}
+                  required
+                />
+              </div>
+
+              {bulkErrors && bulkErrors.length > 0 && (
+                <div style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fca5a5',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1rem',
+                  maxHeight: '180px',
+                  overflowY: 'auto',
+                  marginTop: '0.5rem',
+                  marginBottom: '0.5rem'
+                }}>
+                  <div style={{ fontWeight: '700', color: '#991b1b', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
+                    ⚠️ Pre-validation Errors ({bulkErrors.length}):
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#b91c1c', fontSize: '0.8125rem', lineHeight: '1.4' }}>
+                    {bulkErrors.map((err, idx) => (
+                      <li key={idx}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowBulkModal(false)} disabled={bulkUploading}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" disabled={bulkUploading}>
+                  {bulkUploading ? 'Validating & Importing...' : 'Validate & Upload'}
                 </button>
               </div>
             </form>
