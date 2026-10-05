@@ -16,6 +16,7 @@ const TransactionManager = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const menuRef = useRef(null);
 
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkAccount, setBulkAccount] = useState('');
