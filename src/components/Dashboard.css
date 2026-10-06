@@ -50,6 +50,14 @@
   border-color: var(--color-ink);
 }
 
+/* Force ink card children to stay white despite global h3/button overrides */
+.stat-card.accent-ink h3,
+.stat-card.accent-ink .stat-card-header button,
+.stat-card.accent-ink .stat-card-header button svg {
+  color: rgba(255, 255, 255, 0.9) !important;
+  opacity: 1;
+}
+
 .stat-card.accent-white {
   background: var(--card);
   color: var(--foreground);
@@ -83,9 +91,10 @@
   display: flex;
   align-items: baseline;
   justify-content: flex-start;
-  margin-top: 0.85rem;
+  margin-top: 1rem;
   width: 100%;
   min-width: 0;
+  flex: 1;
 }
 
 .stat-card .amount {

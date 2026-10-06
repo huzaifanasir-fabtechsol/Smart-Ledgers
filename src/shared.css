@@ -100,33 +100,44 @@ table {
 }
 
 thead {
-  background: var(--secondary);
+  background: linear-gradient(135deg, var(--color-ink) 0%, oklch(0.28 0.01 270) 100%);
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 th {
-  padding: 1rem 1.25rem;
+  padding: 0.95rem 1.25rem;
   text-align: left;
-  font-weight: 600;
-  color: var(--muted-foreground);
-  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.08em;
+  border-bottom: none;
+  white-space: nowrap;
 }
 
 td {
-  padding: 1.15rem 1.25rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border);
   color: var(--foreground);
   font-size: 0.875rem;
+  vertical-align: middle;
 }
 
 tbody tr {
-  transition: background 0.2s ease;
+  transition: background 0.18s ease;
+}
+
+/* Zebra striping */
+tbody tr:nth-child(even) {
+  background: oklch(0.98 0.002 250);
 }
 
 tbody tr:hover {
-  background: var(--muted);
+  background: oklch(0.96 0.012 130 / 0.45) !important;
+  cursor: default;
 }
 
 tbody tr:last-child td {
@@ -137,6 +148,13 @@ tbody tr:last-child td {
   font-weight: 700;
   color: var(--ink);
   font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Clickable rows */
+tbody tr[style*="cursor: pointer"]:hover {
+  background: oklch(0.95 0.015 130 / 0.5) !important;
 }
 
 /* Buttons */
@@ -602,15 +620,18 @@ tbody tr:last-child td {
 .status-badge[class*="status-paid"],
 .status-badge[class*="status-approved"],
 .status-badge[class*="status-completed"] {
-  background: var(--color-lime);
-  color: var(--color-ink);
+  background: oklch(0.9 0.16 130);
+  color: oklch(0.22 0.08 140);
+  border: 1px solid oklch(0.85 0.18 130);
+  box-shadow: 0 1px 4px oklch(0.93 0.18 125 / 0.18);
 }
 
 /* Pending styles */
 .status-badge.status-pending,
 .status-badge[class*="status-pending"] {
-  background: var(--color-violet-soft);
-  color: var(--color-ink);
+  background: oklch(0.88 0.1 295);
+  color: oklch(0.3 0.12 295);
+  border: 1px solid oklch(0.82 0.12 295);
 }
 
 /* Failed, Overdue, Cancelled styles */
@@ -619,8 +640,9 @@ tbody tr:last-child td {
 .status-badge.status-cancelled,
 .status-badge[class*="status-failed"],
 .status-badge[class*="status-overdue"] {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--destructive);
+  background: oklch(0.96 0.06 25);
+  color: oklch(0.52 0.22 25);
+  border: 1px solid oklch(0.9 0.1 25);
 }
 
 /* Global Page Container Layout Unification */
