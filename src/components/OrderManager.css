@@ -103,22 +103,26 @@
 }
 
 /* Scrollbar for Dropdown */
+.category-dropdown-list {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.75 0.01 260) transparent;
+}
+
 .category-dropdown-list::-webkit-scrollbar {
   width: 6px;
 }
 
 .category-dropdown-list::-webkit-scrollbar-track {
-  background: var(--secondary);
-  border-radius: 3px;
+  background: transparent;
 }
 
 .category-dropdown-list::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
+  background: oklch(0.75 0.01 260);
+  border-radius: 9999px;
 }
 
 .category-dropdown-list::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: oklch(0.55 0.015 260);
 }
 
 @media (max-width: 768px) {

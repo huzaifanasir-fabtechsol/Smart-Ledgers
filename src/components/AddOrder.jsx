@@ -873,7 +873,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         <div className="form-group customer-dropdown-wrapper">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <label style={{ margin: 0, fontWeight: 600 }}>
-              {formData.transaction_type === 'purchase' ? 'Seller (Saler)' : 'Customer'} {formData.transaction_type === 'nagare' && '(Optional)'}
+              {formData.transaction_type === 'purchase' ? 'Seller' : 'Customer'} {formData.transaction_type === 'nagare' && '(Optional)'}
             </label>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               <button

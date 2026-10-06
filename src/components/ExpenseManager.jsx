@@ -87,6 +87,9 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [showRestaurantModal, setShowRestaurantModal] = useState(false);
+  const [restaurantForm, setRestaurantForm] = useState({ name: '', location: '', description: '' });
+  const [savingRestaurant, setSavingRestaurant] = useState(false);
   const [spareParts, setSpareParts] = useState([]);
   const [selectedSparePart, setSelectedSparePart] = useState(null);
   const [titleSuggestions, setTitleSuggestions] = useState([]);
@@ -220,7 +223,7 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   const fetchRestaurants = async () => {
     try {
-      const response = await apiRequest('/restaurants/');
+      const response = await apiRequest('/restaurants/?page_size=1000');
       if (!response.ok) throw new Error('Failed to load restaurants');
       const data = await response.json();
       setRestaurants(Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : []);
@@ -379,6 +382,43 @@ const ExpenseManager = ({ language = 'en' }) => {
       toast.error(error.message || 'Failed to save category');
     } finally {
       setSavingCategory(false);
+    }
+  };
+
+  const openNewRestaurantModal = () => {
+    setRestaurantForm({ name: '', location: '', description: '' });
+    setShowRestaurantModal(true);
+  };
+
+  const handleSaveRestaurant = async (event) => {
+    event.preventDefault();
+    if (!restaurantForm.name.trim() || !restaurantForm.location.trim()) {
+      toast.error('Restaurant name and location are required');
+      return;
+    }
+
+    setSavingRestaurant(true);
+    try {
+      const response = await apiRequest('/restaurants/', {
+        method: 'POST',
+        body: JSON.stringify(restaurantForm)
+      });
+
+      if (!response.ok) {
+        const message = await getErrorMessage(response, 'Failed to save restaurant');
+        throw new Error(message);
+      }
+
+      const newRestaurant = await response.json();
+      toast.success('Restaurant added successfully');
+      await fetchRestaurants();
+      setSelectedRestaurant(newRestaurant);
+      setShowRestaurantModal(false);
+      setRestaurantForm({ name: '', location: '', description: '' });
+    } catch (error) {
+      toast.error(error.message || 'Failed to save restaurant');
+    } finally {
+      setSavingRestaurant(false);
     }
   };
 
@@ -929,17 +969,45 @@ const ExpenseManager = ({ language = 'en' }) => {
 
               {isFoodCategory(expenseForm.category) && (
                 <div className="form-group">
-                  <label>Restaurant (Optional)</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <label style={{ margin: 0 }}>Restaurant (Optional)</label>
+                    <button
+                      type="button"
+                      onClick={openNewRestaurantModal}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary)',
+                        fontWeight: 700,
+                        fontSize: '0.825rem',
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      + Add Restaurant
+                    </button>
+                  </div>
                   <select
                     value={selectedRestaurant?.id || ''}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      if (e.target.value === '__add_new__') {
+                        openNewRestaurantModal();
+                        return;
+                      }
                       setSelectedRestaurant(
-                        restaurants.find(r => r.id === Number(e.target.value)) || null
-                      )
-                    }
+                        restaurants.find((r) => r.id === Number(e.target.value)) || null
+                      );
+                    }}
                   >
                     <option value="">Select Restaurant</option>
-                    {restaurants.map(r => (
+                    <option value="__add_new__" style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                      ➕ + Add New Restaurant...
+                    </option>
+                    {restaurants.map((r) => (
                       <option key={r.id} value={r.id}>
                         {r.name} - {r.location}
                       </option>
@@ -1084,6 +1152,74 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </button>
                 <button type="submit" className="btn-primary" disabled={savingExpense}>
                   {savingExpense ? 'Saving...' : editingExpense ? 'Update Expense' : t.addExpense}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Restaurant Modal */}
+      {showRestaurantModal && (
+        <div className="modal-overlay" style={{ zIndex: 3000 }}>
+          <div className="modal-box" style={{ maxWidth: 480 }}>
+            <div className="modal-header">
+              <h3>Add New Restaurant</h3>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setShowRestaurantModal(false)}
+              >×</button>
+            </div>
+            <form onSubmit={handleSaveRestaurant} className="modal-form">
+              <div className="form-group">
+                <label>Restaurant Name <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Tokyo Ramen"
+                  value={restaurantForm.name}
+                  onChange={(e) => setRestaurantForm({ ...restaurantForm, name: e.target.value })}
+                  required
+                  autoFocus
+                />
+              </div>
+              <div className="form-group">
+                <label>Location <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Shibuya, Tokyo"
+                  value={restaurantForm.location}
+                  onChange={(e) => setRestaurantForm({ ...restaurantForm, location: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Description (Optional)</label>
+                <textarea
+                  className="form-input"
+                  placeholder="Optional details or notes"
+                  rows="2"
+                  value={restaurantForm.description}
+                  onChange={(e) => setRestaurantForm({ ...restaurantForm, description: e.target.value })}
+                />
+              </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowRestaurantModal(false)}
+                  disabled={savingRestaurant}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={savingRestaurant}
+                >
+                  {savingRestaurant ? 'Saving...' : 'Save Restaurant'}
                 </button>
               </div>
             </form>

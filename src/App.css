@@ -77,15 +77,32 @@
   flex-direction: column;
   gap: 0.25rem;
   overflow-y: auto;
-  padding-right: 2px;
+  overflow-x: hidden;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
 }
 
 .sidebar-nav::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: var(--sidebar-accent);
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:active {
+  background: var(--color-lime);
 }
 
 .nav-item {
