@@ -8,6 +8,24 @@ import { translations } from '../translations';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import './Dashboard.css';
 
+const MONTHS = [
+  { value: '1', label: 'January' },
+  { value: '2', label: 'February' },
+  { value: '3', label: 'March' },
+  { value: '4', label: 'April' },
+  { value: '5', label: 'May' },
+  { value: '6', label: 'June' },
+  { value: '7', label: 'July' },
+  { value: '8', label: 'August' },
+  { value: '9', label: 'September' },
+  { value: '10', label: 'October' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'December' },
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 8 }, (_, i) => CURRENT_YEAR + 1 - i);
+
 const Dashboard = ({ language = 'en' }) => {
   const t = translations[language];
   const navigate = useNavigate();
@@ -16,20 +34,28 @@ const Dashboard = ({ language = 'en' }) => {
     pending_amount: 0,
     total_expense: 0,
     total_purchase: 0,
-    latest_orders: []
+    latest_orders: [],
+    monthly_chart: [],
+    has_chart_data: false
   });
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [filterYear, setFilterYear] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [filterYear, filterMonth]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest('/revenue/orders/dashboard/');
+      const params = new URLSearchParams();
+      if (filterYear) params.append('year', filterYear);
+      if (filterMonth) params.append('month', filterMonth);
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+      const response = await apiRequest(`/revenue/orders/dashboard/${queryString}`);
       const data = await response.json();
       setDashboardData(data);
     } catch (error) {
@@ -43,8 +69,8 @@ const Dashboard = ({ language = 'en' }) => {
     return <div className="loader">Loading...</div>;
   }
 
-  // Seed chart data matching design system
-  const revExp = [
+  // Seed or dynamic chart data matching design system
+  const seedRevExp = [
     { m: 'Jan', rev: 42, exp: 28 }, { m: 'Feb', rev: 51, exp: 32 },
     { m: 'Mar', rev: 48, exp: 35 }, { m: 'Apr', rev: 62, exp: 38 },
     { m: 'May', rev: 71, exp: 41 }, { m: 'Jun', rev: 65, exp: 44 },
@@ -53,15 +79,69 @@ const Dashboard = ({ language = 'en' }) => {
     { m: 'Nov', rev: 96, exp: 58 }, { m: 'Dec', rev: 104, exp: 61 },
   ];
 
-  const profitData = [
-    { m: 'Jun', p: 21 }, { m: 'Jul', p: 35 }, { m: 'Aug', p: 29 },
-    { m: 'Sep', p: 39 }, { m: 'Oct', p: 33 }, { m: 'Nov', p: 38 }, { m: 'Dec', p: 43 },
-  ];
+  const chartData = dashboardData.has_chart_data && dashboardData.monthly_chart?.length
+    ? dashboardData.monthly_chart.map((item) => ({
+        m: item.m,
+        month: item.month,
+        rev: Number((item.rev / 100000).toFixed(1)),
+        exp: Number((item.exp / 100000).toFixed(1)),
+        p: Number((Math.max(0, item.profit) / 100000).toFixed(1)),
+        rawProfit: item.profit
+      }))
+    : seedRevExp.map((item) => ({ ...item, p: Math.max(0, item.rev - item.exp) }));
+
+  const netProfit = (dashboardData.approved_amount || 0) - (dashboardData.total_expense || 0);
 
   return (
     <div className="dashboard">
-      <div className="page-header">
-        <h2>Dashboard Overview</h2>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2>Dashboard Overview</h2>
+          <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>
+            {filterYear || filterMonth
+              ? `Filtered: ${filterYear ? `${filterYear}` : ''}${filterYear && filterMonth ? ' · ' : ''}${filterMonth ? (language === 'ja' ? `${filterMonth}月` : (MONTHS.find(m => m.value === filterMonth)?.label || `Month ${filterMonth}`)) : ''}`
+              : 'Showing all-time overview'}
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <select
+            value={filterYear}
+            onChange={(e) => setFilterYear(e.target.value)}
+            className="filter-select"
+            style={{ minWidth: '120px' }}
+          >
+            <option value="">{t.allYears || 'All Years'}</option>
+            {YEARS.map((y) => (
+              <option key={y} value={String(y)}>
+                {y}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterMonth}
+            onChange={(e) => setFilterMonth(e.target.value)}
+            className="filter-select"
+            style={{ minWidth: '130px' }}
+          >
+            <option value="">{t.allMonths || 'All Months'}</option>
+            {MONTHS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {language === 'ja' ? `${m.value}月` : m.label}
+              </option>
+            ))}
+          </select>
+          {(filterYear || filterMonth) && (
+            <button
+              onClick={() => { setFilterYear(''); setFilterMonth(''); }}
+              className="btn-secondary"
+              style={{ padding: '0.65rem 1rem' }}
+            >
+              {t.clear || 'Clear'}
+            </button>
+          )}
+        </div>
       </div>
       
       {/* Stat Cards Grid */}
@@ -126,7 +206,9 @@ const Dashboard = ({ language = 'en' }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Revenue vs Expenses</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', margin: '0.25rem 0 0 0' }}>Last 12 months · in ¥100,000</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', margin: '0.25rem 0 0 0' }}>
+                {filterYear ? `${filterYear}` : 'Yearly overview'} · in ¥100,000
+              </p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-lime)' }}></span> Revenue</span>
@@ -135,7 +217,7 @@ const Dashboard = ({ language = 'en' }) => {
           </div>
           <div style={{ height: '240px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revExp} margin={{ top: 10, right: 8, left: -22, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 8, left: -22, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="var(--color-lime)" stopOpacity={0.6}/>
@@ -161,22 +243,29 @@ const Dashboard = ({ language = 'en' }) => {
         <div className="table-section" style={{ background: 'var(--color-ink)', color: 'white', padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', margin: 0 }}>Monthly Profit</h3>
-              <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', margin: '0.25rem 0 0 0' }}>Net of taxes & fees</p>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', margin: 0 }}>Net Profit</h3>
+              <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', margin: '0.25rem 0 0 0' }}>Approved Revenue - Expenses</p>
             </div>
-            <span style={{ fontSize: '0.75rem', background: 'var(--color-lime)', color: 'var(--color-ink)', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>+24%</span>
+            <span style={{ fontSize: '0.75rem', background: 'var(--color-lime)', color: 'var(--color-ink)', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
+              {netProfit >= 0 ? '+Active' : '-Deficit'}
+            </span>
           </div>
-          <div style={{ fontSize: '1.875rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '1.25rem' }}>¥1,350,000</div>
+          <div style={{ fontSize: '1.875rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '1.25rem', color: netProfit >= 0 ? 'white' : 'var(--danger)' }}>
+            ¥{netProfit.toLocaleString()}
+          </div>
           <div style={{ height: '160px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={profitData} margin={{ top: 0, right: 0, left: -32, bottom: 0 }}>
+              <BarChart data={chartData} margin={{ top: 0, right: 0, left: -32, bottom: 0 }}>
                 <XAxis dataKey="m" stroke="rgba(255, 255, 255, 0.4)" fontSize={10} tickLine={false} axisLine={false}/>
                 <YAxis hide/>
                 <Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} contentStyle={{ borderRadius: 12, border: 'none', background: 'white', color: 'var(--color-ink)' }}/>
                 <Bar dataKey="p" radius={[6, 6, 0, 0]}>
-                  {profitData.map((entry, index) => (
-                    <Cell key={index} fill={index === profitData.length - 1 ? 'var(--color-lime)' : 'var(--color-violet-soft)'}/>
-                  ))}
+                  {chartData.map((entry, index) => {
+                    const isSelected = filterMonth ? entry.month === Number(filterMonth) : index === chartData.length - 1;
+                    return (
+                      <Cell key={index} fill={isSelected ? 'var(--color-lime)' : 'var(--color-violet-soft)'}/>
+                    );
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -207,32 +296,40 @@ const Dashboard = ({ language = 'en' }) => {
               </tr>
             </thead>
             <tbody>
-              {dashboardData.latest_orders?.map((order, idx) => (
-                <tr 
-                  key={order.id || idx} 
-                  onClick={() => { setSelectedInvoice(order); setShowViewModal(true); }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td>{order.transaction_date}</td>
-                  <td style={{ fontWeight: 600 }}>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
-                  <td>
-                    <span className={`status-badge status-${order.payment_status?.toLowerCase()}`}>
-                      {order.payment_status}
-                    </span>
-                  </td>
-                  <td className="amount-cell">¥{order.total_amount?.toLocaleString()}</td>
-                  <td>
-                    <button 
-                      className="btn-menu"
-                      onClick={(e) => { e.stopPropagation(); setSelectedInvoice(order); setShowViewModal(true); }}
-                      title="View Invoice Details"
-                      style={{ padding: '4px 8px' }}
-                    >
-                      <Eye size={15} />
-                    </button>
+              {!dashboardData.latest_orders || dashboardData.latest_orders.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted-foreground)' }}>
+                    No invoices found for the selected period
                   </td>
                 </tr>
-              ))}
+              ) : (
+                dashboardData.latest_orders.map((order, idx) => (
+                  <tr 
+                    key={order.id || idx} 
+                    onClick={() => { setSelectedInvoice(order); setShowViewModal(true); }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>{order.transaction_date}</td>
+                    <td style={{ fontWeight: 600 }}>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
+                    <td>
+                      <span className={`status-badge status-${order.payment_status?.toLowerCase()}`}>
+                        {order.payment_status}
+                      </span>
+                    </td>
+                    <td className="amount-cell">¥{order.total_amount?.toLocaleString()}</td>
+                    <td>
+                      <button 
+                        className="btn-menu"
+                        onClick={(e) => { e.stopPropagation(); setSelectedInvoice(order); setShowViewModal(true); }}
+                        title="View Invoice Details"
+                        style={{ padding: '4px 8px' }}
+                      >
+                        <Eye size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

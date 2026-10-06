@@ -21,7 +21,26 @@ const EXPENSE_INITIAL_FORM = {
   date: '',
   category: '',
   category_name: '',
+  is_cash: false,
 };
+
+const MONTHS = [
+  { value: '1', label: 'January' },
+  { value: '2', label: 'February' },
+  { value: '3', label: 'March' },
+  { value: '4', label: 'April' },
+  { value: '5', label: 'May' },
+  { value: '6', label: 'June' },
+  { value: '7', label: 'July' },
+  { value: '8', label: 'August' },
+  { value: '9', label: 'September' },
+  { value: '10', label: 'October' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'December' },
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 8 }, (_, i) => CURRENT_YEAR + 1 - i);
 
 const parseListResponse = (data) => data?.results || data || [];
 
@@ -103,6 +122,11 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   const [filterCategory, setFilterCategory] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
+  const [filterYear, setFilterYear] = useState('');
+  const [filterCash, setFilterCash] = useState('');
   const [searchText, setSearchText] = useState('');
 
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -124,7 +148,7 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   useEffect(() => {
     fetchExpenses();
-  }, [expensePage, filterCategory, filterDate, searchText]);
+  }, [expensePage, filterCategory, filterDate, filterDateFrom, filterDateTo, filterMonth, filterYear, filterCash, searchText]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -191,6 +215,11 @@ const ExpenseManager = ({ language = 'en' }) => {
       const params = new URLSearchParams({ page: expensePage, page_size: itemsPerPage });
       if (filterCategory) params.append('category', filterCategory);
       if (filterDate) params.append('date', filterDate);
+      if (filterDateFrom) params.append('date_from', filterDateFrom);
+      if (filterDateTo) params.append('date_to', filterDateTo);
+      if (filterMonth) params.append('month', filterMonth);
+      if (filterYear) params.append('year', filterYear);
+      if (filterCash) params.append('is_cash', filterCash);
       if (searchText) params.append('search', searchText);
 
       const response = await apiRequest(`/expenses/?${params}`);
@@ -200,7 +229,9 @@ const ExpenseManager = ({ language = 'en' }) => {
       }
       const data = await response.json();
       setExpenses(data.results || data || []);
-      if (data.count) setTotalExpensePages(Math.ceil(data.count / itemsPerPage));
+      if (data.count !== undefined) {
+        setTotalExpensePages(Math.max(1, Math.ceil(data.count / itemsPerPage)));
+      }
     } catch (error) {
       toast.error(error.message || 'Failed to load expenses');
       setExpenses([]);
@@ -324,6 +355,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       date: expense.date || '',
       category: expense.category ? String(expense.category) : '',
       category_name: expense.category_name || '',
+      is_cash: Boolean(expense.is_cash),
     });
     if (expense.transaction) {
       setSelectedTransaction(expense.transaction);
@@ -472,6 +504,7 @@ const ExpenseManager = ({ language = 'en' }) => {
         transaction: selectedTransaction ? selectedTransaction.id : null,
         restaurant: selectedRestaurant ? selectedRestaurant.id : null,
         spare_part: selectedSparePart ? selectedSparePart.id : null,
+        is_cash: Boolean(expenseForm.is_cash),
       };
 
       const response = await apiRequest(endpoint, {
@@ -514,9 +547,39 @@ const ExpenseManager = ({ language = 'en' }) => {
     setExpensePage(1);
   };
 
+  const handleDateFromChange = (value) => {
+    setFilterDateFrom(value);
+    setExpensePage(1);
+  };
+
+  const handleDateToChange = (value) => {
+    setFilterDateTo(value);
+    setExpensePage(1);
+  };
+
+  const handleMonthFilterChange = (value) => {
+    setFilterMonth(value);
+    setExpensePage(1);
+  };
+
+  const handleYearFilterChange = (value) => {
+    setFilterYear(value);
+    setExpensePage(1);
+  };
+
+  const handleCashFilterChange = (value) => {
+    setFilterCash(value);
+    setExpensePage(1);
+  };
+
   const handleClearFilters = () => {
     setFilterCategory('');
     setFilterDate('');
+    setFilterDateFrom('');
+    setFilterDateTo('');
+    setFilterMonth('');
+    setFilterYear('');
+    setFilterCash('');
     setSearchText('');
     setExpensePage(1);
   };
@@ -569,6 +632,19 @@ const ExpenseManager = ({ language = 'en' }) => {
       toast.error('Failed to export PDF');
     }
   };
+  const getExportParams = () => {
+    const params = new URLSearchParams();
+    if (filterDate) params.append('date', filterDate);
+    if (filterDateFrom) params.append('date_from', filterDateFrom);
+    if (filterDateTo) params.append('date_to', filterDateTo);
+    if (filterMonth) params.append('month', filterMonth);
+    if (filterYear) params.append('year', filterYear);
+    if (filterCash) params.append('is_cash', filterCash);
+    if (filterCategory) params.append('category', filterCategory);
+    if (searchText) params.append('search', searchText);
+    return params;
+  };
+
   const exportToPDF = async () => {
     if (expenses.length === 0) {
       toast.error('No expenses to export');
@@ -576,11 +652,7 @@ const ExpenseManager = ({ language = 'en' }) => {
     }
 
     try {
-      const params = new URLSearchParams();
-      if (filterDate) params.append('date', filterDate);
-      if (filterCategory) params.append('category', filterCategory);
-      if (searchText) params.append('search', searchText);
-
+      const params = getExportParams();
       const response = await apiRequest(`/expenses/export_pdf/?${params}`);
       if (!response.ok) throw new Error('Failed to generate PDF');
 
@@ -601,15 +673,46 @@ const ExpenseManager = ({ language = 'en' }) => {
     }
   };
 
+  const exportToXLSX = async () => {
+    if (expenses.length === 0) {
+      toast.error('No expenses to export');
+      return;
+    }
+
+    try {
+      const params = getExportParams();
+      const response = await apiRequest(`/expenses/export_xlsx/?${params}`);
+      if (!response.ok) throw new Error('Failed to generate Excel file');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `expenses_${new Date().getTime()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('XLSX exported successfully');
+    } catch (error) {
+      console.error('XLSX export error:', error);
+      toast.error('Failed to export XLSX');
+    }
+  };
+
   return (
     <div className="expense-manager">
       <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="page-header">
         <h2>{t.expenses}</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button className="btn-secondary" onClick={exportToXLSX}>
+            📊 {t.exportXlsx || 'Export XLSX'}
+          </button>
           <button className="btn-secondary" onClick={exportToPDF}>
-            📄 Export PDF
+            📄 {t.exportPdf || 'Export PDF'}
           </button>
           <button className="btn-primary" onClick={openCreateExpenseModal}>
             {t.addExpense}
@@ -621,7 +724,7 @@ const ExpenseManager = ({ language = 'en' }) => {
         <div className="filters">
           <input
             type="text"
-            placeholder="Search title, description, category..."
+            placeholder={t.searchPlaceholder || "Search title, description, category..."}
             value={searchText}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="filter-input"
@@ -638,12 +741,57 @@ const ExpenseManager = ({ language = 'en' }) => {
               </option>
             ))}
           </select>
-          <DateInput
-            value={filterDate}
-            onChange={(e) => handleDateFilterChange(e.target.value)}
-            className="filter-input"
-            id="myDate"
-          />
+          <select
+            value={filterYear}
+            onChange={(e) => handleYearFilterChange(e.target.value)}
+            className="filter-select"
+          >
+            <option value="">{t.allYears || 'All Years'}</option>
+            {YEARS.map((y) => (
+              <option key={y} value={String(y)}>
+                {y}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterMonth}
+            onChange={(e) => handleMonthFilterChange(e.target.value)}
+            className="filter-select"
+          >
+            <option value="">{t.allMonths || 'All Months'}</option>
+            {MONTHS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {language === 'ja' ? `${m.value}月` : m.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterCash}
+            onChange={(e) => handleCashFilterChange(e.target.value)}
+            className="filter-select"
+          >
+            <option value="">{t.allPaymentStatus || 'All Payments'}</option>
+            <option value="true">💵 {t.cashOnly || 'Cash Only'}</option>
+            <option value="false">{t.nonCash || 'Non-Cash / Bank'}</option>
+          </select>
+          <div className="filter-date-field" title={t.fromDate || 'From Date'}>
+            <span className="filter-field-label">{t.fromDate || 'From'}:</span>
+            <input
+              type="date"
+              value={filterDateFrom}
+              onChange={(e) => handleDateFromChange(e.target.value)}
+              className="filter-input filter-date-picker"
+            />
+          </div>
+          <div className="filter-date-field" title={t.toDate || 'To Date'}>
+            <span className="filter-field-label">{t.toDate || 'To'}:</span>
+            <input
+              type="date"
+              value={filterDateTo}
+              onChange={(e) => handleDateToChange(e.target.value)}
+              className="filter-input filter-date-picker"
+            />
+          </div>
           <button onClick={handleClearFilters} className="btn-secondary">
             {t.clear}
           </button>
@@ -658,7 +806,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 <th>{t.category}</th>
                 <th>Shop</th>
                 <th>{t.description}</th>
-                <th>Transaction</th>
+                <th>Payment / Transaction</th>
                 <th>{t.amount}</th>
                 <th style={{ width: '60px' }}>{t.actions}</th>
               </tr>
@@ -689,13 +837,34 @@ const ExpenseManager = ({ language = 'en' }) => {
                     <td>{expense.spare_part ? `${expense.spare_part.name}${expense.spare_part.address ? ` - ${expense.spare_part.address}` : ''}` : '-'}</td>
                     <td>{expense.description || '-'}</td>
                     <td>
-                      {expense.transaction ? (
-                        <span className="transaction-link" title={expense.transaction.description}>
-                          💳 ¥{Number(expense.transaction.withdraw || 0).toLocaleString()}
-                        </span>
-                      ) : (
-                        <span className="no-transaction">-</span>
-                      )}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', alignItems: 'flex-start' }}>
+                        {expense.is_cash && (
+                          <span
+                            className="badge-cash"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              padding: '0.2rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              background: '#ecfdf5',
+                              color: '#059669',
+                              border: '1px solid #a7f3d0'
+                            }}
+                          >
+                            💵 Cash
+                          </span>
+                        )}
+                        {expense.transaction ? (
+                          <span className="transaction-link" title={expense.transaction.description}>
+                            💳 ¥{Number(expense.transaction.withdraw || 0).toLocaleString()}
+                          </span>
+                        ) : (
+                          !expense.is_cash && <span className="no-transaction">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="amount-cell">¥{Number(expense.amount || 0).toLocaleString()}</td>
                     <td>
@@ -1045,6 +1214,24 @@ const ExpenseManager = ({ language = 'en' }) => {
                   placeholder={t.descriptionPlaceholder}
                   rows="3"
                 />
+              </div>
+
+              <div style={{ marginTop: '1rem', padding: '0.85rem 1rem', background: 'var(--secondary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>💵 {t.paidInCash || 'Paid in Cash'}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Mark this expense as paid with physical cash</div>
+                </div>
+                <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', gap: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(expenseForm.is_cash)}
+                    onChange={(e) => setExpenseForm((prev) => ({ ...prev, is_cash: e.target.checked }))}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                  />
+                  <span style={{ fontSize: '0.875rem', fontWeight: 600, color: expenseForm.is_cash ? '#16a34a' : 'var(--muted-foreground)' }}>
+                    {expenseForm.is_cash ? 'Cash' : 'No'}
+                  </span>
+                </label>
               </div>
 
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '1rem' }}>

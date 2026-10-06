@@ -111,8 +111,14 @@ export const translations = {
     model: 'Model',
     search: 'Search',
     allPaymentStatus: 'All Payment Status',
-    search: 'Search',
-    allPaymentStatus: 'All Payment Status'
+    exportXlsx: 'Export XLSX',
+    exportPdf: 'Export PDF',
+    month: 'Month',
+    allMonths: 'All Months',
+    allYears: 'All Years',
+    paidInCash: 'Paid in Cash',
+    cashOnly: 'Cash Only',
+    nonCash: 'Non-Cash / Bank'
   },
   ja: {
     appTitle: '経費管理',
@@ -224,6 +230,14 @@ export const translations = {
     failed: '失敗',
     model: 'モデル',
     search: '検索',
-    allPaymentStatus: 'すべての支払いステータス'
+    allPaymentStatus: 'すべての支払いステータス',
+    exportXlsx: 'XLSXエクスポート',
+    exportPdf: 'PDFエクスポート',
+    month: '月',
+    allMonths: 'すべての月',
+    allYears: 'すべての年',
+    paidInCash: '現金払い',
+    cashOnly: '現金のみ',
+    nonCash: '銀行 / その他'
   }
 };
