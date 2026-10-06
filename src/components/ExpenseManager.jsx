@@ -779,9 +779,12 @@ const ExpenseManager = ({ language = 'en' }) => {
       />
 
       {showCategoryModal && (
-        <div className="modal-overlay" onClick={() => setShowCategoryModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingCategory ? 'Edit Category' : t.addNewCategory}</h3>
+        <div className="modal-overlay">
+          <div className="modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0 }}>{editingCategory ? 'Edit Category' : t.addNewCategory}</h3>
+              <button className="modal-close" type="button" onClick={() => setShowCategoryModal(false)}>×</button>
+            </div>
             <form onSubmit={handleCategorySubmit}>
               <div className="form-group">
                 <label>Category Name</label>
@@ -816,9 +819,12 @@ const ExpenseManager = ({ language = 'en' }) => {
       )}
 
       {showExpenseModal && (
-        <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingExpense ? 'Edit Expense' : t.addNewExpense}</h3>
+        <div className="modal-overlay">
+          <div className="modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0 }}>{editingExpense ? 'Edit Expense' : t.addNewExpense}</h3>
+              <button className="modal-close" type="button" onClick={() => setShowExpenseModal(false)}>×</button>
+            </div>
 
             <form onSubmit={handleExpenseSubmit}>
               <div className="form-row">

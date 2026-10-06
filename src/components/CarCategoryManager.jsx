@@ -255,9 +255,12 @@ const CarCategoryManager = ({ language = 'en' }) => {
       />
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editingCategory ? t.editCarCategory : t.addNewCarCategory}</h3>
+        <div className="modal-overlay">
+          <div className="modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0 }}>{editingCategory ? t.editCarCategory : t.addNewCarCategory}</h3>
+              <button className="modal-close" type="button" onClick={() => setShowModal(false)}>×</button>
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Company</label>

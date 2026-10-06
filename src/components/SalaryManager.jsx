@@ -345,8 +345,8 @@ const SalaryManager = () => {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => !submitting && setShowModal(false)}>
-          <div className="modal-box" style={{ maxWidth: 580 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-box" style={{ maxWidth: 580 }}>
             <div className="modal-header">
               <h3>{editingSalary ? 'Edit Salary Record' : 'Add Salary Record'}</h3>
               <button className="modal-close" onClick={() => !submitting && setShowModal(false)}>×</button>

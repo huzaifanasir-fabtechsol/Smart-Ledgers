@@ -189,8 +189,8 @@ const CompanyAccountManager = () => {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-box" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-box" style={{ maxWidth: 480 }}>
             <div className="modal-header">
               <h3>{editingAccount ? 'Edit Account' : 'Add Account'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>×</button>

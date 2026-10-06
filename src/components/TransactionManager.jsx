@@ -398,8 +398,8 @@ const TransactionManager = () => {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-box" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-box" style={{ maxWidth: 560 }}>
             <div className="modal-header">
               <h3>{editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
@@ -509,8 +509,8 @@ const TransactionManager = () => {
       )}
       {/* Bulk Upload Modal */}
       {showBulkModal && (
-        <div className="modal-overlay" onClick={() => setShowBulkModal(false)}>
-          <div className="modal-box" style={{ maxWidth: 620 }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-box" style={{ maxWidth: 620 }}>
             <div className="modal-header">
               <h3>Bulk Import Transactions</h3>
               <button className="modal-close" onClick={() => setShowBulkModal(false)}>×</button>

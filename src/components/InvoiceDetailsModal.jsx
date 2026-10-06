@@ -124,10 +124,9 @@ const InvoiceDetailsModal = ({ isOpen, onClose, orderId, initialOrder = null, on
   const party = getPartyInfo();
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 9999 }}>
+    <div className="modal-overlay" style={{ zIndex: 9999 }}>
       <div
         className="modal-box invoice-details-modal"
-        onClick={(e) => e.stopPropagation()}
         style={{
           maxWidth: 900,
           width: '95%',

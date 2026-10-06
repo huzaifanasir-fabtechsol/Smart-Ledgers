@@ -66,11 +66,10 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, title = 'Confirm Delet
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
+    <div className="modal-overlay">
       <div
         className="modal-box"
         style={{ maxWidth: 420 }}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="modal-header">

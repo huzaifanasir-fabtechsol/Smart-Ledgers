@@ -361,9 +361,12 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
       />
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Update Payment Status</h3>
+        <div className="modal-overlay">
+          <div className="modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0 }}>Update Payment Status</h3>
+              <button className="modal-close" type="button" onClick={() => setShowModal(false)}>×</button>
+            </div>
             <form onSubmit={handleUpdateStatus}>
               <div className="form-group">
                 <label>{t.paymentStatus}</label>

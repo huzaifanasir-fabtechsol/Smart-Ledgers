@@ -190,9 +190,12 @@ const RevenueManager = ({ language = 'en' }) => {
       </div>
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal modal-large" onClick={(e) => e.stopPropagation()}>
-            <h3>{t.addNewTransaction}</h3>
+        <div className="modal-overlay">
+          <div className="modal modal-large">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0 }}>{t.addNewTransaction}</h3>
+              <button className="modal-close" type="button" onClick={() => setShowModal(false)}>×</button>
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="form-row">
                 <div className="form-group">
@@ -358,8 +361,14 @@ const RevenueManager = ({ language = 'en' }) => {
       )}
 
       {showReceipt && selectedTransaction && (
-        <div className="modal-overlay" onClick={() => setShowReceipt(false)}>
-          <div className="receipt-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="receipt-modal" style={{ position: 'relative' }}>
+            <button 
+              className="modal-close no-print" 
+              onClick={() => setShowReceipt(false)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 10 }}
+              type="button"
+            >×</button>
             <div className="receipt-content">
               <div className="receipt-header">
                 <h2>CAR STORE SHOP</h2>
