@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { UserPlus } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest, getErrorMessage } from '../api';
 import DateInput from './DateInput';
@@ -36,6 +37,21 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   const [showCarDropdown, setShowCarDropdown] = useState(false);
   const [useExistingCar, setUseExistingCar] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
+
+  // Modal state for adding new Customer / Seller directly from invoice page
+  const [showPartyModal, setShowPartyModal] = useState(false);
+  const [partyType, setPartyType] = useState('customer'); // 'customer' or 'saler'
+  const [partyFormData, setPartyFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    bank_name: '',
+    account_number: '',
+    branch_code: '',
+    swift_code: ''
+  });
+  const [savingParty, setSavingParty] = useState(false);
 
   const [formData, setFormData] = useState({
     transaction_type: 'sale',
@@ -355,6 +371,84 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       setCars(toRows(data));
     } catch (error) {
       toast.error('Failed to load cars');
+    }
+  };
+
+  const openPartyModal = (type = null) => {
+    const resolvedType = type || (formData.transaction_type === 'purchase' ? 'saler' : 'customer');
+    setPartyType(resolvedType);
+    setPartyFormData({
+      name: customerSearch.trim() || '',
+      email: '',
+      phone: '',
+      address: '',
+      bank_name: '',
+      account_number: '',
+      branch_code: '',
+      swift_code: ''
+    });
+    setShowPartyModal(true);
+    setShowCustomerDropdown(false);
+  };
+
+  const handleSaveParty = async (e) => {
+    e.preventDefault();
+    setSavingParty(true);
+    try {
+      const endpoint = partyType === 'saler' ? '/revenue/salers/' : '/revenue/customers/';
+      const response = await apiRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(partyFormData)
+      });
+
+      if (!response.ok) {
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage || `Failed to add ${partyType === 'saler' ? 'seller' : 'customer'}`);
+      }
+
+      const newParty = await response.json();
+      const label = partyType === 'saler' ? 'Seller' : 'Customer';
+      toast.success(`${label} added successfully`);
+
+      if (partyType === 'saler') {
+        await fetchSalers();
+        setSelectedSaler(newParty);
+        setSelectedCustomer(null);
+        setCustomerSearch(newParty.name);
+        setFormData(prev => ({
+          ...prev,
+          saler_id: newParty.id,
+          saler_name: newParty.name,
+          seller_name: newParty.name,
+          customer_id: null,
+          customer_name: '',
+          phone: newParty.phone || '',
+          address: newParty.address || '',
+          account_number: prev.payment_method === 'Bank' ? (newParty.account_number || '') : (prev.account_number || '')
+        }));
+      } else {
+        await fetchCustomers();
+        setSelectedCustomer(newParty);
+        setSelectedSaler(null);
+        setCustomerSearch(newParty.name);
+        setFormData(prev => ({
+          ...prev,
+          customer_id: newParty.id,
+          customer_name: newParty.name,
+          saler_id: null,
+          saler_name: '',
+          seller_name: '',
+          phone: newParty.phone || '',
+          address: newParty.address || '',
+          account_number: prev.payment_method === 'Bank' ? (newParty.account_number || '') : (prev.account_number || '')
+        }));
+      }
+
+      setShowPartyModal(false);
+    } catch (error) {
+      toast.error(error.message || 'Failed to save');
+    } finally {
+      setSavingParty(false);
     }
   };
 
@@ -777,10 +871,35 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         )}
 
         <div className="form-group customer-dropdown-wrapper">
-          <label>{formData.transaction_type === 'purchase' ? 'Saler' : 'Customer'} {formData.transaction_type === 'nagare' && '(Optional)'}</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <label style={{ margin: 0, fontWeight: 600 }}>
+              {formData.transaction_type === 'purchase' ? 'Seller (Saler)' : 'Customer'} {formData.transaction_type === 'nagare' && '(Optional)'}
+            </label>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => openPartyModal(formData.transaction_type === 'purchase' ? 'saler' : 'customer')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary)',
+                  fontWeight: 700,
+                  fontSize: '0.825rem',
+                  cursor: 'pointer',
+                  padding: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  textDecoration: 'underline'
+                }}
+              >
+                + Add {formData.transaction_type === 'purchase' ? 'Seller' : 'Customer'}
+              </button>
+            </div>
+          </div>
           <input
             type="text"
-            placeholder={formData.transaction_type === 'purchase' ? 'Search salers...' : 'Search customers...'}
+            placeholder={formData.transaction_type === 'purchase' ? 'Search sellers...' : 'Search customers...'}
             value={customerSearch}
             onChange={(e) => setCustomerSearch(e.target.value)}
             onFocus={() => setShowCustomerDropdown(true)}
@@ -832,9 +951,23 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                 ))
               ) : (
                 <div className="category-option disabled">
-                  {formData.transaction_type === 'purchase' ? 'No salers found' : 'No customers found'}
+                  {formData.transaction_type === 'purchase' ? 'No sellers found' : 'No customers found'}
                 </div>
               )}
+              <div
+                className="category-option"
+                onClick={() => openPartyModal(formData.transaction_type === 'purchase' ? 'saler' : 'customer')}
+                style={{
+                  borderTop: '1px solid var(--border)',
+                  color: 'var(--primary)',
+                  fontWeight: 700,
+                  background: 'var(--secondary)',
+                  cursor: 'pointer',
+                  padding: '0.65rem 0.85rem'
+                }}
+              >
+                ➕ Add New {formData.transaction_type === 'purchase' ? 'Seller' : 'Customer'}
+              </div>
             </div>
           )}
         </div>
@@ -1200,6 +1333,159 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
           </button>
         </div>
       </form>
+
+      {/* Add Customer / Seller Modal */}
+      {showPartyModal && (
+        <div className="modal-overlay">
+          <div className="modal-box" style={{ maxWidth: 540 }}>
+            <div className="modal-header">
+              <h3>{partyType === 'saler' ? 'Add New Seller' : 'Add New Customer'}</h3>
+              <button 
+                type="button" 
+                className="modal-close" 
+                onClick={() => setShowPartyModal(false)}
+              >×</button>
+            </div>
+
+            <form onSubmit={handleSaveParty} className="modal-form" style={{ padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                <button
+                  type="button"
+                  className={partyType === 'customer' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ flex: 1, padding: '0.45rem 1rem', fontSize: '0.875rem' }}
+                  onClick={() => setPartyType('customer')}
+                >
+                  Customer
+                </button>
+                <button
+                  type="button"
+                  className={partyType === 'saler' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ flex: 1, padding: '0.45rem 1rem', fontSize: '0.875rem' }}
+                  onClick={() => setPartyType('saler')}
+                >
+                  Seller (Saler)
+                </button>
+              </div>
+
+              <div className="form-group">
+                <label>Name <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Full Name"
+                  value={partyFormData.name}
+                  onChange={(e) => setPartyFormData({ ...partyFormData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Email <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    placeholder="email@example.com"
+                    value={partyFormData.email}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, email: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Phone <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                  <input
+                    type="tel"
+                    className="form-input"
+                    placeholder="Phone number"
+                    value={partyFormData.phone}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, phone: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Address <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                <textarea
+                  className="form-input"
+                  placeholder="Full Address"
+                  rows="2"
+                  value={partyFormData.address}
+                  onChange={(e) => setPartyFormData({ ...partyFormData, address: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Bank Name <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Bank Name"
+                    value={partyFormData.bank_name}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, bank_name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Account Number <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Account Number"
+                    value={partyFormData.account_number}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, account_number: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Branch Code <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Branch Code"
+                    value={partyFormData.branch_code}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, branch_code: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Swift Code (Optional)</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="SWIFT / BIC Code"
+                    value={partyFormData.swift_code}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, swift_code: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-actions" style={{ marginTop: '1.25rem' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowPartyModal(false)}
+                  disabled={savingParty}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={savingParty}
+                >
+                  {savingParty ? 'Saving...' : `Save ${partyType === 'saler' ? 'Seller' : 'Customer'}`}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

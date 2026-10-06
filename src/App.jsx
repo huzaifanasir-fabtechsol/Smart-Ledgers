@@ -98,7 +98,7 @@ function AppContent() {
   const menuItems = [
     { path: '/dashboard', label: t.dashboard, icon: LayoutDashboard },
     { path: '/expenses', label: t.manageExpenses, icon: Receipt },
-    { path: '/orders', label: t.orders, icon: FileText },
+    { path: '/inovice', label: t.orders, icon: FileText },
     { path: '/customers', label: 'Customers', icon: Users },
     { path: '/salers', label: 'Salers', icon: UserSquare2 },
     { path: '/auctions', label: 'Auctions', icon: Gavel },
@@ -115,7 +115,11 @@ function AppContent() {
   ];
 
   const isActive = (path) => {
-    if (path === '/orders' && location.pathname.startsWith('/orders')) {
+    if (path === '/inovice' && (
+      location.pathname.startsWith('/inovice') ||
+      location.pathname.startsWith('/invoice') ||
+      location.pathname.startsWith('/orders')
+    )) {
       return true;
     }
     if (path === '/employees' && location.pathname.startsWith('/employees')) {
@@ -201,36 +205,42 @@ function AppContent() {
           <Route path="/expenses" element={<ExpenseManager language={language} />} />
           <Route path="/revenue" element={<RevenueManager language={language} />} />
           <Route
-            path="/orders"
+            path="/inovice"
             element={
               <OrderManager 
                 language={language} 
-                onAddOrder={() => navigate('/orders/add')} 
-                onEditOrder={(order) => navigate('/orders/edit', { state: { order } })}
+                onAddOrder={() => navigate('/inovice/add')} 
+                onEditOrder={(order) => navigate('/inovice/edit', { state: { order } })}
               />
             }
           />
           <Route
-            path="/orders/add"
+            path="/inovice/add"
             element={
               <AddOrder
                 language={language}
-                onSave={() => navigate('/orders')}
-                onCancel={() => navigate('/orders')}
+                onSave={() => navigate('/inovice')}
+                onCancel={() => navigate('/inovice')}
               />
             }
           />
           <Route
-            path="/orders/edit"
+            path="/inovice/edit"
             element={
               <AddOrder
                 language={language}
                 editingOrder={location.state?.order}
-                onSave={() => navigate('/orders')}
-                onCancel={() => navigate('/orders')}
+                onSave={() => navigate('/inovice')}
+                onCancel={() => navigate('/inovice')}
               />
             }
           />
+          <Route path="/orders" element={<Navigate to="/inovice" replace />} />
+          <Route path="/orders/add" element={<Navigate to="/inovice/add" replace />} />
+          <Route path="/orders/edit" element={<Navigate to="/inovice/edit" replace />} />
+          <Route path="/invoice" element={<Navigate to="/inovice" replace />} />
+          <Route path="/invoice/add" element={<Navigate to="/inovice/add" replace />} />
+          <Route path="/invoice/edit" element={<Navigate to="/inovice/edit" replace />} />
           <Route path="/categories" element={<CarCategoryManager language={language} />} />
           <Route path="/customers" element={<CustomerManager />} />
           <Route path="/salers" element={<SalerManager />} />

@@ -189,7 +189,7 @@ const Dashboard = ({ language = 'en' }) => {
         <div className="table-header">
           <h3>Latest Invoices</h3>
           <button 
-            onClick={() => navigate('/orders')} 
+            onClick={() => navigate('/inovice')} 
             style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted-foreground)' }}
           >
             View all <ArrowUpRight size={14} />
@@ -244,7 +244,7 @@ const Dashboard = ({ language = 'en' }) => {
         onClose={() => { setShowViewModal(false); setSelectedInvoice(null); }}
         orderId={selectedInvoice?.id}
         initialOrder={selectedInvoice}
-        onEdit={(order) => navigate('/orders/edit', { state: { order } })}
+        onEdit={(order) => navigate('/inovice/edit', { state: { order } })}
       />
     </div>
   );
