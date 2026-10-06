@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { TrendingUp, TrendingDown, MoreHorizontal, ArrowUpRight, Eye } from 'lucide-react';
+import { MoreHorizontal, ArrowUpRight, Eye } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
 import { apiRequest } from '../api';
 import { translations } from '../translations';
@@ -90,6 +90,24 @@ const Dashboard = ({ language = 'en' }) => {
 
   const netProfit = (dashboardData.approved_amount || 0) - (dashboardData.total_expense || 0);
 
+  const formatAmount = (val) => {
+    if (val === null || val === undefined) return '0';
+    return typeof val === 'number' ? val.toLocaleString() : Number(val || 0).toLocaleString();
+  };
+
+  const renderAmount = (val) => {
+    const formatted = `¥${formatAmount(val)}`;
+    const isCompact = formatted.length >= 12;
+    return (
+      <div 
+        className={`amount ${isCompact ? 'amount-compact' : ''}`}
+        title={formatted}
+      >
+        {formatted}
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -142,10 +160,7 @@ const Dashboard = ({ language = 'en' }) => {
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><MoreHorizontal size={16} /></button>
           </div>
           <div className="stat-card-body">
-            <div className="amount">¥{dashboardData.approved_amount?.toLocaleString()}</div>
-            <div className="stat-trend">
-              <TrendingUp size={12} /> +8.2%
-            </div>
+            {renderAmount(dashboardData.approved_amount)}
           </div>
         </div>
 
@@ -155,10 +170,7 @@ const Dashboard = ({ language = 'en' }) => {
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><MoreHorizontal size={16} /></button>
           </div>
           <div className="stat-card-body">
-            <div className="amount">¥{dashboardData.pending_amount?.toLocaleString()}</div>
-            <div className="stat-trend">
-              <TrendingUp size={12} /> +5.4%
-            </div>
+            {renderAmount(dashboardData.pending_amount)}
           </div>
         </div>
 
@@ -168,10 +180,7 @@ const Dashboard = ({ language = 'en' }) => {
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><MoreHorizontal size={16} /></button>
           </div>
           <div className="stat-card-body">
-            <div className="amount">¥{dashboardData.total_expense?.toLocaleString()}</div>
-            <div className="stat-trend" style={{ color: 'var(--danger)' }}>
-              <TrendingDown size={12} /> +3.1%
-            </div>
+            {renderAmount(dashboardData.total_expense)}
           </div>
         </div>
 
@@ -181,10 +190,7 @@ const Dashboard = ({ language = 'en' }) => {
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><MoreHorizontal size={16} /></button>
           </div>
           <div className="stat-card-body">
-            <div className="amount">¥{dashboardData.total_purchase?.toLocaleString()}</div>
-            <div className="stat-trend">
-              <TrendingUp size={12} /> +12.7%
-            </div>
+            {renderAmount(dashboardData.total_purchase)}
           </div>
         </div>
       </div>
