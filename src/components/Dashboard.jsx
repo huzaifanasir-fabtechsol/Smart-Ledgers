@@ -6,6 +6,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import { apiRequest } from '../api';
 import { translations } from '../translations';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
+import YearSelector from './YearSelector';
 import './Dashboard.css';
 
 const MONTHS = [
@@ -22,9 +23,6 @@ const MONTHS = [
   { value: '11', label: 'November' },
   { value: '12', label: 'December' },
 ];
-
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 8 }, (_, i) => CURRENT_YEAR + 1 - i);
 
 const Dashboard = ({ language = 'en' }) => {
   const t = translations[language];
@@ -106,19 +104,11 @@ const Dashboard = ({ language = 'en' }) => {
 
         {/* Filters */}
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <select
+          <YearSelector
             value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-            className="filter-select"
-            style={{ minWidth: '120px' }}
-          >
-            <option value="">{t.allYears || 'All Years'}</option>
-            {YEARS.map((y) => (
-              <option key={y} value={String(y)}>
-                {y}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setFilterYear(val)}
+            placeholder={t.allYears || 'All Years'}
+          />
           <select
             value={filterMonth}
             onChange={(e) => setFilterMonth(e.target.value)}

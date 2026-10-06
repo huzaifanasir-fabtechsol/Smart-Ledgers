@@ -7,6 +7,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import DateInput from './DateInput';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import YearSelector from './YearSelector';
 import './ExpenseManager.css';
 
 const CATEGORY_INITIAL_FORM = {
@@ -38,9 +39,6 @@ const MONTHS = [
   { value: '11', label: 'November' },
   { value: '12', label: 'December' },
 ];
-
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 8 }, (_, i) => CURRENT_YEAR + 1 - i);
 
 const parseListResponse = (data) => data?.results || data || [];
 
@@ -741,18 +739,11 @@ const ExpenseManager = ({ language = 'en' }) => {
               </option>
             ))}
           </select>
-          <select
+          <YearSelector
             value={filterYear}
-            onChange={(e) => handleYearFilterChange(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">{t.allYears || 'All Years'}</option>
-            {YEARS.map((y) => (
-              <option key={y} value={String(y)}>
-                {y}
-              </option>
-            ))}
-          </select>
+            onChange={handleYearFilterChange}
+            placeholder={t.allYears || 'All Years'}
+          />
           <select
             value={filterMonth}
             onChange={(e) => handleMonthFilterChange(e.target.value)}

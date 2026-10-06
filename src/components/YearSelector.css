@@ -1,0 +1,194 @@
+.year-selector {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.year-selector-box {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 0.5rem 0 0.75rem;
+  transition: all 0.2s ease;
+  min-width: 130px;
+  max-width: 155px;
+  box-sizing: border-box;
+  cursor: text;
+}
+
+.year-selector-box:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px oklch(0.93 0.18 125 / 0.25);
+}
+
+.year-selector-icon {
+  color: var(--muted-foreground);
+  margin-right: 0.35rem;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.year-selector-icon:hover {
+  color: var(--foreground);
+}
+
+.year-selector-input {
+  border: none !important;
+  background: transparent !important;
+  background-image: none !important;
+  font-size: 0.875rem !important;
+  color: var(--foreground) !important;
+  width: 100% !important;
+  min-width: 55px !important;
+  padding: 0.5rem 0 !important;
+  font-weight: 500;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.year-selector-input::placeholder {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.year-selector-clear {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.85rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.year-selector-clear:hover {
+  color: var(--foreground);
+}
+
+.year-selector-toggle {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.year-selector-toggle:hover {
+  color: var(--foreground);
+}
+
+.year-selector-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lift, 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1));
+  z-index: 1050;
+  padding: 0.75rem;
+  min-width: 220px;
+  animation: yearDropdownFade 0.15s ease;
+}
+
+@keyframes yearDropdownFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.year-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.year-popup-nav {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.year-popup-nav:hover {
+  background: var(--muted);
+}
+
+.year-popup-decade {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--foreground);
+  user-select: none;
+}
+
+.year-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.year-popup-item {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.4rem 0.2rem;
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.year-popup-item:hover {
+  background: var(--muted);
+}
+
+.year-popup-item.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 700;
+}
+
+.year-popup-all {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background: var(--muted);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.year-popup-all:hover {
+  color: var(--foreground);
+  background: var(--secondary);
+}
