@@ -56,6 +56,18 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px oklch(0 0 0 / 0.06);
   --shadow-lift: 0 10px 40px -10px oklch(0 0 0 / 0.15);
+
+  /* Table Design Tokens */
+  --table-border: oklch(0.90 0.006 250);
+  --table-border-subtle: oklch(0.93 0.005 250);
+  --table-header-border: rgba(255, 255, 255, 0.14);
+  --table-header-bg: linear-gradient(135deg, var(--color-ink) 0%, oklch(0.26 0.01 270) 100%);
+  --table-row-hover: oklch(0.965 0.015 130 / 0.55);
+  --table-row-zebra: oklch(0.988 0.002 250);
+
+  /* Form & Input Tokens */
+  --input-focus-ring: 0 0 0 3.5px oklch(0.93 0.18 125 / 0.35);
+  --form-card-shadow: 0 24px 60px -12px rgba(18, 18, 22, 0.22);
 }
 
 .card-elevated {

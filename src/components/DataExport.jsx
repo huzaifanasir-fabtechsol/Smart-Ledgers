@@ -129,21 +129,36 @@ const DataExport = ({ language = 'en' }) => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5" style={{textAlign: 'center'}}>Loading...</td></tr>
+                <tr>
+                  <td colSpan="5">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>{t.loading || 'Loading...'}</span>
+                    </div>
+                  </td>
+                </tr>
               ) : data.length === 0 ? (
-                <tr><td colSpan="5" style={{textAlign: 'center'}}>No data found</td></tr>
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--muted-foreground)' }}>
+                    {t.noDataFound || 'No data found'}
+                  </td>
+                </tr>
               ) : (
                 data.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{idx + 1}</td>
-                    <td>{item.transaction_date}</td>
-                    <td>{item.transaction_type?.[0].toUpperCase() + item.transaction_type?.slice(1)}</td>
+                  <tr key={item.id || idx}>
+                    <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                    <td>{item.transaction_date || item.date || '-'}</td>
+                    <td style={{ textTransform: 'capitalize' }}>
+                      {item.transaction_type || item.type || '-'}
+                    </td>
                     <td>
-                      <span className={`status-badge status-${item.payment_status?.toLowerCase() || 'pending'}`}>
-                        {item.payment_status || 'Pending'}
+                      <span className={`status-badge status-${(item.payment_status || 'completed').toLowerCase()}`}>
+                        {item.payment_status || 'Completed'}
                       </span>
                     </td>
-                    <td className="amount-cell">¥{parseFloat(item.total_amount).toLocaleString()}</td>
+                    <td className="amount-cell">
+                      ¥{item.total_amount !== undefined ? Number(item.total_amount).toLocaleString() : item.amount !== undefined ? Number(item.amount).toLocaleString() : '0'}
+                    </td>
                   </tr>
                 ))
               )}
