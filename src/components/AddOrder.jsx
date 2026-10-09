@@ -847,9 +847,19 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                       e.currentTarget.style.color = 'inherit';
                     }}
                   >
-                    <div style={{fontWeight: '600', fontSize: '0.875rem'}}>{t.description}</div>
-                    <div style={{fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.25rem'}}>
-                      {t.date} - ¥{Number(t.withdraw).toLocaleString()}
+                    <div style={{fontWeight: '600', fontSize: '0.875rem'}}>{t.description || 'No description'}</div>
+                    <div style={{fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.2rem'}}>
+                      📅 {t.date}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.4rem' }}>
+                      <div style={{ padding: '0.3rem 0.5rem', borderRadius: '6px', background: Number(t.deposit) > 0 ? '#ecfdf5' : 'var(--secondary)', border: Number(t.deposit) > 0 ? '1px solid #a7f3d0' : '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: Number(t.deposit) > 0 ? '#166534' : 'var(--muted-foreground)' }}>📥 Deposit:</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: Number(t.deposit) > 0 ? '#15803d' : 'var(--muted-foreground)' }}>{Number(t.deposit) > 0 ? `+¥${Number(t.deposit).toLocaleString()}` : '¥0'}</span>
+                      </div>
+                      <div style={{ padding: '0.3rem 0.5rem', borderRadius: '6px', background: Number(t.withdraw) > 0 ? '#fff1f2' : 'var(--secondary)', border: Number(t.withdraw) > 0 ? '1px solid #fecdd3' : '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: Number(t.withdraw) > 0 ? '#991b1b' : 'var(--muted-foreground)' }}>📤 Withdraw:</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: Number(t.withdraw) > 0 ? '#b91c1c' : 'var(--muted-foreground)' }}>{Number(t.withdraw) > 0 ? `-¥${Number(t.withdraw).toLocaleString()}` : '¥0'}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -865,7 +875,12 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         {selectedTransaction && selectedTransaction.id && (
           <div style={{padding: '1.25rem', background: 'var(--color-lime)', color: 'var(--color-ink)', borderRadius: '16px', marginBottom: '1.5rem', border: '1px solid var(--color-lime)', boxShadow: 'var(--shadow-card)'}}>
             <div style={{fontWeight: '700', fontSize: '0.9rem'}}>Selected Transaction</div>
-            <div style={{fontSize: '0.8125rem', marginTop: '0.25rem', opacity: 0.9}}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
+            <div style={{fontSize: '0.85rem', fontWeight: 600, marginTop: '0.35rem'}}>{selectedTransaction.description}</div>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.4rem', fontSize: '0.8rem' }}>
+              <div>📅 <strong>{selectedTransaction.date}</strong></div>
+              <div>📥 Deposit: <strong style={{ color: Number(selectedTransaction.deposit) > 0 ? '#15803d' : 'inherit' }}>¥{Number(selectedTransaction.deposit || 0).toLocaleString()}</strong></div>
+              <div>📤 Withdraw: <strong style={{ color: Number(selectedTransaction.withdraw) > 0 ? '#b91c1c' : 'inherit' }}>¥{Number(selectedTransaction.withdraw || 0).toLocaleString()}</strong></div>
+            </div>
             <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{marginTop: '0.75rem', fontSize: '0.75rem', padding: '0.4rem 0.8rem', borderRadius: '8px', background: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)'}}>Change Transaction</button>
           </div>
         )}

@@ -100,8 +100,28 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactionSearch, setTransactionSearch] = useState('');
   const [transactionDate, setTransactionDate] = useState('');
+  const [txTypeFilter, setTxTypeFilter] = useState('all');
   const [companyAccounts, setCompanyAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
+
+  const displayedTransactions = useMemo(() => {
+    if (txTypeFilter === 'withdraw') {
+      return transactions.filter((t) => Number(t.withdraw) > 0);
+    }
+    if (txTypeFilter === 'deposit') {
+      return transactions.filter((t) => Number(t.deposit) > 0);
+    }
+    return transactions;
+  }, [transactions, txTypeFilter]);
+
+  const withdrawTxCount = useMemo(
+    () => transactions.filter((t) => Number(t.withdraw) > 0).length,
+    [transactions]
+  );
+  const depositTxCount = useMemo(
+    () => transactions.filter((t) => Number(t.deposit) > 0).length,
+    [transactions]
+  );
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
@@ -341,6 +361,7 @@ const ExpenseManager = ({ language = 'en' }) => {
     setSelectedRestaurant(null);
     setSelectedSparePart(null);
     setTransactions([]);
+    setTxTypeFilter('all');
     setShowExpenseModal(true);
   };
 
@@ -355,6 +376,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       category_name: expense.category_name || '',
       is_cash: Boolean(expense.is_cash),
     });
+    setTxTypeFilter('all');
     if (expense.transaction) {
       setSelectedTransaction(expense.transaction);
       setSelectedAccount(expense.transaction.company_account);
@@ -849,8 +871,13 @@ const ExpenseManager = ({ language = 'en' }) => {
                           </span>
                         )}
                         {expense.transaction ? (
-                          <span className="transaction-link" title={expense.transaction.description}>
-                            💳 ¥{Number(expense.transaction.withdraw || 0).toLocaleString()}
+                          <span
+                            className="transaction-link"
+                            title={`${expense.transaction.description || ''} • Deposit: ¥${Number(expense.transaction.deposit || 0).toLocaleString()} • Withdraw: ¥${Number(expense.transaction.withdraw || 0).toLocaleString()}`}
+                          >
+                            💳 {Number(expense.transaction.deposit) > 0 && !(Number(expense.transaction.withdraw) > 0)
+                              ? `Deposit ¥${Number(expense.transaction.deposit).toLocaleString()}`
+                              : `¥${Number(expense.transaction.withdraw || expense.transaction.deposit || 0).toLocaleString()}`}
                           </span>
                         ) : (
                           !expense.is_cash && <span className="no-transaction">-</span>
@@ -1268,47 +1295,196 @@ const ExpenseManager = ({ language = 'en' }) => {
                       <button type="button" className="btn-secondary" onClick={() => fetchTransactions(selectedAccount)}>Search</button>
                     </div>
 
+                    {/* Filter buttons and explanation */}
+                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted-foreground)', marginRight: '0.25rem' }}>Show:</span>
+                      <button
+                        type="button"
+                        onClick={() => setTxTypeFilter('all')}
+                        style={{
+                          fontSize: '0.725rem',
+                          padding: '0.2rem 0.65rem',
+                          borderRadius: '16px',
+                          border: txTypeFilter === 'all' ? '1px solid var(--foreground)' : '1px solid var(--border)',
+                          background: txTypeFilter === 'all' ? 'var(--foreground)' : 'var(--card)',
+                          color: txTypeFilter === 'all' ? 'var(--background)' : 'var(--foreground)',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        All ({transactions.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTxTypeFilter('withdraw')}
+                        style={{
+                          fontSize: '0.725rem',
+                          padding: '0.2rem 0.65rem',
+                          borderRadius: '16px',
+                          border: txTypeFilter === 'withdraw' ? '1px solid #b91c1c' : '1px solid #fecdd3',
+                          background: txTypeFilter === 'withdraw' ? '#b91c1c' : '#fff1f2',
+                          color: txTypeFilter === 'withdraw' ? '#ffffff' : '#b91c1c',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        📤 Withdrawals ({withdrawTxCount})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTxTypeFilter('deposit')}
+                        style={{
+                          fontSize: '0.725rem',
+                          padding: '0.2rem 0.65rem',
+                          borderRadius: '16px',
+                          border: txTypeFilter === 'deposit' ? '1px solid #15803d' : '1px solid #a7f3d0',
+                          background: txTypeFilter === 'deposit' ? '#15803d' : '#ecfdf5',
+                          color: txTypeFilter === 'deposit' ? '#ffffff' : '#15803d',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        📥 Deposits ({depositTxCount})
+                      </button>
+                    </div>
+
+                    <div style={{
+                      fontSize: '0.75rem',
+                      padding: '0.45rem 0.75rem',
+                      borderRadius: '8px',
+                      background: 'var(--secondary)',
+                      border: '1px solid var(--border)',
+                      marginBottom: '0.65rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      color: 'var(--foreground)'
+                    }}>
+                      <span>ℹ️</span>
+                      <span>
+                        <strong style={{ color: '#15803d' }}>Deposit (入金)</strong> = Money into account &nbsp;•&nbsp; <strong style={{ color: '#b91c1c' }}>Withdraw (出金)</strong> = Money out of account
+                      </span>
+                    </div>
+
                     {loadingTransactions ? (
-                      <div>Loading transactions...</div>
+                      <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Loading transactions...</div>
                     ) : (
-                      <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--card)', padding: '0.25rem' }}>
-                        {transactions.map(t => (
-                          <div
-                            key={t.id}
-                            onClick={() => {
-                              setSelectedTransaction(t);
-                              setExpenseForm(prev => ({ ...prev, amount: t.withdraw, date: t.date }));
-                            }}
-                            style={{
-                              padding: '0.75rem 1rem',
-                              cursor: 'pointer',
-                              borderBottom: '1px solid var(--border)',
-                              transition: 'all 0.2s ease',
-                              borderRadius: '8px',
-                              background: selectedTransaction?.id === t.id ? 'var(--color-lime)' : 'transparent',
-                              color: selectedTransaction?.id === t.id ? 'var(--color-ink)' : 'inherit'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (selectedTransaction?.id !== t.id) {
-                                e.currentTarget.style.background = 'var(--secondary)';
-                                e.currentTarget.style.color = 'var(--ink)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (selectedTransaction?.id !== t.id) {
-                                e.currentTarget.style.background = 'transparent';
-                                e.currentTarget.style.color = 'inherit';
-                              }
-                            }}
-                          >
-                            <div style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t.description}</div>
-                            <div style={{ fontSize: '0.75rem', color: selectedTransaction?.id === t.id ? 'var(--color-ink)' : 'var(--muted-foreground)', marginTop: '0.25rem', opacity: selectedTransaction?.id === t.id ? 0.9 : 1 }}>
-                              {t.date} - ¥{Number(t.withdraw).toLocaleString()}
+                      <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--card)', padding: '0.35rem' }}>
+                        {displayedTransactions.map(t => {
+                          const isSelected = selectedTransaction?.id === t.id;
+                          const hasDeposit = Number(t.deposit) > 0;
+                          const hasWithdraw = Number(t.withdraw) > 0;
+
+                          return (
+                            <div
+                              key={t.id}
+                              onClick={() => {
+                                setSelectedTransaction(t);
+                                const chosenAmount = hasWithdraw ? t.withdraw : (hasDeposit ? t.deposit : (t.withdraw || t.deposit || ''));
+                                setExpenseForm(prev => ({ ...prev, amount: chosenAmount, date: t.date }));
+                              }}
+                              style={{
+                                padding: '0.7rem 0.9rem',
+                                cursor: 'pointer',
+                                borderBottom: '1px solid var(--border)',
+                                transition: 'all 0.2s ease',
+                                borderRadius: '10px',
+                                marginBottom: '4px',
+                                background: isSelected ? 'var(--color-lime)' : 'transparent',
+                                color: isSelected ? 'var(--color-ink)' : 'inherit',
+                                border: isSelected ? '1px solid var(--primary)' : '1px solid transparent'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.background = 'var(--secondary)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.background = 'transparent';
+                                }
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                                <div style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t.description || 'No description'}</div>
+                                <span style={{
+                                  fontSize: '0.7rem',
+                                  padding: '0.15rem 0.45rem',
+                                  borderRadius: '6px',
+                                  fontWeight: 700,
+                                  whiteSpace: 'nowrap',
+                                  background: hasDeposit && !hasWithdraw
+                                    ? '#dcfce7'
+                                    : hasWithdraw && !hasDeposit
+                                      ? '#fee2e2'
+                                      : hasDeposit && hasWithdraw
+                                        ? '#e0e7ff'
+                                        : 'var(--secondary)',
+                                  color: hasDeposit && !hasWithdraw
+                                    ? '#15803d'
+                                    : hasWithdraw && !hasDeposit
+                                      ? '#b91c1c'
+                                      : hasDeposit && hasWithdraw
+                                        ? '#3730a3'
+                                        : 'var(--muted-foreground)'
+                                }}>
+                                  {hasDeposit && !hasWithdraw && '📥 Deposit (入金)'}
+                                  {hasWithdraw && !hasDeposit && '📤 Withdraw (出金)'}
+                                  {hasDeposit && hasWithdraw && '🔄 Both'}
+                                  {!hasDeposit && !hasWithdraw && '¥0'}
+                                </span>
+                              </div>
+
+                              <div style={{ fontSize: '0.72rem', color: isSelected ? 'currentColor' : 'var(--muted-foreground)', marginTop: '0.2rem', opacity: isSelected ? 0.9 : 1 }}>
+                                📅 {t.date} {t.transaction_id ? `• #${t.transaction_id}` : ''}
+                              </div>
+
+                              {/* Both Deposit & Withdraw amounts clearly displayed and explained */}
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.45rem' }}>
+                                <div style={{
+                                  padding: '0.35rem 0.5rem',
+                                  borderRadius: '6px',
+                                  background: hasDeposit ? (isSelected ? 'rgba(22, 101, 52, 0.15)' : '#ecfdf5') : (isSelected ? 'rgba(0,0,0,0.05)' : 'var(--secondary)'),
+                                  border: hasDeposit ? '1px solid #a7f3d0' : '1px solid var(--border)',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center'
+                                }}>
+                                  <span style={{ fontSize: '0.72rem', fontWeight: 600, color: hasDeposit ? '#166534' : 'var(--muted-foreground)' }}>
+                                    📥 Deposit:
+                                  </span>
+                                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: hasDeposit ? '#15803d' : 'var(--muted-foreground)' }}>
+                                    {hasDeposit ? `+¥${Number(t.deposit).toLocaleString()}` : '¥0'}
+                                  </span>
+                                </div>
+
+                                <div style={{
+                                  padding: '0.35rem 0.5rem',
+                                  borderRadius: '6px',
+                                  background: hasWithdraw ? (isSelected ? 'rgba(153, 27, 27, 0.15)' : '#fff1f2') : (isSelected ? 'rgba(0,0,0,0.05)' : 'var(--secondary)'),
+                                  border: hasWithdraw ? '1px solid #fecdd3' : '1px solid var(--border)',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center'
+                                }}>
+                                  <span style={{ fontSize: '0.72rem', fontWeight: 600, color: hasWithdraw ? '#991b1b' : 'var(--muted-foreground)' }}>
+                                    📤 Withdraw:
+                                  </span>
+                                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: hasWithdraw ? '#b91c1c' : 'var(--muted-foreground)' }}>
+                                    {hasWithdraw ? `-¥${Number(t.withdraw).toLocaleString()}` : '¥0'}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
+                          );
+                        })}
+                        {displayedTransactions.length === 0 && (
+                          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
+                            {transactions.length === 0 ? 'No transactions found' : 'No transactions match the selected filter'}
                           </div>
-                        ))}
-                        {transactions.length === 0 && (
-                          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>No transactions found</div>
                         )}
                       </div>
                     )}
@@ -1316,9 +1492,77 @@ const ExpenseManager = ({ language = 'en' }) => {
                 )}
 
                 {selectedTransaction && selectedTransaction.id && (
-                  <div style={{ padding: '1.25rem', background: 'var(--color-lime)', color: 'var(--color-ink)', borderRadius: '16px', marginTop: '1rem', border: '1px solid var(--color-lime)', boxShadow: 'var(--shadow-card)' }}>
-                    <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Selected Transaction</div>
-                    <div style={{ fontSize: '0.8125rem', marginTop: '0.25rem', opacity: 0.9 }}>{selectedTransaction.description} - ¥{Number(selectedTransaction.withdraw).toLocaleString()}</div>
+                  <div style={{ padding: '1rem 1.25rem', background: 'var(--color-lime)', color: 'var(--color-ink)', borderRadius: '16px', marginTop: '1rem', border: '1px solid var(--color-lime)', boxShadow: 'var(--shadow-card)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Selected Transaction</div>
+                      <span style={{
+                        fontSize: '0.72rem',
+                        padding: '0.15rem 0.45rem',
+                        borderRadius: '6px',
+                        fontWeight: 700,
+                        background: Number(selectedTransaction.deposit) > 0 && !(Number(selectedTransaction.withdraw) > 0) ? '#15803d' : '#b91c1c',
+                        color: '#ffffff'
+                      }}>
+                        {Number(selectedTransaction.deposit) > 0 && !(Number(selectedTransaction.withdraw) > 0) ? '📥 Deposit (入金)' : '📤 Withdraw (出金)'}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, marginTop: '0.35rem' }}>
+                      {selectedTransaction.description}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.4rem', fontSize: '0.8rem' }}>
+                      <div>📅 <strong>{selectedTransaction.date}</strong></div>
+                      <div>
+                        📥 Deposit: <strong style={{ color: Number(selectedTransaction.deposit) > 0 ? '#15803d' : 'inherit' }}>
+                          ¥{Number(selectedTransaction.deposit || 0).toLocaleString()}
+                        </strong>
+                      </div>
+                      <div>
+                        📤 Withdraw: <strong style={{ color: Number(selectedTransaction.withdraw) > 0 ? '#b91c1c' : 'inherit' }}>
+                          ¥{Number(selectedTransaction.withdraw || 0).toLocaleString()}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {Number(selectedTransaction.deposit) > 0 && Number(selectedTransaction.withdraw) > 0 && (
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Apply amount to expense:</span>
+                        <button
+                          type="button"
+                          onClick={() => setExpenseForm(prev => ({ ...prev, amount: selectedTransaction.withdraw }))}
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: '6px',
+                            border: '1px solid #b91c1c',
+                            background: Number(expenseForm.amount) === Number(selectedTransaction.withdraw) ? '#b91c1c' : '#ffffff',
+                            color: Number(expenseForm.amount) === Number(selectedTransaction.withdraw) ? '#ffffff' : '#b91c1c',
+                            cursor: 'pointer',
+                            fontWeight: 600
+                          }}
+                        >
+                          Withdraw (¥{Number(selectedTransaction.withdraw).toLocaleString()})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpenseForm(prev => ({ ...prev, amount: selectedTransaction.deposit }))}
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: '6px',
+                            border: '1px solid #15803d',
+                            background: Number(expenseForm.amount) === Number(selectedTransaction.deposit) ? '#15803d' : '#ffffff',
+                            color: Number(expenseForm.amount) === Number(selectedTransaction.deposit) ? '#ffffff' : '#15803d',
+                            cursor: 'pointer',
+                            fontWeight: 600
+                          }}
+                        >
+                          Deposit (¥{Number(selectedTransaction.deposit).toLocaleString()})
+                        </button>
+                      </div>
+                    )}
+
                     <button type="button" className="btn-secondary" onClick={() => setSelectedTransaction(null)} style={{ marginTop: '0.75rem', fontSize: '0.75rem', padding: '0.4rem 0.8rem', borderRadius: '8px', background: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' }}>Remove Transaction</button>
                   </div>
                 )}
