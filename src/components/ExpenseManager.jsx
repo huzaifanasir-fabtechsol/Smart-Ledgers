@@ -1408,42 +1408,12 @@ const ExpenseManager = ({ language = 'en' }) => {
                                 }
                               }}
                             >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-                                <div style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t.description || 'No description'}</div>
-                                <span style={{
-                                  fontSize: '0.7rem',
-                                  padding: '0.15rem 0.45rem',
-                                  borderRadius: '6px',
-                                  fontWeight: 700,
-                                  whiteSpace: 'nowrap',
-                                  background: hasDeposit && !hasWithdraw
-                                    ? '#dcfce7'
-                                    : hasWithdraw && !hasDeposit
-                                      ? '#fee2e2'
-                                      : hasDeposit && hasWithdraw
-                                        ? '#e0e7ff'
-                                        : 'var(--secondary)',
-                                  color: hasDeposit && !hasWithdraw
-                                    ? '#15803d'
-                                    : hasWithdraw && !hasDeposit
-                                      ? '#b91c1c'
-                                      : hasDeposit && hasWithdraw
-                                        ? '#3730a3'
-                                        : 'var(--muted-foreground)'
-                                }}>
-                                  {hasDeposit && !hasWithdraw && '📥 Deposit (入金)'}
-                                  {hasWithdraw && !hasDeposit && '📤 Withdraw (出金)'}
-                                  {hasDeposit && hasWithdraw && '🔄 Both'}
-                                  {!hasDeposit && !hasWithdraw && '¥0'}
-                                </span>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: isSelected ? 'currentColor' : 'var(--foreground)', marginBottom: '0.35rem' }}>
+                                📅 {t.date}
                               </div>
 
-                              <div style={{ fontSize: '0.72rem', color: isSelected ? 'currentColor' : 'var(--muted-foreground)', marginTop: '0.2rem', opacity: isSelected ? 0.9 : 1 }}>
-                                📅 {t.date} {t.transaction_id ? `• #${t.transaction_id}` : ''}
-                              </div>
-
-                              {/* Both Deposit & Withdraw amounts clearly displayed and explained */}
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.45rem' }}>
+                              {/* Both Deposit & Withdraw amounts */}
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                                 <div style={{
                                   padding: '0.35rem 0.5rem',
                                   borderRadius: '6px',
@@ -1493,23 +1463,7 @@ const ExpenseManager = ({ language = 'en' }) => {
 
                 {selectedTransaction && selectedTransaction.id && (
                   <div style={{ padding: '1rem 1.25rem', background: 'var(--color-lime)', color: 'var(--color-ink)', borderRadius: '16px', marginTop: '1rem', border: '1px solid var(--color-lime)', boxShadow: 'var(--shadow-card)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Selected Transaction</div>
-                      <span style={{
-                        fontSize: '0.72rem',
-                        padding: '0.15rem 0.45rem',
-                        borderRadius: '6px',
-                        fontWeight: 700,
-                        background: Number(selectedTransaction.deposit) > 0 && !(Number(selectedTransaction.withdraw) > 0) ? '#15803d' : '#b91c1c',
-                        color: '#ffffff'
-                      }}>
-                        {Number(selectedTransaction.deposit) > 0 && !(Number(selectedTransaction.withdraw) > 0) ? '📥 Deposit (入金)' : '📤 Withdraw (出金)'}
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: '0.875rem', fontWeight: 600, marginTop: '0.35rem' }}>
-                      {selectedTransaction.description}
-                    </div>
+                    <div style={{ fontWeight: '700', fontSize: '0.9rem', marginBottom: '0.25rem' }}>Selected Transaction</div>
 
                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.4rem', fontSize: '0.8rem' }}>
                       <div>📅 <strong>{selectedTransaction.date}</strong></div>

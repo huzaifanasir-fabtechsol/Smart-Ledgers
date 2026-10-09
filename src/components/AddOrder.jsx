@@ -847,8 +847,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                       e.currentTarget.style.color = 'inherit';
                     }}
                   >
-                    <div style={{fontWeight: '600', fontSize: '0.875rem'}}>{t.description || 'No description'}</div>
-                    <div style={{fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.2rem'}}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--foreground)', marginBottom: '0.35rem' }}>
                       📅 {t.date}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.4rem' }}>
@@ -874,8 +873,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
 
         {selectedTransaction && selectedTransaction.id && (
           <div style={{padding: '1.25rem', background: 'var(--color-lime)', color: 'var(--color-ink)', borderRadius: '16px', marginBottom: '1.5rem', border: '1px solid var(--color-lime)', boxShadow: 'var(--shadow-card)'}}>
-            <div style={{fontWeight: '700', fontSize: '0.9rem'}}>Selected Transaction</div>
-            <div style={{fontSize: '0.85rem', fontWeight: 600, marginTop: '0.35rem'}}>{selectedTransaction.description}</div>
+            <div style={{fontWeight: '700', fontSize: '0.9rem', marginBottom: '0.25rem'}}>Selected Transaction</div>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.4rem', fontSize: '0.8rem' }}>
               <div>📅 <strong>{selectedTransaction.date}</strong></div>
               <div>📥 Deposit: <strong style={{ color: Number(selectedTransaction.deposit) > 0 ? '#15803d' : 'inherit' }}>¥{Number(selectedTransaction.deposit || 0).toLocaleString()}</strong></div>
