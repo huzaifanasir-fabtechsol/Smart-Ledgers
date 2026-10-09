@@ -797,24 +797,61 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
         {formData.company_account_id && !selectedTransaction && (
           <div style={{marginBottom: '1.5rem'}}>
             <h4 style={{marginBottom: '1rem', fontSize: '0.95rem', fontWeight: '700'}}>Select Transaction (Optional)</h4>
-            <div className="form-row">
-              <div className="form-group">
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 220px', minWidth: '180px', position: 'relative' }}>
                 <input
                   type="text"
                   placeholder="Search transactions..."
                   value={transactionSearch}
                   onChange={(e) => setTransactionSearch(e.target.value)}
-                  className="filter-input"
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    padding: '0.5rem 1rem 0.5rem 2.5rem',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    fontSize: '0.875rem',
+                    background: 'var(--card) url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>\') no-repeat 0.85rem center',
+                    backgroundColor: 'var(--card)',
+                    color: 'var(--foreground)'
+                  }}
                 />
               </div>
-              <div className="form-group">
+              <div style={{ flex: '0 1 180px', minWidth: '150px' }}>
                 <DateInput
                   value={transactionDate}
                   onChange={(e) => setTransactionDate(e.target.value)}
-                  className="filter-input"
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    padding: '0.5rem 1rem',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    fontSize: '0.875rem',
+                    background: 'var(--card)',
+                    color: 'var(--foreground)'
+                  }}
                 />
               </div>
-              <button type="button" className="btn-secondary" onClick={() => fetchTransactions(formData.company_account_id)}>Search</button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => fetchTransactions(formData.company_account_id)}
+                style={{
+                  height: '42px',
+                  padding: '0 1.5rem',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+              >
+                Search
+              </button>
             </div>
             
             {loadingTransactions ? (

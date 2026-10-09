@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { translations } from '../translations';
 import { translateText } from '../translator';
+import Pagination from './Pagination';
 import '../shared.css';
 import './RevenueManager.css';
 
@@ -21,6 +22,7 @@ const RevenueManager = ({ language = 'en' }) => {
   const [filterType, setFilterType] = useState('');
   const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [translatedTransactions, setTranslatedTransactions] = useState([]);
 
   useEffect(() => {
@@ -60,7 +62,7 @@ const RevenueManager = ({ language = 'en' }) => {
     notes: ''
   });
 
-  const itemsPerPage = 10;
+  const itemsPerPage = pageSize;
 
   const filteredTransactions = translatedTransactions.filter(t => {
     const matchType = !filterType || t.type === filterType;
@@ -182,11 +184,16 @@ const RevenueManager = ({ language = 'en' }) => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>{t.previous}</button>
-          <span>{t.page} {currentPage} {t.of} {totalPages}</span>
-          <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>{t.next}</button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages || 1}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {showModal && (

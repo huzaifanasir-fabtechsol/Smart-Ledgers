@@ -5,6 +5,7 @@ import { translations } from '../translations';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
+import Pagination from './Pagination';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -328,11 +329,20 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>{t.previous}</button>
-          <span>{t.page} {currentPage} {t.of} {totalPages}</span>
-          <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>{t.next}</button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+          previousLabel={t.previous}
+          nextLabel={t.next}
+          pageLabel={t.page}
+          ofLabel={t.of}
+        />
       </div>
 
       {openMenuId && (

@@ -136,7 +136,8 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [expensePage, setExpensePage] = useState(1);
   const [totalCategoryPages, setTotalCategoryPages] = useState(1);
   const [totalExpensePages, setTotalExpensePages] = useState(1);
-  const itemsPerPage = 10;
+  const [expensePageSize, setExpensePageSize] = useState(10);
+  const [categoryPageSize, setCategoryPageSize] = useState(10);
 
   const [filterCategory, setFilterCategory] = useState('');
   const [filterDate, setFilterDate] = useState('');
@@ -162,11 +163,11 @@ const ExpenseManager = ({ language = 'en' }) => {
     fetchCompanyAccounts();
     fetchRestaurants();
     fetchSpareParts();
-  }, [categoryPage]);
+  }, [categoryPage, categoryPageSize]);
 
   useEffect(() => {
     fetchExpenses();
-  }, [expensePage, filterCategory, filterDate, filterDateFrom, filterDateTo, filterMonth, filterYear, filterCash, searchText]);
+  }, [expensePage, expensePageSize, filterCategory, filterDate, filterDateFrom, filterDateTo, filterMonth, filterYear, filterCash, searchText]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -199,7 +200,7 @@ const ExpenseManager = ({ language = 'en' }) => {
   const fetchCategories = async () => {
     setLoadingCategories(true);
     try {
-      const params = new URLSearchParams({ page: categoryPage, page_size: itemsPerPage });
+      const params = new URLSearchParams({ page: categoryPage, page_size: categoryPageSize, pageSize: categoryPageSize });
       const response = await apiRequest(`/categories/?${params}`);
       if (!response.ok) {
         const message = await getErrorMessage(response, 'Failed to load categories');
@@ -207,7 +208,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       }
       const data = await response.json();
       setCategories(data.results || data || []);
-      if (data.count) setTotalCategoryPages(Math.ceil(data.count / itemsPerPage));
+      if (data.count) setTotalCategoryPages(Math.ceil(data.count / categoryPageSize));
     } catch (error) {
       toast.error(error.message || 'Failed to load categories');
       setCategories([]);
@@ -230,7 +231,7 @@ const ExpenseManager = ({ language = 'en' }) => {
   const fetchExpenses = async () => {
     setLoadingExpenses(true);
     try {
-      const params = new URLSearchParams({ page: expensePage, page_size: itemsPerPage });
+      const params = new URLSearchParams({ page: expensePage, page_size: expensePageSize, pageSize: expensePageSize });
       if (filterCategory) params.append('category', filterCategory);
       if (filterDate) params.append('date', filterDate);
       if (filterDateFrom) params.append('date_from', filterDateFrom);
@@ -248,7 +249,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       const data = await response.json();
       setExpenses(data.results || data || []);
       if (data.count !== undefined) {
-        setTotalExpensePages(Math.max(1, Math.ceil(data.count / itemsPerPage)));
+        setTotalExpensePages(Math.max(1, Math.ceil(data.count / expensePageSize)));
       }
     } catch (error) {
       toast.error(error.message || 'Failed to load expenses');
@@ -843,7 +844,7 @@ const ExpenseManager = ({ language = 'en' }) => {
               ) : (
                 expenses.map((expense, idx) => (
                   <tr key={expense.id}>
-                    <td>{(expensePage - 1) * itemsPerPage + idx + 1}</td>
+                    <td>{(expensePage - 1) * expensePageSize + idx + 1}</td>
                     <td>{expense.date}</td>
                     <td>{expense.title}</td>
                     <td>{expense.category_name || '-'}</td>
@@ -894,20 +895,20 @@ const ExpenseManager = ({ language = 'en' }) => {
             </tbody>
           </table>
         </div>
-        <div className="pagination">
-          <button onClick={() => setExpensePage((p) => Math.max(1, p - 1))} disabled={expensePage === 1}>
-            {t.previous}
-          </button>
-          <span>
-            {t.page} {expensePage} {t.of} {totalExpensePages}
-          </span>
-          <button
-            onClick={() => setExpensePage((p) => Math.min(totalExpensePages, p + 1))}
-            disabled={expensePage === totalExpensePages}
-          >
-            {t.next}
-          </button>
-        </div>
+        <Pagination
+          currentPage={expensePage}
+          totalPages={totalExpensePages}
+          onPageChange={setExpensePage}
+          pageSize={expensePageSize}
+          onPageSizeChange={(newSize) => {
+            setExpensePageSize(newSize);
+            setExpensePage(1);
+          }}
+          previousLabel={t.previous}
+          nextLabel={t.next}
+          pageLabel={t.page}
+          ofLabel={t.of}
+        />
       </div>
       <div className="table-section">
         <div className="table-header">
@@ -943,7 +944,7 @@ const ExpenseManager = ({ language = 'en' }) => {
               ) : (
                 categories.map((category, index) => (
                   <tr key={category.id}>
-                    <td>{(categoryPage - 1) * itemsPerPage + index + 1}</td>
+                    <td>{(categoryPage - 1) * categoryPageSize + index + 1}</td>
                     <td>{category.name}</td>
                     <td>{category.description || '-'}</td>
                     <td>
@@ -955,20 +956,20 @@ const ExpenseManager = ({ language = 'en' }) => {
             </tbody>
           </table>
         </div>
-        <div className="pagination">
-          <button onClick={() => setCategoryPage((p) => Math.max(1, p - 1))} disabled={categoryPage === 1}>
-            {t.previous}
-          </button>
-          <span>
-            {t.page} {categoryPage} {t.of} {totalCategoryPages}
-          </span>
-          <button
-            onClick={() => setCategoryPage((p) => Math.min(totalCategoryPages, p + 1))}
-            disabled={categoryPage === totalCategoryPages}
-          >
-            {t.next}
-          </button>
-        </div>
+        <Pagination
+          currentPage={categoryPage}
+          totalPages={totalCategoryPages}
+          onPageChange={setCategoryPage}
+          pageSize={categoryPageSize}
+          onPageSizeChange={(newSize) => {
+            setCategoryPageSize(newSize);
+            setCategoryPage(1);
+          }}
+          previousLabel={t.previous}
+          nextLabel={t.next}
+          pageLabel={t.page}
+          ofLabel={t.of}
+        />
       </div>
 
 
@@ -1277,22 +1278,61 @@ const ExpenseManager = ({ language = 'en' }) => {
 
                 {selectedAccount && (
                   <>
-                    <div className="form-row">
-                      <div className="form-group">
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                      <div style={{ flex: '1 1 200px', minWidth: '160px', position: 'relative' }}>
                         <input
                           type="text"
                           placeholder="Search transactions..."
                           value={transactionSearch}
                           onChange={(e) => setTransactionSearch(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '42px',
+                            padding: '0.5rem 1rem 0.5rem 2.5rem',
+                            border: '1px solid var(--border)',
+                            borderRadius: '12px',
+                            fontSize: '0.875rem',
+                            background: 'var(--card) url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>\') no-repeat 0.85rem center',
+                            backgroundColor: 'var(--card)',
+                            color: 'var(--foreground)'
+                          }}
                         />
                       </div>
-                      <div className="form-group">
+                      <div style={{ flex: '0 1 170px', minWidth: '140px' }}>
                         <DateInput
                           value={transactionDate}
                           onChange={(e) => setTransactionDate(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '42px',
+                            padding: '0.5rem 1rem',
+                            border: '1px solid var(--border)',
+                            borderRadius: '12px',
+                            fontSize: '0.875rem',
+                            background: 'var(--card)',
+                            color: 'var(--foreground)'
+                          }}
                         />
                       </div>
-                      <button type="button" className="btn-secondary" onClick={() => fetchTransactions(selectedAccount)}>Search</button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => fetchTransactions(selectedAccount)}
+                        style={{
+                          height: '42px',
+                          padding: '0 1.5rem',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          borderRadius: '12px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          flexShrink: 0
+                        }}
+                      >
+                        Search
+                      </button>
                     </div>
 
                     {/* Filter buttons and explanation */}

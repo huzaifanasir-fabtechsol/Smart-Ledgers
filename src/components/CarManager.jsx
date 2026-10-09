@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Pagination from './Pagination';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -15,6 +16,7 @@ const CarManager = () => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({
     category: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear()
@@ -22,7 +24,7 @@ const CarManager = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  useEffect(() => { fetchCars(); fetchCategories(); }, [search, currentPage]);
+  useEffect(() => { fetchCars(); fetchCategories(); }, [search, currentPage, pageSize]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -44,7 +46,7 @@ const CarManager = () => {
   const fetchCars = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest(`/revenue/cars/?search=${search}&page=${currentPage}`);
+      const response = await apiRequest(`/revenue/cars/?search=${encodeURIComponent(search)}&page=${currentPage}&pageSize=${pageSize}&page_size=${pageSize}`);
       const data = await response.json();
       setCars(data.results || data);
       setTotalCount(data.count || 0);
@@ -160,7 +162,7 @@ const CarManager = () => {
               ) : (
                 cars.map((c, index) => (
                   <tr key={c.id}>
-                    <td>{(currentPage - 1) * 10 + index + 1}</td>
+                    <td>{(currentPage - 1) * pageSize + index + 1}</td>
                     <td>{c.category_company}</td>
                     {/* <td>{c.category_name}</td> */}
                     <td>{c.category_model}</td>
@@ -176,11 +178,16 @@ const CarManager = () => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(totalCount / pageSize) || 1}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Context Menu */}

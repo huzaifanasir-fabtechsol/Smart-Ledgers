@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest, getErrorMessage } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Pagination from './Pagination';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -14,6 +15,7 @@ const CustomerManager = () => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({
     name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: ''
@@ -21,7 +23,7 @@ const CustomerManager = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  useEffect(() => { fetchCustomers(); }, [search, currentPage]);
+  useEffect(() => { fetchCustomers(); }, [search, currentPage, pageSize]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -43,7 +45,7 @@ const CustomerManager = () => {
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest(`/revenue/customers/?search=${search}&page=${currentPage}`);
+      const response = await apiRequest(`/revenue/customers/?search=${encodeURIComponent(search)}&page=${currentPage}&pageSize=${pageSize}&page_size=${pageSize}`);
       const data = await response.json();
       setCustomers(data.results || data);
       setTotalCount(data.count || 0);
@@ -156,7 +158,7 @@ const CustomerManager = () => {
               ) : (
                 customers.map((c, index) => (
                   <tr key={c.id}>
-                    <td>{(currentPage - 1) * 10 + index + 1}</td>
+                    <td>{(currentPage - 1) * pageSize + index + 1}</td>
                     <td>{c.name}</td>
                     <td>{c.email}</td>
                     <td>{c.phone}</td>
@@ -172,11 +174,16 @@ const CustomerManager = () => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(totalCount / pageSize) || 1}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Context Menu */}

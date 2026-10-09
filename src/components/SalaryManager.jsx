@@ -3,6 +3,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { apiRequest, getErrorMessage } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Pagination from './Pagination';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -11,7 +12,7 @@ const SalaryManager = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(10);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -48,7 +49,7 @@ const SalaryManager = () => {
 
   useEffect(() => {
     fetchSalaries();
-  }, [currentPage, search, filterEmployee, filterMonth, filterStatus]);
+  }, [currentPage, search, filterEmployee, filterMonth, filterStatus, pageSize]);
 
   useEffect(() => {
     fetchAllEmployees();
@@ -86,7 +87,7 @@ const SalaryManager = () => {
   const fetchSalaries = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: currentPage, pageSize });
+      const params = new URLSearchParams({ page: currentPage, pageSize, page_size: pageSize });
       if (search) params.append('search', search);
       if (filterEmployee) params.append('employee', filterEmployee);
       if (filterMonth) params.append('salary_month', filterMonth);
@@ -308,24 +309,16 @@ const SalaryManager = () => {
           )}
         </div>
 
-        {totalPages > 1 && (
-          <div className="pagination">
-            <button className="page-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>‹ Prev</button>
-            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-              let page = i + 1;
-              if (totalPages > 7) {
-                if (currentPage <= 4) page = i + 1;
-                else if (currentPage >= totalPages - 3) page = totalPages - 6 + i;
-                else page = currentPage - 3 + i;
-              }
-              return (
-                <button key={page} className={`page-btn ${currentPage === page ? 'active' : ''}`} onClick={() => setCurrentPage(page)}>{page}</button>
-              );
-            })}
-            <button className="page-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next ›</button>
-            <span className="page-info">Page {currentPage} of {totalPages} · {totalCount} total</span>
-          </div>
-        )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages || 1}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Context Menu */}

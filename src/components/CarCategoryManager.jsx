@@ -5,6 +5,7 @@ import { translations } from '../translations';
 import { translateText } from '../translator';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Pagination from './Pagination';
 import './CarCategoryManager.css';
 
 const CarCategoryManager = ({ language = 'en' }) => {
@@ -224,11 +225,16 @@ const CarCategoryManager = ({ language = 'en' }) => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>{t.previous}</button>
-          <span>{t.page} {currentPage} {t.of} {totalPages}</span>
-          <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>{t.next}</button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {openMenuId && (

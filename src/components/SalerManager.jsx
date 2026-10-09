@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Pagination from './Pagination';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -14,6 +15,7 @@ const SalerManager = () => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({
     name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: ''
@@ -21,7 +23,7 @@ const SalerManager = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  useEffect(() => { fetchSalers(); }, [search, currentPage]);
+  useEffect(() => { fetchSalers(); }, [search, currentPage, pageSize]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -43,7 +45,7 @@ const SalerManager = () => {
   const fetchSalers = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest(`/revenue/salers/?search=${search}&page=${currentPage}`);
+      const response = await apiRequest(`/revenue/salers/?search=${search}&page=${currentPage}&page_size=${pageSize}&pageSize=${pageSize}`);
       const data = await response.json();
       setSalers(data.results || data);
       setTotalCount(data.count || 0);
@@ -149,7 +151,7 @@ const SalerManager = () => {
               ) : (
                 salers.map((s, index) => (
                   <tr key={s.id}>
-                    <td>{(currentPage - 1) * 10 + index + 1}</td>
+                    <td>{(currentPage - 1) * pageSize + index + 1}</td>
                     <td>{s.name}</td>
                     <td>{s.email}</td>
                     <td>{s.phone}</td>
@@ -165,11 +167,16 @@ const SalerManager = () => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(totalCount / pageSize) || 1}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Context Menu */}

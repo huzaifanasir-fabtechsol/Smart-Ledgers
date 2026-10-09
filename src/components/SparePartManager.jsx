@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Pagination from './Pagination';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -17,11 +18,12 @@ const SparePartManager = () => {
   const [formData, setFormData] = useState(INITIAL_FORM);
   const menuRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  useEffect(() => { fetchSpareParts(); }, [search, currentPage]);
+  useEffect(() => { fetchSpareParts(); }, [search, currentPage, pageSize]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -43,7 +45,7 @@ const SparePartManager = () => {
   const fetchSpareParts = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest(`/spare-parts/?search=${encodeURIComponent(search)}&page=${currentPage}`);
+      const response = await apiRequest(`/spare-parts/?search=${encodeURIComponent(search)}&page=${currentPage}&page_size=${pageSize}&pageSize=${pageSize}`);
       const data = await response.json();
       setSpareParts(data.results || data || []);
       setTotalCount(data.count || 0);
@@ -157,7 +159,7 @@ const SparePartManager = () => {
               ) : (
                 spareParts.map((item, idx) => (
                   <tr key={item.id}>
-                    <td>{(currentPage - 1) * 10 + idx + 1}</td>
+                    <td>{(currentPage - 1) * pageSize + idx + 1}</td>
                     <td>{item.name}</td>
                     <td>{item.address || '-'}</td>
                     <td>{item.description || '-'}</td>
@@ -171,11 +173,16 @@ const SparePartManager = () => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
-          <span>Page {currentPage} of {Math.ceil(totalCount / 10) || 1}</span>
-          <button disabled={currentPage >= Math.ceil(totalCount / 10)} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(totalCount / pageSize) || 1}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Context Menu */}

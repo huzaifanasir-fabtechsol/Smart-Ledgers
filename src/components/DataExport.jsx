@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
+import Pagination from './Pagination';
 import '../shared.css';
 import './DataExport.css';
 
@@ -16,12 +17,13 @@ const DataExport = ({ language = 'en' }) => {
   const [paymentStatus, setPaymentStatus] = useState('');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = pageSize;
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, reportType, period, startDate, endDate, paymentStatus, search]);
+  }, [currentPage, reportType, period, startDate, endDate, paymentStatus, search, pageSize]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -29,7 +31,8 @@ const DataExport = ({ language = 'en' }) => {
       const params = new URLSearchParams({
         type: reportType,
         period: period,
-        pageSize: itemsPerPage,
+        pageSize: pageSize,
+        page_size: pageSize,
         page: currentPage
       });
       
@@ -166,11 +169,16 @@ const DataExport = ({ language = 'en' }) => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>{t.previous}</button>
-          <span>{t.page} {currentPage} {t.of} {totalPages}</span>
-          <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>{t.next}</button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages || 1}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
     </div>
   );

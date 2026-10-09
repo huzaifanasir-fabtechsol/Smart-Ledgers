@@ -3,6 +3,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Pagination from './Pagination';
 import '../shared.css';
 
 const TransactionManager = () => {
@@ -12,6 +13,7 @@ const TransactionManager = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -43,7 +45,7 @@ const TransactionManager = () => {
   useEffect(() => {
     fetchTransactions();
     fetchCompanyAccounts();
-  }, [currentPage, filters]);
+  }, [currentPage, pageSize, filters]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -67,13 +69,15 @@ const TransactionManager = () => {
     try {
       const params = new URLSearchParams({
         page: currentPage,
+        pageSize: pageSize,
+        page_size: pageSize,
         ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
       });
       
       const response = await apiRequest(`/revenue/transactions/?${params}`);
       const data = await response.json();
       setTransactions(data.results || []);
-      setTotalPages(Math.ceil((data.count || 0) / 10));
+      setTotalPages(Math.max(1, Math.ceil((data.count || 0) / pageSize)));
     } catch (error) {
       toast.error('Failed to load transactions');
     } finally {
@@ -346,7 +350,7 @@ const TransactionManager = () => {
               ) : (
                 transactions.map((transaction, index) => (
                   <tr key={transaction.id}>
-                    <td>{(currentPage - 1) * 10 + index + 1}</td>
+                    <td>{(currentPage - 1) * pageSize + index + 1}</td>
                     <td>{transaction.date}</td>
                     <td>{transaction.transaction_id || '-'}</td>
                     <td>{transaction.description}</td>
@@ -370,15 +374,16 @@ const TransactionManager = () => {
           </table>
         </div>
 
-        <div className="pagination">
-          <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-            Previous
-          </button>
-          <span>Page {currentPage} of {totalPages}</span>
-          <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-            Next
-          </button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Context Menu */}
