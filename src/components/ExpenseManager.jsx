@@ -8,6 +8,7 @@ import autoTable from 'jspdf-autotable';
 import DateInput from './DateInput';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import YearSelector from './YearSelector';
+import Pagination from './Pagination';
 import './ExpenseManager.css';
 
 const CATEGORY_INITIAL_FORM = {
