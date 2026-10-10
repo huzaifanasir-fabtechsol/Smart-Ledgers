@@ -370,7 +370,7 @@ const EmployeeManager = () => {
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-grid-2">
                 <div className="form-group">
-                  <label>Name (氏名) *</label>
+                  <label>Name *</label>
                   <input
                     type="text"
                     className={`form-input ${formErrors.name ? 'input-error' : ''}`}
@@ -406,7 +406,7 @@ const EmployeeManager = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Role (役職・所属) *</label>
+                  <label>Role *</label>
                   <input
                     type="text"
                     list="roles-datalist"
@@ -433,7 +433,7 @@ const EmployeeManager = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Basic Salary / 基本給 (¥) *</label>
+                  <label>Basic Salary (¥) *</label>
                   <input
                     type="number"
                     min="0"
@@ -447,7 +447,7 @@ const EmployeeManager = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Non-taxable Commuting / 非課税通勤費 (¥)</label>
+                  <label>Commuting Allowance (¥)</label>
                   <input
                     type="number"
                     min="0"
@@ -461,7 +461,7 @@ const EmployeeManager = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Dependents Count / 扶養親族等の数</label>
+                  <label>Dependents Count</label>
                   <input
                     type="number"
                     min="0"
@@ -501,7 +501,7 @@ const EmployeeManager = () => {
                       checked={formData.employment_insurance_exempt}
                       onChange={e => setFormData({ ...formData, employment_insurance_exempt: e.target.checked })}
                     />
-                    <span>Employment Insurance Exempt (雇用保険免除)</span>
+                    <span>Employment Insurance Exempt</span>
                   </label>
                 </div>
               </div>

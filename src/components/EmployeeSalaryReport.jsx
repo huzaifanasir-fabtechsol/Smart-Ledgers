@@ -87,7 +87,8 @@ const EmployeeSalaryReport = () => {
     if (!monthStr) return '';
     try {
       const [y, m] = monthStr.split('-');
-      return `${y}年 ${parseInt(m)}月 給与支払明細書`;
+      const date = new Date(parseInt(y), parseInt(m) - 1, 1);
+      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     } catch {
       return monthStr;
     }
@@ -121,13 +122,13 @@ const EmployeeSalaryReport = () => {
             className={`toggle-tab ${viewMode === 'month' ? 'active' : ''}`}
             onClick={() => setViewMode('month')}
           >
-            給与支払明細書 (Monthly Payslip)
+            Monthly Payslip
           </button>
           <button
             className={`toggle-tab ${viewMode === 'year' ? 'active' : ''}`}
             onClick={() => setViewMode('year')}
           >
-            年間集計表 (Annual Report)
+            Annual Report
           </button>
         </div>
 
@@ -141,7 +142,7 @@ const EmployeeSalaryReport = () => {
                 onChange={(e) => setSelectedYear(e.target.value)}
               >
                 {yearOptions.map(y => (
-                  <option key={y} value={y}>{y}年</option>
+                  <option key={y} value={y}>{y}</option>
                 ))}
               </select>
             </div>
@@ -179,15 +180,15 @@ const EmployeeSalaryReport = () => {
             {/* Header / Company Branding */}
             <div className="report-header">
               <div className="company-info">
-                <h2>{adminCompany?.company_name || 'ILYAS SONS合同会社'}</h2>
+                <h2>{adminCompany?.company_name || 'ILYAS SONS LLC'}</h2>
                 {adminCompany?.company_address && <p>{adminCompany.company_address}</p>}
                 {adminCompany?.company_phone && <p>Tel: {adminCompany.company_phone}</p>}
                 {adminCompany?.company_email && <p>Email: {adminCompany.company_email}</p>}
               </div>
               <div className="doc-title-badge">
-                <h1>{viewMode === 'year' ? 'ANNUAL SALARY SUMMARY' : '給与支払明細書'}</h1>
+                <h1>{viewMode === 'year' ? 'ANNUAL SALARY SUMMARY' : 'SALARY PAYSLIP'}</h1>
                 <span className="period-tag">
-                  {viewMode === 'year' ? `${selectedYear}年度` : formatMonthName(selectedMonth)}
+                  {viewMode === 'year' ? `Year ${selectedYear}` : formatMonthName(selectedMonth)}
                 </span>
               </div>
             </div>
@@ -197,18 +198,18 @@ const EmployeeSalaryReport = () => {
             {/* Employee Profile Summary */}
             <div className="employee-info-card">
               <div className="info-item">
-                <span className="info-label"><User size={14} /> 氏名 (Employee Name)</span>
-                <span className="info-value"><strong>{employee.name} 様</strong></span>
+                <span className="info-label"><User size={14} /> Employee Name</span>
+                <span className="info-value"><strong>{employee.name}</strong></span>
               </div>
               <div className="info-item">
-                <span className="info-label"><Briefcase size={14} /> 役職・所属 (Role)</span>
+                <span className="info-label"><Briefcase size={14} /> Role</span>
                 <span className="info-value"><span className="badge badge-role">{employee.role}</span></span>
               </div>
               <div className="info-item">
-                <span className="info-label"><Calendar size={14} /> 状態 (Status)</span>
+                <span className="info-label"><Calendar size={14} /> Status</span>
                 <span className="info-value">
                   <span className={`badge ${employee.status === 'active' ? 'badge-active' : 'badge-inactive'}`}>
-                    {employee.status === 'active' ? 'Active (在籍)' : 'Inactive (退職)'}
+                    {employee.status === 'active' ? 'Active' : 'Inactive'}
                   </span>
                 </span>
               </div>
@@ -217,16 +218,16 @@ const EmployeeSalaryReport = () => {
                 <span className="info-value">{employee.email}</span>
               </div>
               <div className="info-item">
-                <span className="info-label"><Phone size={14} /> 連絡先 (Phone)</span>
+                <span className="info-label"><Phone size={14} /> Phone</span>
                 <span className="info-value">{employee.phone || '-'}</span>
               </div>
               <div className="info-item">
-                <span className="info-label"><DollarSign size={14} /> 基本給 (Basic Salary)</span>
+                <span className="info-label"><DollarSign size={14} /> Basic Salary</span>
                 <span className="info-value"><strong>¥{num(employee.basic_salary)}</strong></span>
               </div>
             </div>
 
-            {/* Monthly Payslip View (給与支払明細書 Standard Japanese Layout) */}
+            {/* Monthly Payslip View */}
             {viewMode === 'month' ? (
               <div className="report-body">
                 {salaries.length === 0 ? (
@@ -251,22 +252,22 @@ const EmployeeSalaryReport = () => {
                       {/* Meta Details */}
                       <div className="kyuyo-meta-grid">
                         <div className="kyuyo-meta-item">
-                          <span className="meta-lbl">支給対象年月 (Target Period)</span>
+                          <span className="meta-lbl">Target Period</span>
                           <span className="meta-val">{sal.salary_month}</span>
                         </div>
                         <div className="kyuyo-meta-item">
-                          <span className="meta-lbl">支給日 (Payment Date)</span>
+                          <span className="meta-lbl">Payment Date</span>
                           <span className="meta-val">{sal.payment_date || '-'}</span>
                         </div>
                         <div className="kyuyo-meta-item">
-                          <span className="meta-lbl">氏名 (Employee Name)</span>
-                          <span className="meta-val">{sal.employee_name || employee.name} 様</span>
+                          <span className="meta-lbl">Employee Name</span>
+                          <span className="meta-val">{sal.employee_name || employee.name}</span>
                         </div>
                         <div className="kyuyo-meta-item">
-                          <span className="meta-lbl">支払状況 (Status)</span>
+                          <span className="meta-lbl">Status</span>
                           <span className="meta-val">
                             <span className={`badge ${sal.status === 'paid' ? 'badge-active' : 'badge-inactive'}`}>
-                              {sal.status === 'paid' ? 'PAID (支給済)' : 'UNPAID (未支給)'}
+                              {sal.status === 'paid' ? 'PAID' : 'UNPAID'}
                             </span>
                           </span>
                         </div>
@@ -274,88 +275,88 @@ const EmployeeSalaryReport = () => {
 
                       {/* Dual Grid: Earnings vs Deductions */}
                       <div className="kyuyo-dual-grid">
-                        {/* 支給 (Earnings) */}
+                        {/* Earnings */}
                         <div className="kyuyo-col earnings">
                           <div className="kyuyo-col-header">
-                            <span>支給項目 (Earnings)</span>
-                            <span>金額 (JPY)</span>
+                            <span>Earnings</span>
+                            <span>Amount (JPY)</span>
                           </div>
                           <table className="kyuyo-table">
                             <tbody>
                               <tr>
-                                <td>基本給 (Base Salary)</td>
+                                <td>Basic Salary</td>
                                 <td className="amount">¥{num(sal.basic_salary)}</td>
                               </tr>
                               <tr>
-                                <td>残業手当 (Overtime Pay)</td>
+                                <td>Overtime Pay</td>
                                 <td className="amount">¥{num(sal.overtime_allowance)}</td>
                               </tr>
                               <tr>
-                                <td>その他手当 (Allowances)</td>
+                                <td>Allowances</td>
                                 <td className="amount">¥{num(sal.allowances)}</td>
                               </tr>
                               <tr className="subtotal">
-                                <td>課税支給額 (Taxable Payment Total)</td>
+                                <td>Taxable Payment Total</td>
                                 <td className="amount">¥{num(sal.taxable_payment)}</td>
                               </tr>
                               <tr>
-                                <td>非課税通勤費 (Commuting Allowance)</td>
+                                <td>Commuting Allowance</td>
                                 <td className="amount">¥{num(sal.commuting_allowance)}</td>
                               </tr>
                               <tr className="total-row">
-                                <td>支給額合計 (Gross Payment Total)</td>
+                                <td>Gross Payment Total</td>
                                 <td className="amount">¥{num(sal.gross_payment)}</td>
                               </tr>
                             </tbody>
                           </table>
                         </div>
 
-                        {/* 控除 (Deductions) */}
+                        {/* Deductions */}
                         <div className="kyuyo-col deductions">
                           <div className="kyuyo-col-header">
-                            <span>控除項目 (Deductions)</span>
-                            <span>金額 (JPY)</span>
+                            <span>Deductions</span>
+                            <span>Amount (JPY)</span>
                           </div>
                           <table className="kyuyo-table">
                             <tbody>
                               <tr>
-                                <td>健康保険料 (Health Insurance)</td>
+                                <td>Health Insurance</td>
                                 <td className="amount">¥{num(sal.health_insurance)}</td>
                               </tr>
                               <tr>
-                                <td>厚生年金 (Welfare Pension)</td>
+                                <td>Welfare Pension</td>
                                 <td className="amount">¥{num(sal.welfare_pension)}</td>
                               </tr>
                               <tr>
-                                <td>雇用保険 (Employment Insurance)</td>
+                                <td>Employment Insurance</td>
                                 <td className="amount">¥{num(sal.employment_insurance)}</td>
                               </tr>
                               <tr className="subtotal">
-                                <td>社会保険計 (Total Social Insurance)</td>
+                                <td>Total Social Insurance</td>
                                 <td className="amount">¥{num(sal.total_social_insurance)}</td>
                               </tr>
                               <tr>
-                                <td>所得税 (Withholding Income Tax)</td>
+                                <td>Withholding Income Tax</td>
                                 <td className="amount">¥{num(sal.income_tax)}</td>
                               </tr>
                               <tr>
-                                <td>住民税 (Resident Tax)</td>
+                                <td>Resident Tax</td>
                                 <td className="amount">¥{num(sal.resident_tax)}</td>
                               </tr>
                               {Number(sal.leave_deduction) > 0 && (
                                 <tr>
-                                  <td>欠勤控除 (Leave Deduction)</td>
+                                  <td>Leave Deduction</td>
                                   <td className="amount">¥{num(sal.leave_deduction)}</td>
                                 </tr>
                               )}
                               {Number(sal.other_deductions) > 0 && (
                                 <tr>
-                                  <td>その他控除 (Other Deductions)</td>
+                                  <td>Other Deductions</td>
                                   <td className="amount">¥{num(sal.other_deductions)}</td>
                                 </tr>
                               )}
                               <tr className="total-row">
-                                <td>控除額合計 (Total Deductions)</td>
+                                <td>Total Deductions</td>
                                 <td className="amount">¥{num(sal.total_deductions)}</td>
                               </tr>
                             </tbody>
@@ -365,49 +366,49 @@ const EmployeeSalaryReport = () => {
 
                       {/* Net Take-home Pay Banner */}
                       <div className="kyuyo-net-banner">
-                        <div className="net-lbl">差引支給額 (Net Take-home Pay)</div>
+                        <div className="net-lbl">Net Take-home Pay</div>
                         <div className="net-val">¥{num(sal.net_amount)}</div>
                       </div>
 
                       {/* Attendance Tracking Grid */}
                       <div className="kyuyo-attendance-card">
-                        <div className="kyuyo-attendance-header">勤怠情報 (Attendance & Working Hours)</div>
+                        <div className="kyuyo-attendance-header">Attendance & Working Hours</div>
                         <div className="kyuyo-attendance-grid">
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">勤務日数 (Days)</div>
-                            <div className="att-val">{sal.working_days || 0} 日</div>
+                            <div className="att-lbl">Working Days</div>
+                            <div className="att-val">{sal.working_days || 0} days</div>
                           </div>
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">勤務時間数 (Hours)</div>
-                            <div className="att-val">{sal.working_hours || 0} h</div>
+                            <div className="att-lbl">Working Hours</div>
+                            <div className="att-val">{sal.working_hours || 0} hrs</div>
                           </div>
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">普通時間外 (OT)</div>
-                            <div className="att-val">{sal.overtime_hours || 0} h</div>
+                            <div className="att-lbl">Regular Overtime</div>
+                            <div className="att-val">{sal.overtime_hours || 0} hrs</div>
                           </div>
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">休日時間外 (Holiday OT)</div>
-                            <div className="att-val">{sal.holiday_overtime_hours || 0} h</div>
+                            <div className="att-lbl">Holiday Overtime</div>
+                            <div className="att-val">{sal.holiday_overtime_hours || 0} hrs</div>
                           </div>
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">深夜時間外 (Midnight OT)</div>
-                            <div className="att-val">{sal.midnight_overtime_hours || 0} h</div>
+                            <div className="att-lbl">Midnight Overtime</div>
+                            <div className="att-val">{sal.midnight_overtime_hours || 0} hrs</div>
                           </div>
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">有給日数 (Paid Leave)</div>
-                            <div className="att-val">{sal.paid_leaves || 0} 日</div>
+                            <div className="att-lbl">Paid Leave</div>
+                            <div className="att-val">{sal.paid_leaves || 0} days</div>
                           </div>
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">公休日数 (Off Days)</div>
-                            <div className="att-val">{sal.statutory_leaves || 0} 日</div>
+                            <div className="att-lbl">Scheduled Off Days</div>
+                            <div className="att-val">{sal.statutory_leaves || 0} days</div>
                           </div>
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">欠勤日数 (Absence)</div>
-                            <div className="att-val">{sal.absence_days || 0} 日</div>
+                            <div className="att-lbl">Absence</div>
+                            <div className="att-val">{sal.absence_days || 0} days</div>
                           </div>
                           <div className="kyuyo-att-item">
-                            <div className="att-lbl">遅刻・早退 (Late/Early)</div>
-                            <div className="att-val">{sal.late_early_count || 0} 回 ({sal.late_early_hours || 0}h)</div>
+                            <div className="att-lbl">Late / Early</div>
+                            <div className="att-val">{sal.late_early_count || 0} times ({sal.late_early_hours || 0}h)</div>
                           </div>
                         </div>
                       </div>
@@ -415,7 +416,7 @@ const EmployeeSalaryReport = () => {
                       {/* Remarks */}
                       {sal.remarks && (
                         <div className="kyuyo-remarks-box">
-                          <div className="rmk-lbl">備考 (Remarks)</div>
+                          <div className="rmk-lbl">Remarks</div>
                           <div className="rmk-val">{sal.remarks}</div>
                         </div>
                       )}
@@ -426,7 +427,7 @@ const EmployeeSalaryReport = () => {
             ) : (
               /* Yearly View (Annual Summary) */
               <div className="report-body">
-                <h3 className="section-subtitle">年間給与集計表 — {selectedYear}年度 (Annual Breakdown)</h3>
+                <h3 className="section-subtitle">Annual Salary Breakdown — Year {selectedYear}</h3>
 
                 {salaries.length === 0 ? (
                   <div className="empty-state-card">
@@ -440,13 +441,13 @@ const EmployeeSalaryReport = () => {
                       <thead>
                         <tr>
                           <th>#</th>
-                          <th>支給月</th>
-                          <th>総支給額 (Gross)</th>
-                          <th>社保計 (Social Ins)</th>
-                          <th>所得税 (Tax)</th>
-                          <th>住民税 (Resident)</th>
-                          <th>控除計 (Deduct)</th>
-                          <th>差引支給額 (Net Pay)</th>
+                          <th>Salary Month</th>
+                          <th>Gross Pay</th>
+                          <th>Social Insurance</th>
+                          <th>Income Tax</th>
+                          <th>Resident Tax</th>
+                          <th>Total Deduct</th>
+                          <th>Net Pay</th>
                           <th>Status</th>
                           <th className="no-print">Export</th>
                         </tr>
@@ -492,7 +493,7 @@ const EmployeeSalaryReport = () => {
                       </tbody>
                       <tfoot>
                         <tr className="summary-row">
-                          <td colSpan="2"><strong>年間合計 (Total {summary.total_records}件)</strong></td>
+                          <td colSpan="2"><strong>Annual Total ({summary.total_records} records)</strong></td>
                           <td><strong>¥{num(summary.total_gross_payment)}</strong></td>
                           <td style={{ color: '#b91c1c' }}><strong>-¥{num(summary.total_social_insurance)}</strong></td>
                           <td style={{ color: '#b91c1c' }}><strong>-¥{num(summary.total_income_tax)}</strong></td>
@@ -507,19 +508,19 @@ const EmployeeSalaryReport = () => {
 
                     <div className="yearly-cards-summary">
                       <div className="sum-box">
-                        <span className="sum-title">年間支給額合計 (Gross)</span>
+                        <span className="sum-title">Annual Gross Payment</span>
                         <span className="sum-val text-success">¥{num(summary.total_gross_payment)}</span>
                       </div>
                       <div className="sum-box">
-                        <span className="sum-title">年間社会保険料合計 (Social Ins)</span>
+                        <span className="sum-title">Annual Social Insurance</span>
                         <span className="sum-val text-danger">¥{num(summary.total_social_insurance)}</span>
                       </div>
                       <div className="sum-box">
-                        <span className="sum-title">年間源泉所得税合計 (Income Tax)</span>
+                        <span className="sum-title">Annual Withholding Tax</span>
                         <span className="sum-val text-danger">¥{num(summary.total_income_tax)}</span>
                       </div>
                       <div className="sum-box highlight">
-                        <span className="sum-title">年間差引支給総額 (Net Payout)</span>
+                        <span className="sum-title">Annual Net Payout Total</span>
                         <span className="sum-val">¥{num(summary.total_net_amount)}</span>
                       </div>
                     </div>
@@ -533,13 +534,13 @@ const EmployeeSalaryReport = () => {
               <div className="sig-line">
                 <div className="sig-space"></div>
                 <div className="line"></div>
-                <p className="sig-title">Employee Signature (受領印)</p>
+                <p className="sig-title">Employee Signature</p>
                 <p className="sig-date">Date: ____________________</p>
               </div>
               <div className="sig-line">
                 <div className="sig-space"></div>
                 <div className="line"></div>
-                <p className="sig-title">Authorized Admin Signature & Stamp (会社捺印)</p>
+                <p className="sig-title">Authorized Admin Signature & Stamp</p>
                 <p className="sig-date">Date: ____________________</p>
               </div>
             </div>
@@ -551,3 +552,4 @@ const EmployeeSalaryReport = () => {
 };
 
 export default EmployeeSalaryReport;
+

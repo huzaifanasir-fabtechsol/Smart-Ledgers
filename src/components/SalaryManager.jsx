@@ -52,6 +52,13 @@ const SalaryManager = () => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
 
+  const [customOverrides, setCustomOverrides] = useState({
+    health_insurance: false,
+    welfare_pension: false,
+    employment_insurance: false,
+    income_tax: false,
+  });
+
   const defaultMonthStr = new Date().toISOString().substring(0, 7);
 
   const emptyForm = {
@@ -96,10 +103,8 @@ const SalaryManager = () => {
     late_early_hours: '0',
     remarks: '',
 
-    // Custom overrides flags / manual edits
     dependents_count: 0,
     employment_insurance_exempt: false,
-    manual_tax_override: false,
   };
 
   const [formData, setFormData] = useState(emptyForm);
@@ -132,6 +137,42 @@ const SalaryManager = () => {
       window.removeEventListener('resize', handleCloseMenu);
     };
   }, []);
+
+  // Instant Mathematical Recalculation
+  const recalculateLocally = (state) => {
+    const basic = Number(state.basic_salary || 0);
+    const commuting = Number(state.commuting_allowance || 0);
+    const overtime = Number(state.overtime_allowance || 0);
+    const allowances = Number(state.allowances || 0);
+    const leaveDed = Number(state.leave_deduction || 0);
+
+    const taxablePayment = Math.max(0, basic + overtime + allowances - leaveDed);
+    const grossPayment = taxablePayment + commuting;
+
+    const health = Number(state.health_insurance || 0);
+    const pension = Number(state.welfare_pension || 0);
+    const employment = Number(state.employment_insurance || 0);
+    const totalSocial = health + pension + employment;
+
+    const taxableBase = Math.max(0, taxablePayment - totalSocial);
+
+    const incomeTax = Number(state.income_tax || 0);
+    const residentTax = Number(state.resident_tax || 0);
+    const otherDed = Number(state.other_deductions || 0);
+
+    const totalDeductions = totalSocial + incomeTax + residentTax + otherDed;
+    const netAmount = grossPayment - totalDeductions;
+
+    return {
+      ...state,
+      taxable_payment: String(taxablePayment),
+      gross_payment: String(grossPayment),
+      total_social_insurance: String(totalSocial),
+      taxable_income_base: String(taxableBase),
+      total_deductions: String(totalDeductions),
+      net_amount: String(netAmount),
+    };
+  };
 
   const fetchSalaries = async () => {
     setLoading(true);
@@ -174,8 +215,8 @@ const SalaryManager = () => {
     }
   };
 
-  // Perform Live Calculation via API
-  const runLiveCalculation = async (currentValues) => {
+  // Perform Live Calculation via API (Kyokai Kenpo & NTA Withholding Tax Brackets)
+  const runLiveCalculation = async (currentValues, overrides = customOverrides) => {
     const val = currentValues || formData;
     if (!val.employee) return;
 
@@ -194,13 +235,10 @@ const SalaryManager = () => {
         employment_insurance_exempt: Boolean(val.employment_insurance_exempt),
       };
 
-      // If user has custom overrides
-      if (val.manual_tax_override) {
-        payload.custom_health_insurance = Number(val.health_insurance);
-        payload.custom_welfare_pension = Number(val.welfare_pension);
-        payload.custom_employment_insurance = Number(val.employment_insurance);
-        payload.custom_income_tax = Number(val.income_tax);
-      }
+      if (overrides.health_insurance) payload.custom_health_insurance = Number(val.health_insurance);
+      if (overrides.welfare_pension) payload.custom_welfare_pension = Number(val.welfare_pension);
+      if (overrides.employment_insurance) payload.custom_employment_insurance = Number(val.employment_insurance);
+      if (overrides.income_tax) payload.custom_income_tax = Number(val.income_tax);
 
       const response = await apiRequest('/hr/salaries/calculate/', {
         method: 'POST',
@@ -209,20 +247,23 @@ const SalaryManager = () => {
 
       if (response.ok) {
         const result = await response.json();
-        setFormData(prev => ({
-          ...prev,
-          taxable_payment: String(result.taxable_payment),
-          gross_payment: String(result.gross_payment),
-          health_insurance: String(result.health_insurance),
-          welfare_pension: String(result.welfare_pension),
-          employment_insurance: String(result.employment_insurance),
-          total_social_insurance: String(result.total_social_insurance),
-          taxable_income_base: String(result.taxable_income_base),
-          income_tax: String(result.income_tax),
-          resident_tax: String(result.resident_tax),
-          total_deductions: String(result.total_deductions),
-          net_amount: String(result.net_amount),
-        }));
+        setFormData(prev => {
+          const updated = {
+            ...prev,
+            taxable_payment: String(result.taxable_payment),
+            gross_payment: String(result.gross_payment),
+            health_insurance: overrides.health_insurance ? prev.health_insurance : String(result.health_insurance),
+            welfare_pension: overrides.welfare_pension ? prev.welfare_pension : String(result.welfare_pension),
+            employment_insurance: overrides.employment_insurance ? prev.employment_insurance : String(result.employment_insurance),
+            total_social_insurance: String(result.total_social_insurance),
+            taxable_income_base: String(result.taxable_income_base),
+            income_tax: overrides.income_tax ? prev.income_tax : String(result.income_tax),
+            resident_tax: String(result.resident_tax),
+            total_deductions: String(result.total_deductions),
+            net_amount: String(result.net_amount),
+          };
+          return recalculateLocally(updated);
+        });
       }
     } catch {
       // ignore
@@ -234,34 +275,62 @@ const SalaryManager = () => {
   const handleEmployeeChange = (empId) => {
     const emp = allEmployees.find(e => String(e.id) === String(empId));
     if (emp) {
-      const updated = {
+      const clearedOverrides = {
+        health_insurance: false,
+        welfare_pension: false,
+        employment_insurance: false,
+        income_tax: false,
+      };
+      setCustomOverrides(clearedOverrides);
+
+      const updated = recalculateLocally({
         ...formData,
         employee: String(empId),
         basic_salary: String(emp.basic_salary || '0'),
         commuting_allowance: String(emp.commuting_allowance || '0'),
         dependents_count: emp.dependents_count || 0,
         employment_insurance_exempt: Boolean(emp.employment_insurance_exempt),
-      };
+      });
       setFormData(updated);
-      runLiveCalculation(updated);
+      runLiveCalculation(updated, clearedOverrides);
     } else {
       setFormData(prev => ({ ...prev, employee: '' }));
     }
   };
 
   const handleFieldChange = (field, value) => {
-    const updated = { ...formData, [field]: value };
-    setFormData(updated);
+    let newOverrides = { ...customOverrides };
+    if (['health_insurance', 'welfare_pension', 'employment_insurance', 'income_tax'].includes(field)) {
+      newOverrides[field] = true;
+      setCustomOverrides(newOverrides);
+    }
 
-    // Auto recalculate on relevant field changes
-    const calcTriggerFields = [
-      'basic_salary', 'commuting_allowance', 'overtime_allowance', 'allowances',
-      'leave_deduction', 'resident_tax', 'other_deductions'
-    ];
-    if (calcTriggerFields.includes(field)) {
-      runLiveCalculation(updated);
+    const nextForm = recalculateLocally({ ...formData, [field]: value });
+    setFormData(nextForm);
+
+    // Run backend calculation if earnings or taxable base changes
+    if (
+      [
+        'basic_salary', 'commuting_allowance', 'overtime_allowance', 'allowances',
+        'leave_deduction', 'health_insurance', 'welfare_pension', 'employment_insurance'
+      ].includes(field)
+    ) {
+      runLiveCalculation(nextForm, newOverrides);
     }
   };
+
+  const handleResetToAutoCalculate = () => {
+    const clearedOverrides = {
+      health_insurance: false,
+      welfare_pension: false,
+      employment_insurance: false,
+      income_tax: false,
+    };
+    setCustomOverrides(clearedOverrides);
+    runLiveCalculation(formData, clearedOverrides);
+    toast.info('Recalculated with standard Japanese rates');
+  };
+
 
   const validateForm = () => {
     const errors = {};
@@ -451,9 +520,9 @@ const SalaryManager = () => {
 
       <div className="page-header">
         <div>
-          <h2>給与管理 (Salary Management)</h2>
+          <h2>Salary Management</h2>
           <p style={{ color: 'var(--ink-2)', fontSize: '0.875rem', marginTop: 2 }}>
-            Japanese Salary Slip (給与支払明細書) with Kyokai Kenpo, Pension & NTA Withholding Tax
+            Manage employee salaries, social insurance, deductions, and payslips
           </p>
         </div>
         <button className="btn-primary" onClick={openCreateModal}>
@@ -491,8 +560,8 @@ const SalaryManager = () => {
             onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
           >
             <option value="">All Status</option>
-            <option value="paid">Paid (支給済)</option>
-            <option value="unpaid">Unpaid (未支給)</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
           </select>
         </div>
 
@@ -511,14 +580,14 @@ const SalaryManager = () => {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Employee (氏名)</th>
-                  <th>Salary Month (支給月)</th>
-                  <th>Payment Date (支給日)</th>
-                  <th>Gross Pay (支給合計)</th>
-                  <th>Social Ins (社保計)</th>
-                  <th>Tax (所得税)</th>
-                  <th>Total Deduct (控除計)</th>
-                  <th>Net Pay (差引支給額)</th>
+                  <th>Employee</th>
+                  <th>Salary Month</th>
+                  <th>Payment Date</th>
+                  <th>Gross Pay</th>
+                  <th>Social Insurance</th>
+                  <th>Income Tax</th>
+                  <th>Total Deductions</th>
+                  <th>Net Pay</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -584,7 +653,7 @@ const SalaryManager = () => {
             return sal ? (
               <>
                 <button onClick={() => { setViewingPayslip(sal); setOpenMenuId(null); }}>
-                  <Eye size={15} /> 👁️ View Slip (明細書)
+                  <Eye size={15} /> 👁️ View Payslip
                 </button>
                 <button onClick={() => { handleDownloadExcel(sal); setOpenMenuId(null); }}>
                   <FileSpreadsheet size={15} style={{ color: '#16a34a' }} /> 📗 Export Excel (.xlsx)
@@ -610,9 +679,9 @@ const SalaryManager = () => {
           <div className="modal-box" style={{ maxWidth: 840 }}>
             <div className="modal-header">
               <div>
-                <h3>{editingSalary ? 'Edit Japanese Salary Record' : 'Create Salary Record (給与計算・明細作成)'}</h3>
+                <h3>{editingSalary ? 'Edit Salary Record' : 'Create Salary Record'}</h3>
                 <span className="live-calc-badge" style={{ marginTop: 4 }}>
-                  <Sparkles size={13} /> {calculating ? 'Calculating Taxes...' : 'Live Japanese Payroll Engine Active'}
+                  <Sparkles size={13} /> {calculating ? 'Calculating Taxes...' : 'Auto-Calculation Active'}
                 </span>
               </div>
               <button className="modal-close" onClick={() => !submitting && setShowModal(false)}>×</button>
@@ -622,7 +691,7 @@ const SalaryManager = () => {
               {/* Top Overview Grid */}
               <div className="form-grid-3" style={{ background: 'var(--surface-raised, #f8fafc)', padding: '1rem', borderRadius: 8, marginBottom: '1.25rem' }}>
                 <div className="form-group">
-                  <label>Employee (氏名) *</label>
+                  <label>Employee *</label>
                   <select
                     className={`form-input ${formErrors.employee ? 'input-error' : ''}`}
                     value={formData.employee}
@@ -637,7 +706,7 @@ const SalaryManager = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Salary Month (支給対象月) *</label>
+                  <label>Salary Month *</label>
                   <input
                     type="month"
                     className={`form-input ${formErrors.salary_month ? 'input-error' : ''}`}
@@ -648,7 +717,7 @@ const SalaryManager = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Payment Date (支給日)</label>
+                  <label>Payment Date</label>
                   <input
                     type="date"
                     className="form-input"
@@ -665,30 +734,30 @@ const SalaryManager = () => {
                   className={`salary-form-tab ${activeTab === 'earnings' ? 'active' : ''}`}
                   onClick={() => setActiveTab('earnings')}
                 >
-                  1. 支給項目 (Earnings)
+                  1. Earnings
                 </button>
                 <button
                   type="button"
                   className={`salary-form-tab ${activeTab === 'deductions' ? 'active' : ''}`}
                   onClick={() => setActiveTab('deductions')}
                 >
-                  2. 控除・社保・税金 (Deductions & Taxes)
+                  2. Deductions & Taxes
                 </button>
                 <button
                   type="button"
                   className={`salary-form-tab ${activeTab === 'attendance' ? 'active' : ''}`}
                   onClick={() => setActiveTab('attendance')}
                 >
-                  3. 勤怠情報 (Attendance)
+                  3. Attendance
                 </button>
               </div>
 
-              {/* Tab 1: 支給項目 (Earnings) */}
+              {/* Tab 1: Earnings */}
               {activeTab === 'earnings' && (
                 <div className="form-tab-pane">
                   <div className="form-grid-2">
                     <div className="form-group">
-                      <label>基本給 (Basic Salary ¥) *</label>
+                      <label>Basic Salary (¥) *</label>
                       <input
                         type="number"
                         min="0"
@@ -700,7 +769,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>非課税通勤費 (Non-taxable Commuting ¥)</label>
+                      <label>Commuting Allowance (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -712,7 +781,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>残業手当 (Overtime Pay ¥)</label>
+                      <label>Overtime Pay (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -724,7 +793,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>その他手当 (Other Allowances ¥)</label>
+                      <label>Other Allowances (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -736,7 +805,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>課税支給額 (Taxable Payment Total ¥)</label>
+                      <label>Taxable Payment Total (¥)</label>
                       <input
                         type="number"
                         className="form-input"
@@ -747,7 +816,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>支給額合計 (Gross Payment Total ¥)</label>
+                      <label>Gross Payment Total (¥)</label>
                       <input
                         type="number"
                         className="form-input"
@@ -760,12 +829,38 @@ const SalaryManager = () => {
                 </div>
               )}
 
-              {/* Tab 2: 控除・社保・税金 (Deductions & Taxes) */}
+              {/* Tab 2: Deductions & Taxes */}
               {activeTab === 'deductions' && (
                 <div className="form-tab-pane">
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 8,
+                      padding: '0.6rem 1rem',
+                      marginBottom: '1.25rem'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.85rem', color: '#475569' }}>
+                      💡 Editing any insurance or deduction field updates Total Social Insurance, Taxable Base, and Net Pay in real-time.
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                      onClick={handleResetToAutoCalculate}
+                      title="Reset all deductions to standard calculated rates"
+                    >
+                      <Calculator size={14} /> ⚡ Reset to Auto-Calculate
+                    </button>
+                  </div>
+
                   <div className="form-grid-3">
                     <div className="form-group">
-                      <label>健康保険料 (Health Insurance ¥)</label>
+                      <label>Health Insurance (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -777,7 +872,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>厚生年金 (Welfare Pension ¥)</label>
+                      <label>Welfare Pension (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -789,7 +884,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>雇用保険 (Employment Insurance ¥)</label>
+                      <label>Employment Insurance (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -801,7 +896,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>社会保険計 (Total Social Ins ¥)</label>
+                      <label>Total Social Insurance (¥)</label>
                       <input
                         type="number"
                         className="form-input"
@@ -812,7 +907,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>課税対象額 (Taxable Base ¥)</label>
+                      <label>Taxable Income Base (¥)</label>
                       <input
                         type="number"
                         className="form-input"
@@ -823,7 +918,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>所得税 (Withholding Tax ¥)</label>
+                      <label>Income Tax (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -835,7 +930,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>住民税 (Resident Tax ¥)</label>
+                      <label>Resident Tax (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -847,7 +942,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>欠勤控除 (Leave Deduction ¥)</label>
+                      <label>Leave Deduction (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -859,7 +954,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>その他控除 (Other Deductions ¥)</label>
+                      <label>Other Deductions (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -871,7 +966,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                      <label>控除額合計 (Total Deductions ¥)</label>
+                      <label>Total Deductions (¥)</label>
                       <input
                         type="number"
                         className="form-input"
@@ -884,12 +979,12 @@ const SalaryManager = () => {
                 </div>
               )}
 
-              {/* Tab 3: 勤怠情報 (Attendance) */}
+              {/* Tab 3: Attendance */}
               {activeTab === 'attendance' && (
                 <div className="form-tab-pane">
                   <div className="form-grid-3">
                     <div className="form-group">
-                      <label>勤務日数 (Working Days)</label>
+                      <label>Working Days</label>
                       <input
                         type="number"
                         min="0"
@@ -901,7 +996,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>勤務時間数 (Working Hours)</label>
+                      <label>Working Hours</label>
                       <input
                         type="number"
                         min="0"
@@ -913,7 +1008,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>普通時間外 (Regular Overtime h)</label>
+                      <label>Regular Overtime (hrs)</label>
                       <input
                         type="number"
                         min="0"
@@ -925,7 +1020,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>休日時間外 (Holiday Overtime h)</label>
+                      <label>Holiday Overtime (hrs)</label>
                       <input
                         type="number"
                         min="0"
@@ -937,7 +1032,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>深夜時間外 (Midnight Overtime h)</label>
+                      <label>Midnight Overtime (hrs)</label>
                       <input
                         type="number"
                         min="0"
@@ -949,7 +1044,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>有給日数 (Paid Leave Days)</label>
+                      <label>Paid Leave (days)</label>
                       <input
                         type="number"
                         min="0"
@@ -961,7 +1056,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>公休日数 (Scheduled Days Off)</label>
+                      <label>Scheduled Off Days</label>
                       <input
                         type="number"
                         min="0"
@@ -973,7 +1068,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>欠勤日数 (Absence Days)</label>
+                      <label>Absence (days)</label>
                       <input
                         type="number"
                         min="0"
@@ -985,7 +1080,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>遅刻・早退 (Count / Hours)</label>
+                      <label>Late / Early (Times / Hours)</label>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <input
                           type="number"
@@ -1009,7 +1104,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                      <label>備考 (Remarks / Note)</label>
+                      <label>Remarks</label>
                       <textarea
                         className="form-input"
                         rows={2}
@@ -1036,7 +1131,7 @@ const SalaryManager = () => {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>差引支給額 (Net Take-home Pay)</div>
+                  <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Net Take-home Pay</div>
                   <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#34d399', fontFamily: 'monospace' }}>
                     ¥{num(formData.net_amount)}
                   </div>
