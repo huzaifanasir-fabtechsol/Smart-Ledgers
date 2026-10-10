@@ -52,3 +52,38 @@ export const getErrorMessage = async (response) => {
     return 'An error occurred';
   }
 };
+
+export const downloadFile = async (endpoint, defaultFilename) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: token ? { Authorization: `Token ${token}` } : {},
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to download file');
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = defaultFilename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+export const downloadSalaryExcel = async (salaryId, employeeName = 'Employee', salaryMonth = '') => {
+  const sanitizedName = (employeeName || 'Employee').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const filename = `Pay_Slip_${sanitizedName}_${salaryMonth || salaryId}.xlsx`;
+  return downloadFile(`/hr/salaries/${salaryId}/export-excel/`, filename);
+};
+
+export const downloadSalaryPdf = async (salaryId, employeeName = 'Employee', salaryMonth = '') => {
+  const sanitizedName = (employeeName || 'Employee').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const filename = `Pay_Slip_${sanitizedName}_${salaryMonth || salaryId}.pdf`;
+  return downloadFile(`/hr/salaries/${salaryId}/export-pdf/`, filename);
+};
+
+

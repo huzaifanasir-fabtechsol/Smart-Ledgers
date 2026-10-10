@@ -28,7 +28,9 @@ const EmployeeManager = () => {
 
   const emptyForm = {
     name: '', email: '', phone: '', role: '', address: '',
-    employment_start_month: '', basic_salary: '', status: 'active',
+    employment_start_month: '', basic_salary: '',
+    commuting_allowance: '0', dependents_count: '0', employment_insurance_exempt: false,
+    status: 'active',
   };
   const [formData, setFormData] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
@@ -103,6 +105,12 @@ const EmployeeManager = () => {
     } else if (Number(formData.basic_salary) < 0) {
       errors.basic_salary = 'Basic salary cannot be negative';
     }
+    if (Number(formData.commuting_allowance) < 0) {
+      errors.commuting_allowance = 'Commuting allowance cannot be negative';
+    }
+    if (Number(formData.dependents_count) < 0) {
+      errors.dependents_count = 'Dependents count cannot be negative';
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -124,6 +132,9 @@ const EmployeeManager = () => {
       address: emp.address || '',
       employment_start_month: emp.employment_start_month,
       basic_salary: emp.basic_salary,
+      commuting_allowance: emp.commuting_allowance != null ? String(emp.commuting_allowance) : '0',
+      dependents_count: emp.dependents_count != null ? String(emp.dependents_count) : '0',
+      employment_insurance_exempt: Boolean(emp.employment_insurance_exempt),
       status: emp.status,
     });
     setFormErrors({});
@@ -136,7 +147,13 @@ const EmployeeManager = () => {
     if (!validateForm()) return;
     setSubmitting(true);
     try {
-      const payload = { ...formData };
+      const payload = {
+        ...formData,
+        basic_salary: Number(formData.basic_salary),
+        commuting_allowance: Number(formData.commuting_allowance || 0),
+        dependents_count: Number(formData.dependents_count || 0),
+        employment_insurance_exempt: Boolean(formData.employment_insurance_exempt),
+      };
       // employment_start_month: backend expects a date — use first day of month if only month given
       if (payload.employment_start_month && payload.employment_start_month.length === 7) {
         payload.employment_start_month = payload.employment_start_month + '-01';
@@ -266,11 +283,12 @@ const EmployeeManager = () => {
                 <tr>
                   <th>#</th>
                   <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
+                  <th>Email / Phone</th>
                   <th>Role</th>
                   <th>Start Month</th>
                   <th>Basic Salary</th>
+                  <th>Commuting (¥)</th>
+                  <th>Dependents</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -280,11 +298,19 @@ const EmployeeManager = () => {
                   <tr key={emp.id}>
                     <td>{(currentPage - 1) * pageSize + idx + 1}</td>
                     <td><strong>{emp.name}</strong></td>
-                    <td>{emp.email}</td>
-                    <td>{emp.phone}</td>
+                    <td>
+                      <div>{emp.email}</div>
+                      <small style={{ color: 'var(--ink-2)' }}>{emp.phone}</small>
+                    </td>
                     <td><span className="badge badge-role">{emp.role}</span></td>
                     <td>{formatMonthDisplay(emp.employment_start_month)}</td>
-                    <td>¥{Number(emp.basic_salary).toLocaleString()}</td>
+                    <td><strong>¥{Number(emp.basic_salary).toLocaleString()}</strong></td>
+                    <td>¥{Number(emp.commuting_allowance || 0).toLocaleString()}</td>
+                    <td>
+                      <span className="badge" style={{ background: 'var(--surface-sunken)', color: 'var(--ink-1)' }}>
+                        {emp.dependents_count || 0}
+                      </span>
+                    </td>
                     <td>
                       <span className={`badge ${emp.status === 'active' ? 'badge-active' : 'badge-inactive'}`}>
                         {emp.status === 'active' ? 'Active' : 'Inactive'}
@@ -336,7 +362,7 @@ const EmployeeManager = () => {
       {/* Create / Edit Modal */}
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-box" style={{ maxWidth: 560 }}>
+          <div className="modal-box" style={{ maxWidth: 640 }}>
             <div className="modal-header">
               <h3>{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
               <button className="modal-close" onClick={() => !submitting && setShowModal(false)}>×</button>
@@ -344,7 +370,7 @@ const EmployeeManager = () => {
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-grid-2">
                 <div className="form-group">
-                  <label>Name *</label>
+                  <label>Name (氏名) *</label>
                   <input
                     type="text"
                     className={`form-input ${formErrors.name ? 'input-error' : ''}`}
@@ -380,14 +406,14 @@ const EmployeeManager = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Role *</label>
+                  <label>Role (役職・所属) *</label>
                   <input
                     type="text"
                     list="roles-datalist"
                     className={`form-input ${formErrors.role ? 'input-error' : ''}`}
                     value={formData.role}
                     onChange={e => setFormData({ ...formData, role: e.target.value })}
-                    placeholder="e.g. Manager, Driver..."
+                    placeholder="e.g. Manager, Driver, Engineer..."
                   />
                   <datalist id="roles-datalist">
                     {roles.map(r => <option key={r} value={r} />)}
@@ -407,17 +433,46 @@ const EmployeeManager = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Basic Salary (¥) *</label>
+                  <label>Basic Salary / 基本給 (¥) *</label>
                   <input
                     type="number"
                     min="0"
-                    step="0.01"
+                    step="1"
                     className={`form-input ${formErrors.basic_salary ? 'input-error' : ''}`}
                     value={formData.basic_salary}
                     onChange={e => setFormData({ ...formData, basic_salary: e.target.value })}
-                    placeholder="0"
+                    placeholder="200000"
                   />
                   {formErrors.basic_salary && <span className="field-error">{formErrors.basic_salary}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label>Non-taxable Commuting / 非課税通勤費 (¥)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    className={`form-input ${formErrors.commuting_allowance ? 'input-error' : ''}`}
+                    value={formData.commuting_allowance}
+                    onChange={e => setFormData({ ...formData, commuting_allowance: e.target.value })}
+                    placeholder="0"
+                  />
+                  {formErrors.commuting_allowance && <span className="field-error">{formErrors.commuting_allowance}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label>Dependents Count / 扶養親族等の数</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="7"
+                    step="1"
+                    className={`form-input ${formErrors.dependents_count ? 'input-error' : ''}`}
+                    value={formData.dependents_count}
+                    onChange={e => setFormData({ ...formData, dependents_count: e.target.value })}
+                    placeholder="0"
+                  />
+                  {formErrors.dependents_count && <span className="field-error">{formErrors.dependents_count}</span>}
                 </div>
 
                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>
@@ -438,6 +493,17 @@ const EmployeeManager = () => {
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
+
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', margin: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.employment_insurance_exempt}
+                      onChange={e => setFormData({ ...formData, employment_insurance_exempt: e.target.checked })}
+                    />
+                    <span>Employment Insurance Exempt (雇用保険免除)</span>
+                  </label>
+                </div>
               </div>
 
               <div className="modal-actions">
@@ -450,6 +516,7 @@ const EmployeeManager = () => {
           </div>
         </div>
       )}
+
 
       {/* Delete Confirmation */}
       <DeleteConfirmModal
