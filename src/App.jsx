@@ -15,6 +15,7 @@ import {
   Landmark,
   Download,
   User,
+  Settings,
   LogOut,
   Menu,
   ChevronLeft,
@@ -111,7 +112,7 @@ function AppContent() {
     { path: '/employees', label: 'Employees', icon: BriefcaseBusiness },
     { path: '/salaries', label: 'Salaries', icon: BadgeDollarSign },
     { path: '/export', label: t.dataExport, icon: Download },
-    { path: '/profile', label: 'Profile', icon: User },
+    { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
   const isActive = (path) => {
@@ -123,6 +124,11 @@ function AppContent() {
       return true;
     }
     if (path === '/employees' && location.pathname.startsWith('/employees')) {
+      return true;
+    }
+    if ((path === '/settings' || path === '/profile') && (
+      location.pathname === '/settings' || location.pathname === '/profile'
+    )) {
       return true;
     }
     return location.pathname === path;
@@ -254,6 +260,7 @@ function AppContent() {
           <Route path="/employees/:id/salary-report" element={<EmployeeSalaryReport />} />
           <Route path="/salaries" element={<SalaryManager />} />
           <Route path="/export" element={<DataExport language={language} />} />
+          <Route path="/settings" element={<ProfileSettings onUserUpdate={handleUserUpdate} />} />
           <Route path="/profile" element={<ProfileSettings onUserUpdate={handleUserUpdate} />} />
         </Routes>
       </main>

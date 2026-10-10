@@ -24,6 +24,8 @@ const EXPENSE_INITIAL_FORM = {
   category: '',
   category_name: '',
   is_cash: false,
+  apply_tax: false,
+  tax_percent_used: '',
 };
 
 const MONTHS = [
@@ -96,6 +98,9 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [savingCategory, setSavingCategory] = useState(false);
   const [savingExpense, setSavingExpense] = useState(false);
 
+  const [taxRates, setTaxRates] = useState([]);
+  const [isCustomTax, setIsCustomTax] = useState(false);
+
   const [transactions, setTransactions] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -164,6 +169,7 @@ const ExpenseManager = ({ language = 'en' }) => {
     fetchCompanyAccounts();
     fetchRestaurants();
     fetchSpareParts();
+    fetchTaxRates();
   }, [categoryPage, categoryPageSize]);
 
   useEffect(() => {
@@ -296,6 +302,17 @@ const ExpenseManager = ({ language = 'en' }) => {
     }
   };
 
+  const fetchTaxRates = async () => {
+    try {
+      const response = await apiRequest('/account/tax-rates/');
+      if (!response.ok) return;
+      const data = await response.json();
+      setTaxRates(Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : []);
+    } catch {
+      // silently ignore
+    }
+  };
+
   const fetchTitleSuggestions = async (query) => {
     try {
       const response = await apiRequest(`/expenses/search_titles/?q=${encodeURIComponent(query)}`);
@@ -357,6 +374,7 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   const openCreateExpenseModal = () => {
     setEditingExpense(null);
+    setIsCustomTax(false);
     setExpenseForm(EXPENSE_INITIAL_FORM);
     setSelectedTransaction(null);
     setSelectedAccount(null);
@@ -369,6 +387,10 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   const openEditExpenseModal = (expense) => {
     setEditingExpense(expense);
+    const hasTax = expense.tax_percent_used != null && Number(expense.tax_percent_used) > 0;
+    const rateVal = hasTax ? String(expense.tax_percent_used) : '';
+    const matchesPreset = hasTax && taxRates.some((tr) => Number(tr.rate) === Number(expense.tax_percent_used));
+    setIsCustomTax(hasTax && !matchesPreset);
     setExpenseForm({
       title: expense.title || '',
       amount: expense.amount || '',
@@ -377,6 +399,8 @@ const ExpenseManager = ({ language = 'en' }) => {
       category: expense.category ? String(expense.category) : '',
       category_name: expense.category_name || '',
       is_cash: Boolean(expense.is_cash),
+      apply_tax: hasTax,
+      tax_percent_used: rateVal,
     });
     setTxTypeFilter('all');
     if (expense.transaction) {
@@ -516,9 +540,15 @@ const ExpenseManager = ({ language = 'en' }) => {
       const endpoint = editingExpense ? `/expenses/${editingExpense.id}/` : '/expenses/';
       const method = editingExpense ? 'PATCH' : 'POST';
 
+      const baseAmount = Number(expenseForm.amount);
+      const taxPercent = expenseForm.apply_tax && expenseForm.tax_percent_used !== ''
+        ? Number(expenseForm.tax_percent_used)
+        : null;
+      const taxAmount = taxPercent != null ? parseFloat((baseAmount * taxPercent / 100).toFixed(2)) : null;
+
       const payload = {
         title: expenseForm.title.trim(),
-        amount: Number(expenseForm.amount),
+        amount: baseAmount,
         description: expenseForm.description.trim(),
         date: expenseForm.date,
         category: Number(expenseForm.category),
@@ -527,6 +557,8 @@ const ExpenseManager = ({ language = 'en' }) => {
         restaurant: selectedRestaurant ? selectedRestaurant.id : null,
         spare_part: selectedSparePart ? selectedSparePart.id : null,
         is_cash: Boolean(expenseForm.is_cash),
+        tax_percent_used: taxPercent,
+        tax_amount: taxAmount,
       };
 
       const response = await apiRequest(endpoint, {
@@ -886,7 +918,14 @@ const ExpenseManager = ({ language = 'en' }) => {
                         )}
                       </div>
                     </td>
-                    <td className="amount-cell">¥{Number(expense.amount || 0).toLocaleString()}</td>
+                    <td className="amount-cell">
+                      <div>¥{Number(expense.amount || 0).toLocaleString()}</div>
+                      {expense.tax_percent_used != null && Number(expense.tax_percent_used) > 0 && (
+                        <div style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600, marginTop: '0.2rem' }}>
+                          🧾 Tax {Number(expense.tax_percent_used).toFixed(2)}% = ¥{Number(expense.tax_amount || 0).toLocaleString()}
+                        </div>
+                      )}
+                    </td>
                     <td>
                       <button className={`btn-menu ${openMenuId === expense.id && menuType === 'expense' ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, expense.id, 'expense')}>⋮</button>
                     </td>
@@ -1252,6 +1291,85 @@ const ExpenseManager = ({ language = 'en' }) => {
                     {expenseForm.is_cash ? 'Cash' : 'No'}
                   </span>
                 </label>
+              </div>
+
+              {/* ── Tax Section ── */}
+              <div style={{ marginTop: '1rem', padding: '0.85rem 1rem', background: 'var(--secondary)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: expenseForm.apply_tax ? '1rem' : 0 }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>🧾 Apply Tax</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Optionally track a tax amount for this expense</div>
+                  </div>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(expenseForm.apply_tax)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        const defaultRate = taxRates.length > 0 ? String(taxRates[0].rate) : '10.00';
+                        setIsCustomTax(false);
+                        setExpenseForm((prev) => ({
+                          ...prev,
+                          apply_tax: checked,
+                          tax_percent_used: checked ? defaultRate : '',
+                        }));
+                      }}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                    />
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: expenseForm.apply_tax ? '#f59e0b' : 'var(--muted-foreground)' }}>
+                      {expenseForm.apply_tax ? 'Yes' : 'No'}
+                    </span>
+                  </label>
+                </div>
+
+                {expenseForm.apply_tax && (
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                    <div className="form-group" style={{ flex: '1 1 200px', margin: 0 }}>
+                      <label style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.8rem', fontWeight: 600 }}>Tax Rate</label>
+                      <select
+                        value={isCustomTax ? '__custom__' : expenseForm.tax_percent_used}
+                        onChange={(e) => {
+                          if (e.target.value === '__custom__') {
+                            setIsCustomTax(true);
+                            setExpenseForm((prev) => ({ ...prev, tax_percent_used: '' }));
+                          } else {
+                            setIsCustomTax(false);
+                            setExpenseForm((prev) => ({ ...prev, tax_percent_used: e.target.value }));
+                          }
+                        }}
+                        style={{ width: '100%' }}
+                      >
+                        <option value="">— Select a rate —</option>
+                        {taxRates.map((tr) => (
+                          <option key={tr.id} value={String(tr.rate)}>
+                            {tr.name} ({Number(tr.rate).toFixed(2)}%)
+                          </option>
+                        ))}
+                        <option value="__custom__">Custom %</option>
+                      </select>
+                    </div>
+                    {isCustomTax && (
+                      <div className="form-group" style={{ flex: '0 0 140px', margin: 0 }}>
+                        <label style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.8rem', fontWeight: 600 }}>Custom %</label>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type="number" step="0.01" min="0" max="100"
+                            placeholder="10.00"
+                            value={expenseForm.tax_percent_used}
+                            style={{ paddingRight: '2rem' }}
+                            onChange={(e) => setExpenseForm((prev) => ({ ...prev, tax_percent_used: e.target.value }))}
+                          />
+                          <span style={{ position: 'absolute', right: '10px', color: 'var(--muted-foreground)', fontWeight: 600, fontSize: '0.85rem', pointerEvents: 'none' }}>%</span>
+                        </div>
+                      </div>
+                    )}
+                    {expenseForm.tax_percent_used !== '' && !isNaN(Number(expenseForm.tax_percent_used)) && expenseForm.amount !== '' && (
+                      <div style={{ padding: '0.5rem 0.85rem', background: '#fef3c7', borderRadius: '10px', border: '1px solid #fde68a', fontSize: '0.82rem', fontWeight: 700, color: '#92400e', whiteSpace: 'nowrap' }}>
+                        Tax = ¥{(Number(expenseForm.amount) * Number(expenseForm.tax_percent_used) / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '1rem' }}>
