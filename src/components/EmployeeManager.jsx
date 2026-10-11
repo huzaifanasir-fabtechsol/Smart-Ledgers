@@ -473,7 +473,7 @@ const EmployeeManager = () => {
                   />
                   {formErrors.daily_working_hours && <span className="field-error">{formErrors.daily_working_hours}</span>}
                   <small style={{ color: 'var(--ink-2)', fontSize: '0.75rem', marginTop: 3, display: 'block' }}>
-                    Scheduled work hours/day (所定労働時間・通常8.0h)
+                    Standard scheduled working hours per day (e.g. 8.0h)
                   </small>
                 </div>
 

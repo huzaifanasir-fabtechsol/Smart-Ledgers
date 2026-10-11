@@ -291,7 +291,7 @@ const TaxReports = () => {
         <div className="tax-header-left">
           <h1>
             <Calculator size={28} style={{ color: '#0284c7' }} />
-            Expense Tax Reports (経費消費税レポート)
+            Expense Tax Reports
           </h1>
           <p className="tax-header-subtitle">
             Auditing pre-tax expenditures, tax-inclusive & exclusive amounts, and paid consumption tax.
@@ -335,7 +335,7 @@ const TaxReports = () => {
           </div>
           <div className="tax-stat-value">¥{formatNum(stats.total_original_amount)}</div>
           <div className="tax-stat-subtext">
-            <span>税抜本体価格合計</span>
+            <span>Base Expense Total</span>
             <span>{stats.expense_count} expenses</span>
           </div>
         </div>
@@ -352,7 +352,7 @@ const TaxReports = () => {
             ¥{formatNum(stats.total_tax_paid)}
           </div>
           <div className="tax-stat-subtext">
-            <span>消費税納付額合計</span>
+            <span>Total Tax Accounted</span>
             <span>Effective Rate: {stats.total_original_amount > 0 ? ((stats.total_tax_paid / stats.total_original_amount) * 100).toFixed(1) : 0}%</span>
           </div>
         </div>
@@ -369,7 +369,7 @@ const TaxReports = () => {
             ¥{formatNum(stats.grand_total_amount)}
           </div>
           <div className="tax-stat-subtext">
-            <span>税込総支払額</span>
+            <span>Total Payout</span>
             <span>Pre-Tax ¥{formatNum(stats.total_original_amount)} + Tax ¥{formatNum(stats.total_tax_paid)}</span>
           </div>
         </div>
@@ -384,7 +384,7 @@ const TaxReports = () => {
           </div>
           <div className="tax-stat-value">¥{formatNum(stats.total_inclusive_amount)}</div>
           <div className="tax-stat-subtext">
-            <span>税込処理 ({stats.inclusive_count} items)</span>
+            <span>Tax-Inclusive ({stats.inclusive_count} items)</span>
             <span>Base: ¥{formatNum(stats.inclusive_base_amount)} | Tax: ¥{formatNum(stats.inclusive_tax_amount)}</span>
           </div>
         </div>
@@ -399,7 +399,7 @@ const TaxReports = () => {
           </div>
           <div className="tax-stat-value">¥{formatNum(stats.total_exclusive_amount)}</div>
           <div className="tax-stat-subtext">
-            <span>税抜処理 ({stats.exclusive_count} items)</span>
+            <span>Tax-Exclusive ({stats.exclusive_count} items)</span>
             <span>Base: ¥{formatNum(stats.exclusive_base_amount)} | Tax: ¥{formatNum(stats.exclusive_tax_amount)}</span>
           </div>
         </div>
@@ -414,7 +414,7 @@ const TaxReports = () => {
           </div>
           <div className="tax-stat-value">¥{formatNum(stats.total_no_tax_amount)}</div>
           <div className="tax-stat-subtext">
-            <span>非課税・対象外 (0%)</span>
+            <span>Zero-Tax / Exempt (0%)</span>
             <span>{stats.no_tax_count} expenses without tax</span>
           </div>
         </div>
@@ -423,7 +423,7 @@ const TaxReports = () => {
       {/* Tax Rate Distribution Strip */}
       {stats.tax_rate_breakdown && stats.tax_rate_breakdown.length > 0 && (
         <div className="tax-rate-breakdown-panel">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>
             <Percent size={15} style={{ color: '#0284c7' }} />
             <span>Tax Rate Distribution:</span>
           </div>
@@ -507,8 +507,8 @@ const TaxReports = () => {
               onChange={(e) => { setFilterPaymentStatus(e.target.value); setCurrentPage(1); }}
             >
               <option value="">All Payment Types</option>
-              <option value="cash">Cash (現金)</option>
-              <option value="bank">Bank / Transfer (口座取引)</option>
+              <option value="cash">Cash</option>
+              <option value="bank">Bank / Transfer</option>
             </select>
           </div>
 
@@ -520,14 +520,14 @@ const TaxReports = () => {
               onChange={(e) => { setFilterTaxCategory(e.target.value); setCurrentPage(1); }}
             >
               <option value="">All Tax Types</option>
-              <option value="inclusive">Tax Inclusive (税込)</option>
-              <option value="exclusive">Tax Exclusive (税抜)</option>
-              <option value="none">No Tax (0% / 対象外)</option>
+              <option value="inclusive">Tax Inclusive</option>
+              <option value="exclusive">Tax Exclusive</option>
+              <option value="none">No Tax (0%)</option>
             </select>
           </div>
 
           {/* Search Query */}
-          <div className="filter-item">
+          <div className="filter-item filter-search-item">
             <label>Search Keyword</label>
             <input
               type="text"
@@ -618,12 +618,12 @@ const TaxReports = () => {
                       <td style={{ textAlign: 'center' }}>
                         {hasTax ? (
                           taxCat === 'inclusive' ? (
-                            <span className="tax-badge inclusive">税込 Inclusive</span>
+                            <span className="tax-badge inclusive">Tax Inclusive</span>
                           ) : (
-                            <span className="tax-badge exclusive">税抜 Exclusive</span>
+                            <span className="tax-badge exclusive">Tax Exclusive</span>
                           )
                         ) : (
-                          <span className="tax-badge none">対象外 No Tax</span>
+                          <span className="tax-badge none">No Tax</span>
                         )}
                       </td>
                       <td style={{ textAlign: 'center', fontWeight: 600 }}>
@@ -647,7 +647,7 @@ const TaxReports = () => {
               {!loading && expenses.length > 0 && (
                 <tr className="tax-table-total-row">
                   <td colSpan={7} style={{ textAlign: 'right', fontWeight: 800 }}>
-                    Filtered Total ({stats.expense_count} records) (合計):
+                    Filtered Total ({stats.expense_count} records):
                   </td>
                   <td className="amount" style={{ fontWeight: 800 }}>
                     ¥{formatNum(stats.total_original_amount)}

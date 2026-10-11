@@ -1010,7 +1010,7 @@ const SalaryManager = () => {
                           <span className="japan-rule-rate">4.99%</span>
                         </div>
                         <div className="japan-rule-desc">
-                          Kyokai Kenpo Tokyo: 9.98% split equally (4.99% employee / 4.99% employer). Standard Monthly Remuneration (標準報酬月額).
+                          Kyokai Kenpo Tokyo: 9.98% split equally (4.99% employee / 4.99% employer). Standard Monthly Remuneration brackets.
                         </div>
                       </div>
 
@@ -1020,7 +1020,7 @@ const SalaryManager = () => {
                           <span className="japan-rule-rate">9.15%</span>
                         </div>
                         <div className="japan-rule-desc">
-                          Kousei Nenkin: Fixed statutory rate 18.30% split equally (9.15% employee / 9.15% employer). Grade brackets 1–32.
+                          Welfare Pension: Fixed statutory rate 18.30% split equally (9.15% employee / 9.15% employer). Grade brackets 1–32.
                         </div>
                       </div>
 
@@ -1037,10 +1037,10 @@ const SalaryManager = () => {
                       <div className="japan-rule-item">
                         <div className="japan-rule-name">
                           <span>Withholding Income Tax</span>
-                          <span className="japan-rule-rate">NTA Kou-ran</span>
+                          <span className="japan-rule-rate">NTA Standard</span>
                         </div>
                         <div className="japan-rule-desc">
-                          Calculated on (Taxable Pay − Social Insurance) via National Tax Agency Monthly Withholding Tax Table (源泉徴収税額表・甲欄).
+                          Calculated on (Taxable Pay − Social Insurance) via National Tax Agency Monthly Withholding Tax Table.
                         </div>
                       </div>
                     </div>
@@ -1176,7 +1176,7 @@ const SalaryManager = () => {
                     {/* Withholding Income Tax */}
                     <div className="form-group">
                       <div className="form-label-with-badge">
-                        <label style={{ margin: 0 }}>Income Tax (源泉徴収税) (¥)</label>
+                        <label style={{ margin: 0 }}>Income Tax (¥)</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span className="rate-badge">NTA Table</span>
                           {customOverrides.income_tax ? (
@@ -1208,7 +1208,7 @@ const SalaryManager = () => {
 
                     {/* Resident Tax */}
                     <div className="form-group">
-                      <label>Resident Tax (住民税) (¥)</label>
+                      <label>Resident Tax (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -1223,7 +1223,7 @@ const SalaryManager = () => {
                     {/* Leave Deduction */}
                     <div className="form-group">
                       <div className="form-label-with-badge">
-                        <label style={{ margin: 0 }}>Leave Deduction (欠勤控除) (¥)</label>
+                        <label style={{ margin: 0 }}>Leave Deduction (¥)</label>
                         {Number(formData.calculated_leave_deduction || 0) > 0 && (
                           <button
                             type="button"
@@ -1262,7 +1262,7 @@ const SalaryManager = () => {
 
                     {/* Total Deductions Highlight */}
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                      <label>Total Deductions (控除合計額) (¥)</label>
+                      <label>Total Deductions (¥)</label>
                       <input
                         type="number"
                         className="form-input"
@@ -1281,7 +1281,7 @@ const SalaryManager = () => {
                   {/* Attendance Calculation Summary Metric Cards */}
                   <div className="attendance-summary-cards">
                     <div className="attendance-card-metric highlight">
-                      <div className="metric-title">所定労働時間 (Required Hours)</div>
+                      <div className="metric-title">Required Working Hours</div>
                       <div className="metric-value">{formData.required_working_hours || 0} hrs</div>
                       <div className="metric-sub">
                         {formData.working_days || 0} days × {formData.daily_working_hours || 8.0} hrs/day
@@ -1289,7 +1289,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="attendance-card-metric">
-                      <div className="metric-title">時間単価 (Hourly Wage Basis)</div>
+                      <div className="metric-title">Hourly Wage Basis</div>
                       <div className="metric-value">
                         ¥{Number(formData.hourly_wage || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>/ hr</span>
                       </div>
@@ -1299,7 +1299,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="attendance-card-metric">
-                      <div className="metric-title">割増賃金 (Overtime Premium)</div>
+                      <div className="metric-title">Overtime Premium Pay</div>
                       <div className="metric-value" style={{ color: '#2563eb' }}>
                         ¥{Number(formData.calculated_overtime_allowance || 0).toLocaleString()}
                       </div>
@@ -1309,7 +1309,7 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="attendance-card-metric">
-                      <div className="metric-title">欠勤・遅刻控除 (Leave Deduction)</div>
+                      <div className="metric-title">Absence & Leave Deduction</div>
                       <div className="metric-value" style={{ color: '#dc2626' }}>
                         ¥{Number(formData.calculated_leave_deduction || 0).toLocaleString()}
                       </div>
@@ -1355,7 +1355,7 @@ const SalaryManager = () => {
                   <div className="form-grid-3" style={{ marginTop: '1.25rem' }}>
                     {/* Working Days */}
                     <div className="form-group">
-                      <label>Working Days (出勤日数) *</label>
+                      <label>Working Days *</label>
                       <input
                         type="number"
                         min="0"
@@ -1369,7 +1369,7 @@ const SalaryManager = () => {
 
                     {/* Daily Working Hours */}
                     <div className="form-group">
-                      <label>Req. Hours / Day (所定労働時間/日)</label>
+                      <label>Req. Hours / Day</label>
                       <input
                         type="number"
                         min="0.5"
@@ -1385,7 +1385,7 @@ const SalaryManager = () => {
                     {/* Total Required Hours */}
                     <div className="form-group">
                       <div className="form-label-with-badge">
-                        <label style={{ margin: 0 }}>Required Hours (所定時間)</label>
+                        <label style={{ margin: 0 }}>Required Hours</label>
                         <span className="override-pill auto">⚡ Auto</span>
                       </div>
                       <input
@@ -1400,7 +1400,7 @@ const SalaryManager = () => {
 
                     {/* Actual Worked Hours */}
                     <div className="form-group">
-                      <label>Actual Worked Hours (実労働時間)</label>
+                      <label>Actual Worked Hours</label>
                       <input
                         type="number"
                         min="0"
@@ -1426,7 +1426,7 @@ const SalaryManager = () => {
                         value={formData.overtime_hours}
                         onChange={(e) => handleFieldChange('overtime_hours', e.target.value)}
                       />
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Over 8h/day or 40h/week (時間外労働)</span>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Over 8h/day or 40h/week</span>
                     </div>
 
                     {/* Holiday Overtime */}
@@ -1443,7 +1443,7 @@ const SalaryManager = () => {
                         value={formData.holiday_overtime_hours}
                         onChange={(e) => handleFieldChange('holiday_overtime_hours', e.target.value)}
                       />
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Statutory holiday work (法定休日労働)</span>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Statutory holiday work</span>
                     </div>
 
                     {/* Midnight Overtime */}
@@ -1460,12 +1460,12 @@ const SalaryManager = () => {
                         value={formData.midnight_overtime_hours}
                         onChange={(e) => handleFieldChange('midnight_overtime_hours', e.target.value)}
                       />
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>22:00 – 05:00 late night work (深夜労働)</span>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>22:00 – 05:00 late night work</span>
                     </div>
 
                     {/* Paid Leave */}
                     <div className="form-group">
-                      <label>Paid Leave (有休) (days)</label>
+                      <label>Paid Leave (days)</label>
                       <input
                         type="number"
                         min="0"
@@ -1479,7 +1479,7 @@ const SalaryManager = () => {
 
                     {/* Scheduled Off Days */}
                     <div className="form-group">
-                      <label>Scheduled Off Days (所定休日)</label>
+                      <label>Scheduled Off Days</label>
                       <input
                         type="number"
                         min="0"
@@ -1493,7 +1493,7 @@ const SalaryManager = () => {
 
                     {/* Absence Days */}
                     <div className="form-group">
-                      <label>Absence (欠勤) (days)</label>
+                      <label>Absence (days)</label>
                       <input
                         type="number"
                         min="0"
@@ -1507,7 +1507,7 @@ const SalaryManager = () => {
 
                     {/* Late / Early */}
                     <div className="form-group">
-                      <label>Late / Early (遅刻・早退)</label>
+                      <label>Late / Early</label>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <input
                           type="number"
