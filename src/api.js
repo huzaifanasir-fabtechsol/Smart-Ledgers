@@ -86,4 +86,10 @@ export const downloadSalaryPdf = async (salaryId, employeeName = 'Employee', sal
   return downloadFile(`/hr/salaries/${salaryId}/export-pdf/`, filename);
 };
 
+export const downloadExpenseTaxExcel = async (params = '') => {
+  const queryStr = params ? (params.startsWith('?') ? params : `?${params}`) : '';
+  const filename = `Expense_Tax_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  return downloadFile(`/expenses/export_tax_xlsx/${queryStr}`, filename);
+};
+
 

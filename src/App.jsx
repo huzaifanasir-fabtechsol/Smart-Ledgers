@@ -21,10 +21,12 @@ import {
   ChevronLeft,
   ChevronRight,
   BriefcaseBusiness,
-  BadgeDollarSign
+  BadgeDollarSign,
+  Calculator
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ExpenseManager from './components/ExpenseManager';
+import TaxReports from './components/TaxReports';
 import DataExport from './components/DataExport';
 import RevenueManager from './components/RevenueManager';
 import CarCategoryManager from './components/CarCategoryManager';
@@ -99,6 +101,7 @@ function AppContent() {
   const menuItems = [
     { path: '/dashboard', label: t.dashboard, icon: LayoutDashboard },
     { path: '/expenses', label: t.manageExpenses, icon: Receipt },
+    { path: '/tax-reports', label: 'Tax Reports', icon: Calculator },
     { path: '/inovice', label: t.orders, icon: FileText },
     { path: '/customers', label: 'Customers', icon: Users },
     { path: '/salers', label: 'Salers', icon: UserSquare2 },
@@ -116,6 +119,9 @@ function AppContent() {
   ];
 
   const isActive = (path) => {
+    if (path === '/tax-reports' && location.pathname.startsWith('/tax-reports')) {
+      return true;
+    }
     if (path === '/inovice' && (
       location.pathname.startsWith('/inovice') ||
       location.pathname.startsWith('/invoice') ||
@@ -209,6 +215,7 @@ function AppContent() {
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard language={language} />} />
           <Route path="/expenses" element={<ExpenseManager language={language} />} />
+          <Route path="/tax-reports" element={<TaxReports language={language} />} />
           <Route path="/revenue" element={<RevenueManager language={language} />} />
           <Route
             path="/inovice"
