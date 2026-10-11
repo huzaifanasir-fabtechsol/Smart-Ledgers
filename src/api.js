@@ -92,4 +92,10 @@ export const downloadExpenseTaxExcel = async (params = '') => {
   return downloadFile(`/expenses/export_tax_xlsx/${queryStr}`, filename);
 };
 
+export const downloadInvoiceTaxExcel = async (params = '') => {
+  const queryStr = params ? (params.startsWith('?') ? params : `?${params}`) : '';
+  const filename = `Invoice_Tax_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  return downloadFile(`/revenue/orders/export_tax_xlsx/${queryStr}`, filename);
+};
+
 

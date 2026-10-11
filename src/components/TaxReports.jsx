@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   FileSpreadsheet,
   FileText,
   Calculator,
-  Search,
   Filter,
   RotateCcw,
   Receipt,
@@ -14,58 +13,41 @@ import {
   TrendingDown,
   Percent,
   CheckCircle2,
-  Clock,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  CheckSquare,
+  Square
 } from 'lucide-react';
-import { apiRequest, getErrorMessage, downloadExpenseTaxExcel } from '../api';
+import { apiRequest, getErrorMessage, downloadExpenseTaxExcel, downloadInvoiceTaxExcel } from '../api';
 import Pagination from './Pagination';
 import YearSelector from './YearSelector';
 import './TaxReports.css';
+
+// 14 Fee and Tax fields for Invoices
+const INVOICE_CHECKLIST_FIELDS = [
+  { key: 'vehicle_price', label: 'Vehicle Price', type: 'price' },
+  { key: 'vehicle_price_tax', label: 'Vehicle Price Tax', type: 'tax' },
+  { key: 'recycle_fee', label: 'Recycle Fee', type: 'fee' },
+  { key: 'listing_fee', label: 'Listing Fee', type: 'fee' },
+  { key: 'listing_fee_tax', label: 'Listing Fee Tax', type: 'tax' },
+  { key: 'successful_bid', label: 'Successful Bid', type: 'price' },
+  { key: 'successful_bid_tax', label: 'Successful Bid Tax', type: 'tax' },
+  { key: 'commission_fee', label: 'Commission Fee', type: 'fee' },
+  { key: 'commission_fee_tax', label: 'Commission Fee Tax', type: 'tax' },
+  { key: 'transport_fee', label: 'Transport Fee', type: 'fee' },
+  { key: 'transport_fee_tax', label: 'Transport Fee Tax', type: 'tax' },
+  { key: 'registration_fee', label: 'Registration Fee', type: 'fee' },
+  { key: 'registration_fee_tax', label: 'Registration Fee Tax', type: 'tax' },
+  { key: 'canceling_fee', label: 'Canceling Fee', type: 'fee' },
+];
 
 const TaxReports = () => {
   // Modal for Report Type Selection: Expense or Invoice
   const [showTypeModal, setShowTypeModal] = useState(true);
   const [reportType, setReportType] = useState('expense'); // 'expense' or 'invoice'
 
-  // Data State
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // Common UI State
   const [exporting, setExporting] = useState(false);
-  const [categories, setCategories] = useState([]);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-
-  // Statistics Summary State
-  const [stats, setStats] = useState({
-    total_original_amount: 0,
-    total_tax_paid: 0,
-    grand_total_amount: 0,
-    total_inclusive_amount: 0,
-    inclusive_base_amount: 0,
-    inclusive_tax_amount: 0,
-    inclusive_count: 0,
-    total_exclusive_amount: 0,
-    exclusive_base_amount: 0,
-    exclusive_tax_amount: 0,
-    exclusive_count: 0,
-    total_no_tax_amount: 0,
-    no_tax_count: 0,
-    expense_count: 0,
-    tax_rate_breakdown: [],
-  });
-
-  // Filters State
-  const [filterYear, setFilterYear] = useState('');
-  const [filterMonth, setFilterMonth] = useState('');
-  const [filterDateFrom, setFilterDateFrom] = useState('');
-  const [filterDateTo, setFilterDateTo] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterPaymentStatus, setFilterPaymentStatus] = useState('');
-  const [filterTaxCategory, setFilterTaxCategory] = useState('');
 
   // Month Options
   const monthOptions = [
@@ -83,41 +65,89 @@ const TaxReports = () => {
     { value: '12', label: 'December' },
   ];
 
-  // Fetch Categories on mount
+  /* -------------------------------------------------------------
+     EXPENSE REPORT STATE & HANDLERS
+  ------------------------------------------------------------- */
+  const [expenses, setExpenses] = useState([]);
+  const [expenseLoading, setExpenseLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [expenseCurrentPage, setExpenseCurrentPage] = useState(1);
+  const [expensePageSize, setExpensePageSize] = useState(10);
+  const [expenseTotalCount, setExpenseTotalCount] = useState(0);
+
+  const [expenseStats, setExpenseStats] = useState({
+    total_original_amount: 0,
+    total_tax_paid: 0,
+    grand_total_amount: 0,
+    total_inclusive_amount: 0,
+    inclusive_base_amount: 0,
+    inclusive_tax_amount: 0,
+    inclusive_count: 0,
+    total_exclusive_amount: 0,
+    exclusive_base_amount: 0,
+    exclusive_tax_amount: 0,
+    exclusive_count: 0,
+    total_no_tax_amount: 0,
+    no_tax_count: 0,
+    expense_count: 0,
+    tax_rate_breakdown: [],
+  });
+
+  const [filterYear, setFilterYear] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState('');
+  const [filterTaxCategory, setFilterTaxCategory] = useState('');
+
+  /* -------------------------------------------------------------
+     INVOICE REPORT STATE & HANDLERS
+  ------------------------------------------------------------- */
+  // Default to only 'vehicle_price' checked
+  const [selectedChecklist, setSelectedChecklist] = useState(['vehicle_price']);
+
+  const [invoiceOrders, setInvoiceOrders] = useState([]);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceCurrentPage, setInvoiceCurrentPage] = useState(1);
+  const [invoicePageSize, setInvoicePageSize] = useState(10);
+  const [invoiceTotalOrders, setInvoiceTotalOrders] = useState(0);
+
+  const [invoiceStats, setInvoiceStats] = useState({
+    total_orders: 0,
+    total_items: 0,
+    vehicle_price: 0,
+    vehicle_price_tax: 0,
+    recycle_fee: 0,
+    listing_fee: 0,
+    listing_fee_tax: 0,
+    successful_bid: 0,
+    successful_bid_tax: 0,
+    commission_fee: 0,
+    commission_fee_tax: 0,
+    transport_fee: 0,
+    transport_fee_tax: 0,
+    registration_fee: 0,
+    registration_fee_tax: 0,
+    canceling_fee: 0,
+  });
+
+  // Invoice Filters
+  const [invoiceYear, setInvoiceYear] = useState('');
+  const [invoiceMonth, setInvoiceMonth] = useState('');
+  const [invoiceDateFrom, setInvoiceDateFrom] = useState('');
+  const [invoiceDateTo, setInvoiceDateTo] = useState('');
+  const [invoiceType, setInvoiceType] = useState('');
+  const [invoiceCategory, setInvoiceCategory] = useState('');
+  const [invoicePaymentStatus, setInvoicePaymentStatus] = useState('');
+  const [invoicePaymentMethod, setInvoicePaymentMethod] = useState('');
+
+  /* -------------------------------------------------------------
+     FETCH CATEGORIES (EXPENSES)
+  ------------------------------------------------------------- */
   useEffect(() => {
     fetchCategories();
   }, []);
-
-  // Fetch Expenses & Stats when filters or pagination change
-  useEffect(() => {
-    if (reportType === 'expense') {
-      fetchExpenses();
-      fetchTaxStats();
-    }
-  }, [
-    reportType,
-    currentPage,
-    pageSize,
-    filterYear,
-    filterMonth,
-    filterDateFrom,
-    filterDateTo,
-    filterCategory,
-    filterPaymentStatus,
-    filterTaxCategory,
-  ]);
-
-  const buildFilterQueryParams = () => {
-    const params = new URLSearchParams();
-    if (filterYear) params.append('year', filterYear);
-    if (filterMonth) params.append('month', filterMonth);
-    if (filterDateFrom) params.append('date_from', filterDateFrom);
-    if (filterDateTo) params.append('date_to', filterDateTo);
-    if (filterCategory) params.append('category', filterCategory);
-    if (filterPaymentStatus) params.append('payment_status', filterPaymentStatus);
-    if (filterTaxCategory) params.append('tax_category', filterTaxCategory);
-    return params;
-  };
 
   const fetchCategories = async () => {
     try {
@@ -131,13 +161,28 @@ const TaxReports = () => {
     }
   };
 
-  const fetchTaxStats = async () => {
+  /* -------------------------------------------------------------
+     EXPENSE EFFECTS & FETCHERS
+  ------------------------------------------------------------- */
+  const buildExpenseFilterParams = () => {
+    const params = new URLSearchParams();
+    if (filterYear) params.append('year', filterYear);
+    if (filterMonth) params.append('month', filterMonth);
+    if (filterDateFrom) params.append('date_from', filterDateFrom);
+    if (filterDateTo) params.append('date_to', filterDateTo);
+    if (filterCategory) params.append('category', filterCategory);
+    if (filterPaymentStatus) params.append('payment_status', filterPaymentStatus);
+    if (filterTaxCategory) params.append('tax_category', filterTaxCategory);
+    return params;
+  };
+
+  const fetchExpenseTaxStats = async () => {
     try {
-      const params = buildFilterQueryParams();
+      const params = buildExpenseFilterParams();
       const response = await apiRequest(`/expenses/tax_stats/?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
-        setStats(data);
+        setExpenseStats(data);
       }
     } catch {
       // ignore
@@ -145,12 +190,12 @@ const TaxReports = () => {
   };
 
   const fetchExpenses = async () => {
-    setLoading(true);
+    setExpenseLoading(true);
     try {
-      const params = buildFilterQueryParams();
-      params.append('page', currentPage);
-      params.append('page_size', pageSize);
-      params.append('pageSize', pageSize);
+      const params = buildExpenseFilterParams();
+      params.append('page', expenseCurrentPage);
+      params.append('page_size', expensePageSize);
+      params.append('pageSize', expensePageSize);
 
       const response = await apiRequest(`/expenses/?${params.toString()}`);
       if (!response.ok) {
@@ -159,16 +204,34 @@ const TaxReports = () => {
       }
       const data = await response.json();
       setExpenses(data.results || data || []);
-      setTotalCount(data.count || (Array.isArray(data) ? data.length : 0));
+      setExpenseTotalCount(data.count || (Array.isArray(data) ? data.length : 0));
     } catch (err) {
       toast.error(err.message || 'Failed to load expense tax records');
       setExpenses([]);
     } finally {
-      setLoading(false);
+      setExpenseLoading(false);
     }
   };
 
-  const handleResetFilters = () => {
+  useEffect(() => {
+    if (reportType === 'expense') {
+      fetchExpenses();
+      fetchExpenseTaxStats();
+    }
+  }, [
+    reportType,
+    expenseCurrentPage,
+    expensePageSize,
+    filterYear,
+    filterMonth,
+    filterDateFrom,
+    filterDateTo,
+    filterCategory,
+    filterPaymentStatus,
+    filterTaxCategory,
+  ]);
+
+  const handleResetExpenseFilters = () => {
     setFilterYear('');
     setFilterMonth('');
     setFilterDateFrom('');
@@ -176,15 +239,15 @@ const TaxReports = () => {
     setFilterCategory('');
     setFilterPaymentStatus('');
     setFilterTaxCategory('');
-    setCurrentPage(1);
-    toast.info('Filters reset to default');
+    setExpenseCurrentPage(1);
+    toast.info('Expense filters reset to default');
   };
 
-  const handleExportExcel = async () => {
+  const handleExportExpenseExcel = async () => {
     setExporting(true);
     try {
       toast.info('Generating Excel Tax Report...');
-      const params = buildFilterQueryParams();
+      const params = buildExpenseFilterParams();
       await downloadExpenseTaxExcel(`?${params.toString()}`);
       toast.success('Excel Tax Report downloaded successfully');
     } catch (err) {
@@ -194,17 +257,187 @@ const TaxReports = () => {
     }
   };
 
-  const handleSelectReport = (type) => {
-    if (type === 'invoice') {
-      toast.info('Invoice Tax Report is currently in development. Opening Expense Tax Report.');
-      setReportType('expense');
-      setShowTypeModal(false);
-      return;
-    }
-    setReportType('expense');
-    setShowTypeModal(false);
+  /* -------------------------------------------------------------
+     INVOICE EFFECTS & FETCHERS
+  ------------------------------------------------------------- */
+  const buildInvoiceFilterParams = () => {
+    const params = new URLSearchParams();
+    if (invoiceYear) params.append('year', invoiceYear);
+    if (invoiceMonth) params.append('month', invoiceMonth);
+    if (invoiceDateFrom) params.append('date_from', invoiceDateFrom);
+    if (invoiceDateTo) params.append('date_to', invoiceDateTo);
+    if (invoiceType) params.append('transaction_type', invoiceType);
+    if (invoiceCategory) params.append('transaction_catagory', invoiceCategory);
+    if (invoicePaymentStatus) params.append('payment_status', invoicePaymentStatus);
+    if (invoicePaymentMethod) params.append('payment_method', invoicePaymentMethod);
+    return params;
   };
 
+  const fetchInvoiceStats = async () => {
+    try {
+      const params = buildInvoiceFilterParams();
+      const response = await apiRequest(`/revenue/orders/tax_stats/?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setInvoiceStats(data);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const fetchInvoiceOrders = async () => {
+    setInvoiceLoading(true);
+    try {
+      const params = buildInvoiceFilterParams();
+      params.append('page', invoiceCurrentPage);
+      params.append('page_size', invoicePageSize);
+      params.append('pageSize', invoicePageSize);
+
+      const response = await apiRequest(`/revenue/orders/?${params.toString()}`);
+      if (!response.ok) {
+        const msg = await getErrorMessage(response, 'Failed to fetch invoice orders');
+        throw new Error(msg);
+      }
+      const data = await response.json();
+      setInvoiceOrders(data.results || data || []);
+      setInvoiceTotalOrders(data.count || (Array.isArray(data) ? data.length : 0));
+    } catch (err) {
+      toast.error(err.message || 'Failed to load invoice records');
+      setInvoiceOrders([]);
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (reportType === 'invoice') {
+      fetchInvoiceOrders();
+      fetchInvoiceStats();
+    }
+  }, [
+    reportType,
+    invoiceCurrentPage,
+    invoicePageSize,
+    invoiceYear,
+    invoiceMonth,
+    invoiceDateFrom,
+    invoiceDateTo,
+    invoiceType,
+    invoiceCategory,
+    invoicePaymentStatus,
+    invoicePaymentMethod,
+  ]);
+
+  const handleResetInvoiceFilters = () => {
+    setInvoiceYear('');
+    setInvoiceMonth('');
+    setInvoiceDateFrom('');
+    setInvoiceDateTo('');
+    setInvoiceType('');
+    setInvoiceCategory('');
+    setInvoicePaymentStatus('');
+    setInvoicePaymentMethod('');
+    setInvoiceCurrentPage(1);
+    toast.info('Invoice filters reset to default');
+  };
+
+  const handleToggleChecklist = (key) => {
+    setSelectedChecklist((prev) => {
+      if (prev.includes(key)) {
+        return prev.filter((k) => k !== key);
+      } else {
+        return [...prev, key];
+      }
+    });
+  };
+
+  const handleChecklistPreset = (preset) => {
+    if (preset === 'default') {
+      setSelectedChecklist(['vehicle_price']);
+    } else if (preset === 'all') {
+      setSelectedChecklist(INVOICE_CHECKLIST_FIELDS.map((f) => f.key));
+    } else if (preset === 'taxes') {
+      setSelectedChecklist(INVOICE_CHECKLIST_FIELDS.filter((f) => f.type === 'tax').map((f) => f.key));
+    } else if (preset === 'fees') {
+      setSelectedChecklist(INVOICE_CHECKLIST_FIELDS.filter((f) => f.type === 'fee' || f.type === 'price').map((f) => f.key));
+    } else if (preset === 'clear') {
+      setSelectedChecklist([]);
+    }
+  };
+
+  const handleExportInvoiceExcel = async () => {
+    setExporting(true);
+    try {
+      toast.info('Generating Invoice Tax Report...');
+      const params = buildInvoiceFilterParams();
+      if (selectedChecklist.length > 0) {
+        params.append('selected_fields', selectedChecklist.join(','));
+      } else {
+        params.append('selected_fields', 'vehicle_price');
+      }
+      await downloadInvoiceTaxExcel(`?${params.toString()}`);
+      toast.success('Invoice Tax Report downloaded successfully');
+    } catch (err) {
+      toast.error(err.message || 'Failed to download Excel report');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  /* -------------------------------------------------------------
+     FLATTEN INVOICE ORDERS FOR TABLE (1 row per order item)
+     If an order has 3 items, all 3 are shown in the table.
+  ------------------------------------------------------------- */
+  const flattenedInvoiceItems = useMemo(() => {
+    const list = [];
+    invoiceOrders.forEach((order) => {
+      const od = order.other_details || {};
+      const isCash = !order.company_account && (od.payment_method?.toLowerCase() !== 'bank');
+      const paymentMethod = isCash ? 'Cash' : 'Bank';
+      const items = Array.isArray(order.items) && order.items.length > 0 ? order.items : [null];
+
+      items.forEach((item, itemIdx) => {
+        let vehicleText = '-';
+        if (item) {
+          const parts = [];
+          if (item.car_company || item.car_model) {
+            parts.push(`${item.car_company || ''} ${item.car_model || ''}`.trim());
+          }
+          if (item.chassis_number) {
+            parts.push(item.chassis_number);
+          }
+          if (parts.length > 0) {
+            vehicleText = parts.join(' - ');
+          } else if (item.venue) {
+            vehicleText = item.venue;
+          } else if (item.notes) {
+            vehicleText = item.notes;
+          }
+        }
+
+        list.push({
+          uniqueKey: item ? `${order.id}-${item.id || itemIdx}` : `${order.id}-empty-${itemIdx}`,
+          orderId: order.id,
+          orderNumber: order.order_number,
+          transactionDate: order.transaction_date,
+          transactionType: order.transaction_type,
+          transactionCategory: order.transaction_catagory,
+          paymentStatus: order.payment_status,
+          paymentMethod,
+          item,
+          vehicleText,
+          itemIndexInOrder: itemIdx + 1,
+          totalItemsInOrder: items.length,
+        });
+      });
+    });
+    return list;
+  }, [invoiceOrders]);
+
+  /* -------------------------------------------------------------
+     HELPERS & FORMATTERS
+  ------------------------------------------------------------- */
   const formatNum = (val) => Number(val || 0).toLocaleString();
 
   const sanitizeCategoryName = (name) => {
@@ -213,7 +446,13 @@ const TaxReports = () => {
     return clean || name;
   };
 
-  const totalPages = Math.ceil(totalCount / pageSize) || 1;
+  const handleSelectReport = (type) => {
+    setReportType(type);
+    setShowTypeModal(false);
+  };
+
+  const expenseTotalPages = Math.ceil(expenseTotalCount / expensePageSize) || 1;
+  const invoiceTotalPages = Math.ceil(invoiceTotalOrders / invoicePageSize) || 1;
 
   return (
     <div className="tax-reports-container">
@@ -250,7 +489,7 @@ const TaxReports = () => {
                   </div>
                   <div className="tax-choice-title">Expense Tax Report</div>
                   <div className="tax-choice-desc">
-                    Comprehensive overview of business expenses, tax-inclusive vs tax-exclusive settlement, and total tax paid.
+                    Comprehensive overview of business expenses, tax-inclusive vs tax-exclusive settlements, and paid consumption tax.
                   </div>
                 </div>
                 <div className="tax-choice-footer">
@@ -261,9 +500,9 @@ const TaxReports = () => {
                 </div>
               </div>
 
-              {/* Invoice Option (Future) */}
+              {/* Invoice Option (Active) */}
               <div
-                className="tax-choice-card disabled"
+                className={`tax-choice-card ${reportType === 'invoice' ? 'active' : ''}`}
                 onClick={() => handleSelectReport('invoice')}
               >
                 <div>
@@ -272,12 +511,14 @@ const TaxReports = () => {
                   </div>
                   <div className="tax-choice-title">Invoice Tax Report</div>
                   <div className="tax-choice-desc">
-                    Consumption tax summary on issued customer invoices and taxable vehicle sales.
+                    Consumption tax summary on issued customer invoices with customizable checklist for 14 fee and tax categories.
                   </div>
                 </div>
                 <div className="tax-choice-footer">
-                  <span className="tax-choice-status-badge soon">Coming Soon</span>
-                  <span style={{ color: '#94a3b8' }}>Preview Only</span>
+                  <span className="tax-choice-status-badge ready">Ready</span>
+                  <span style={{ color: '#0284c7', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    View Report <ArrowRight size={14} />
+                  </span>
                 </div>
               </div>
             </div>
@@ -289,11 +530,13 @@ const TaxReports = () => {
       <div className="tax-reports-header">
         <div className="tax-header-left">
           <h1>
-            <Calculator size={28} style={{ color: '#0284c7' }} />
-            Expense Tax Reports
+            <Calculator size={28} style={{ color: reportType === 'invoice' ? '#0284c7' : '#2563eb' }} />
+            {reportType === 'invoice' ? 'Invoice Tax Reports' : 'Expense Tax Reports'}
           </h1>
           <p className="tax-header-subtitle">
-            Auditing pre-tax expenditures, tax-inclusive & exclusive amounts, and paid consumption tax.
+            {reportType === 'invoice'
+              ? 'Auditing transaction fee items, breakdown taxes, and customer invoice settlements.'
+              : 'Auditing pre-tax expenditures, tax-inclusive & exclusive amounts, and paid consumption tax.'}
           </p>
         </div>
 
@@ -304,15 +547,15 @@ const TaxReports = () => {
             onClick={() => setShowTypeModal(true)}
             title="Switch between Expense and Invoice Tax Reports"
           >
-            <Layers size={16} style={{ color: '#2563eb' }} />
-            <span>Report: Expense Tax</span>
+            <Layers size={16} style={{ color: reportType === 'invoice' ? '#0284c7' : '#2563eb' }} />
+            <span>Report: {reportType === 'invoice' ? 'Invoice Tax' : 'Expense Tax'}</span>
             <ChevronDown size={14} />
           </button>
 
           <button
             type="button"
             className="btn-export-excel"
-            onClick={handleExportExcel}
+            onClick={reportType === 'invoice' ? handleExportInvoiceExcel : handleExportExpenseExcel}
             disabled={exporting}
             title="Export filtered records to Excel with bottom totals"
           >
@@ -322,355 +565,829 @@ const TaxReports = () => {
         </div>
       </div>
 
-      {/* Statistics Metric Cards Grid */}
-      <div className="tax-stats-grid">
-        {/* Card 1: Total Expense Without Any Tax (Original Pre-Tax Amount) */}
-        <div className="tax-stat-card primary">
-          <div className="tax-stat-header">
-            <span className="tax-stat-label">Original / Pre-Tax Amount</span>
-            <div className="tax-stat-icon">
-              <Calculator size={18} />
-            </div>
-          </div>
-          <div className="tax-stat-value">¥{formatNum(stats.total_original_amount)}</div>
-          <div className="tax-stat-subtext">
-            <span>Base Expense Total</span>
-            <span>{stats.expense_count} expenses</span>
-          </div>
-        </div>
-
-        {/* Card 2: Total Tax Paid */}
-        <div className="tax-stat-card accent-amber">
-          <div className="tax-stat-header">
-            <span className="tax-stat-label">Total Tax Paid</span>
-            <div className="tax-stat-icon">
-              <Percent size={18} />
-            </div>
-          </div>
-          <div className="tax-stat-value" style={{ color: '#b45309' }}>
-            ¥{formatNum(stats.total_tax_paid)}
-          </div>
-          <div className="tax-stat-subtext">
-            <span>Total Tax Accounted</span>
-            <span>Effective Rate: {stats.total_original_amount > 0 ? ((stats.total_tax_paid / stats.total_original_amount) * 100).toFixed(1) : 0}%</span>
-          </div>
-        </div>
-
-        {/* Card 3: Grand Total Spent (Original + Tax) */}
-        <div className="tax-stat-card accent-green">
-          <div className="tax-stat-header">
-            <span className="tax-stat-label">Grand Total (With Tax)</span>
-            <div className="tax-stat-icon">
-              <Receipt size={18} />
-            </div>
-          </div>
-          <div className="tax-stat-value" style={{ color: '#047857' }}>
-            ¥{formatNum(stats.grand_total_amount)}
-          </div>
-          <div className="tax-stat-subtext">
-            <span>Total Payout</span>
-            <span>Pre-Tax ¥{formatNum(stats.total_original_amount)} + Tax ¥{formatNum(stats.total_tax_paid)}</span>
-          </div>
-        </div>
-
-        {/* Card 4: Tax Inclusive Amount */}
-        <div className="tax-stat-card accent-purple">
-          <div className="tax-stat-header">
-            <span className="tax-stat-label">Tax-Inclusive Expenses</span>
-            <div className="tax-stat-icon">
-              <Layers size={18} />
-            </div>
-          </div>
-          <div className="tax-stat-value">¥{formatNum(stats.total_inclusive_amount)}</div>
-          <div className="tax-stat-subtext">
-            <span>Tax-Inclusive ({stats.inclusive_count} items)</span>
-            <span>Base: ¥{formatNum(stats.inclusive_base_amount)} | Tax: ¥{formatNum(stats.inclusive_tax_amount)}</span>
-          </div>
-        </div>
-
-        {/* Card 5: Tax Exclusive Amount */}
-        <div className="tax-stat-card">
-          <div className="tax-stat-header">
-            <span className="tax-stat-label">Tax-Exclusive Expenses</span>
-            <div className="tax-stat-icon">
-              <Sparkles size={18} />
-            </div>
-          </div>
-          <div className="tax-stat-value">¥{formatNum(stats.total_exclusive_amount)}</div>
-          <div className="tax-stat-subtext">
-            <span>Tax-Exclusive ({stats.exclusive_count} items)</span>
-            <span>Base: ¥{formatNum(stats.exclusive_base_amount)} | Tax: ¥{formatNum(stats.exclusive_tax_amount)}</span>
-          </div>
-        </div>
-
-        {/* Card 6: No Tax / Non-Taxable */}
-        <div className="tax-stat-card">
-          <div className="tax-stat-header">
-            <span className="tax-stat-label">Non-Taxable Expenses</span>
-            <div className="tax-stat-icon">
-              <CheckCircle2 size={18} />
-            </div>
-          </div>
-          <div className="tax-stat-value">¥{formatNum(stats.total_no_tax_amount)}</div>
-          <div className="tax-stat-subtext">
-            <span>Zero-Tax / Exempt (0%)</span>
-            <span>{stats.no_tax_count} expenses without tax</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Tax Rate Distribution Strip */}
-      {stats.tax_rate_breakdown && stats.tax_rate_breakdown.length > 0 && (
-        <div className="tax-rate-breakdown-panel">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>
-            <Percent size={15} style={{ color: '#0284c7' }} />
-            <span>Tax Rate Distribution:</span>
-          </div>
-
-          <div className="tax-rate-pills">
-            {stats.tax_rate_breakdown.map((item) => (
-              <div key={item.rate} className="tax-rate-pill">
-                <span className="tax-rate-pill-badge">{item.rate > 0 ? `${item.rate}% Rate` : 'No Tax (0%)'}</span>
-                <span style={{ fontWeight: 600 }}>Base: ¥{formatNum(item.base_amount)}</span>
-                {item.rate > 0 && (
-                  <span style={{ color: '#b91c1c', fontWeight: 600 }}>Tax: ¥{formatNum(item.tax_amount)}</span>
-                )}
-                <span style={{ color: '#64748b', fontSize: '0.72rem' }}>({item.count} items)</span>
+      {/* =============================================================
+          VIEW 1: INVOICE TAX REPORT
+      ============================================================= */}
+      {reportType === 'invoice' && (
+        <>
+          {/* Fee & Tax Checklist Card */}
+          <div className="invoice-checklist-card">
+            <div className="invoice-checklist-header">
+              <div className="invoice-checklist-title-area">
+                <span className="invoice-checklist-title">
+                  Fee & Tax Items Checklist
+                </span>
+                <span className="invoice-checklist-subtitle">
+                  Select fee and tax items to display in total amount cards and data table. Default is Vehicle Price only.
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* Filters Card */}
-      <div className="tax-filter-card">
-        <div className="tax-filter-grid">
-          {/* Year Filter */}
-          <div className="filter-item">
-            <label>Year</label>
-            <YearSelector
-              value={filterYear}
-              onChange={(val) => {
-                setFilterYear(val);
-                setCurrentPage(1);
-              }}
-              placeholder="All Years"
-            />
-          </div>
+              <div className="invoice-checklist-actions">
+                <button
+                  type="button"
+                  className={`btn-checklist-preset ${selectedChecklist.length === 1 && selectedChecklist[0] === 'vehicle_price' ? 'active' : ''}`}
+                  onClick={() => handleChecklistPreset('default')}
+                  title="Show records and card for Vehicle Price only"
+                >
+                  Default (Vehicle Price)
+                </button>
+                <button
+                  type="button"
+                  className={`btn-checklist-preset ${selectedChecklist.length === INVOICE_CHECKLIST_FIELDS.length ? 'active' : ''}`}
+                  onClick={() => handleChecklistPreset('all')}
+                  title="Select all 14 fee and tax items"
+                >
+                  Select All
+                </button>
+                <button
+                  type="button"
+                  className="btn-checklist-preset"
+                  onClick={() => handleChecklistPreset('taxes')}
+                  title="Select only tax fields"
+                >
+                  Taxes Only
+                </button>
+                <button
+                  type="button"
+                  className="btn-checklist-preset"
+                  onClick={() => handleChecklistPreset('fees')}
+                  title="Select fees and price items"
+                >
+                  Fees Only
+                </button>
+                <button
+                  type="button"
+                  className="btn-checklist-preset clear"
+                  onClick={() => handleChecklistPreset('clear')}
+                  title="Deselect all checklist items"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
 
-          {/* Month Filter */}
-          <div className="filter-item">
-            <label>Month</label>
-            <select value={filterMonth} onChange={(e) => { setFilterMonth(e.target.value); setCurrentPage(1); }}>
-              <option value="">All Months</option>
-              {monthOptions.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Date From */}
-          <div className="filter-item">
-            <label>Date From</label>
-            <input
-              type="date"
-              value={filterDateFrom}
-              onChange={(e) => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
-            />
-          </div>
-
-          {/* Date To */}
-          <div className="filter-item">
-            <label>Date To</label>
-            <input
-              type="date"
-              value={filterDateTo}
-              onChange={(e) => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
-            />
-          </div>
-
-          {/* Category Filter */}
-          <div className="filter-item">
-            <label>Category</label>
-            <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}>
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{sanitizeCategoryName(c.name)}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Payment Status / Method */}
-          <div className="filter-item">
-            <label>Payment Method</label>
-            <select
-              value={filterPaymentStatus}
-              onChange={(e) => { setFilterPaymentStatus(e.target.value); setCurrentPage(1); }}
-            >
-              <option value="">All Payment Types</option>
-              <option value="cash">Cash</option>
-              <option value="bank">Bank / Transfer</option>
-            </select>
+            <div className="invoice-checklist-grid">
+              {INVOICE_CHECKLIST_FIELDS.map((item) => {
+                const isChecked = selectedChecklist.includes(item.key);
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`checklist-item-chip ${isChecked ? 'checked' : ''} ${item.type}`}
+                    onClick={() => handleToggleChecklist(item.key)}
+                  >
+                    {isChecked ? (
+                      <CheckSquare size={16} className="chip-icon-checked" />
+                    ) : (
+                      <Square size={16} className="chip-icon-unchecked" />
+                    )}
+                    <span className="chip-label">{item.label}</span>
+                    <span className={`chip-type-tag ${item.type}`}>
+                      {item.type === 'tax' ? 'Tax' : (item.type === 'price' ? 'Price' : 'Fee')}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Tax Category */}
-          <div className="filter-item">
-            <label>Tax Category</label>
-            <select
-              value={filterTaxCategory}
-              onChange={(e) => { setFilterTaxCategory(e.target.value); setCurrentPage(1); }}
-            >
-              <option value="">All Tax Types</option>
-              <option value="inclusive">Tax Inclusive</option>
-              <option value="exclusive">Tax Exclusive</option>
-              <option value="none">No Tax (0%)</option>
-            </select>
+          {/* Metric Cards - Only show cards for selected checklist items */}
+          {selectedChecklist.length === 0 ? (
+            <div className="checklist-empty-notice">
+              <span>No items selected from the checklist. Check one or more fee / tax items above to see total amount cards.</span>
+              <button
+                type="button"
+                className="btn-checklist-preset active"
+                onClick={() => handleChecklistPreset('default')}
+              >
+                Reset to Default (Vehicle Price)
+              </button>
+            </div>
+          ) : (
+            <div className="tax-stats-grid">
+              {selectedChecklist.map((fieldKey) => {
+                const fieldDef = INVOICE_CHECKLIST_FIELDS.find((f) => f.key === fieldKey);
+                if (!fieldDef) return null;
+                const amount = Number(invoiceStats[fieldKey] || 0);
+                const isTax = fieldDef.type === 'tax';
+                const isPrice = fieldDef.type === 'price';
+                const cardAccent = isTax ? 'accent-purple' : (isPrice ? 'primary' : 'accent-amber');
+
+                return (
+                  <div key={fieldKey} className={`tax-stat-card ${cardAccent}`}>
+                    <div className="tax-stat-header">
+                      <span className="tax-stat-label">{fieldDef.label}</span>
+                      <div className="tax-stat-icon">
+                        {isTax ? <Percent size={18} /> : (isPrice ? <TrendingDown size={18} /> : <Receipt size={18} />)}
+                      </div>
+                    </div>
+                    <div className="tax-stat-value">¥{formatNum(amount)}</div>
+                    <div className="tax-stat-subtext">
+                      <span>{fieldDef.type.toUpperCase()} Item</span>
+                      <span>{invoiceStats.total_orders || 0} orders / {invoiceStats.total_items || 0} items</span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Combined Total Card if multiple items are selected */}
+              {selectedChecklist.length > 1 && (
+                <div className="tax-stat-card accent-green">
+                  <div className="tax-stat-header">
+                    <span className="tax-stat-label">Selected Items Total</span>
+                    <div className="tax-stat-icon">
+                      <Sparkles size={18} />
+                    </div>
+                  </div>
+                  <div className="tax-stat-value" style={{ color: '#047857' }}>
+                    ¥{formatNum(
+                      selectedChecklist.reduce((sum, k) => sum + Number(invoiceStats[k] || 0), 0)
+                    )}
+                  </div>
+                  <div className="tax-stat-subtext">
+                    <span>{selectedChecklist.length} Items Selected</span>
+                    <span>Aggregate total for checked items</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Invoice Filters Card */}
+          <div className="tax-filter-card">
+            <div className="tax-filter-grid">
+              {/* Year Filter */}
+              <div className="filter-item">
+                <label>Year</label>
+                <YearSelector
+                  selectedYear={invoiceYear}
+                  onYearChange={(yearVal) => {
+                    setInvoiceYear(yearVal);
+                    setInvoiceCurrentPage(1);
+                  }}
+                  placeholder="All Years"
+                />
+              </div>
+
+              {/* Month Filter */}
+              <div className="filter-item">
+                <label>Month</label>
+                <select
+                  value={invoiceMonth}
+                  onChange={(e) => {
+                    setInvoiceMonth(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Months</option>
+                  {monthOptions.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date From */}
+              <div className="filter-item">
+                <label>Date From</label>
+                <input
+                  type="date"
+                  value={invoiceDateFrom}
+                  onChange={(e) => {
+                    setInvoiceDateFrom(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Date To */}
+              <div className="filter-item">
+                <label>Date To</label>
+                <input
+                  type="date"
+                  value={invoiceDateTo}
+                  onChange={(e) => {
+                    setInvoiceDateTo(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Type (transaction_type) */}
+              <div className="filter-item">
+                <label>Type</label>
+                <select
+                  value={invoiceType}
+                  onChange={(e) => {
+                    setInvoiceType(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Types</option>
+                  <option value="purchase">Purchase</option>
+                  <option value="sale">Sale</option>
+                  <option value="auction">Auction</option>
+                  <option value="nagare">Nagare</option>
+                </select>
+              </div>
+
+              {/* Category (transaction_catagory) */}
+              <div className="filter-item">
+                <label>Category</label>
+                <select
+                  value={invoiceCategory}
+                  onChange={(e) => {
+                    setInvoiceCategory(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Categories</option>
+                  <option value="local">Local</option>
+                  <option value="foreign">Foreign</option>
+                </select>
+              </div>
+
+              {/* Payment Status */}
+              <div className="filter-item">
+                <label>Payment Status</label>
+                <select
+                  value={invoicePaymentStatus}
+                  onChange={(e) => {
+                    setInvoicePaymentStatus(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="completed">Completed</option>
+                  <option value="pending">Pending</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+
+              {/* Payment Method */}
+              <div className="filter-item">
+                <label>Payment Method</label>
+                <select
+                  value={invoicePaymentMethod}
+                  onChange={(e) => {
+                    setInvoicePaymentMethod(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Methods</option>
+                  <option value="cash">Cash</option>
+                  <option value="bank">Bank / Transfer</option>
+                </select>
+              </div>
+
+              {/* Reset Actions */}
+              <div className="filter-actions">
+                <button
+                  type="button"
+                  className="btn-filter-reset"
+                  onClick={handleResetInvoiceFilters}
+                  title="Reset all filters"
+                >
+                  <RotateCcw size={14} style={{ display: 'inline', marginRight: 4 }} />
+                  Reset Filters
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Actions */}
-          <div className="filter-actions">
-            <button
-              type="button"
-              className="btn-filter-reset"
-              onClick={handleResetFilters}
-              title="Reset all filters"
-            >
-              <RotateCcw size={14} style={{ display: 'inline', marginRight: 4 }} />
-              Reset Filters
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Expenses Table Card */}
-      <div className="tax-table-card">
-        <div className="tax-table-wrapper">
-          <table className="tax-data-table">
-            <thead>
-              <tr>
-                <th style={{ width: 45, textAlign: 'center' }}>#</th>
-                <th style={{ width: 110 }}>Date</th>
-                <th>Title / Description</th>
-                <th>Category</th>
-                <th style={{ textAlign: 'center', width: 90 }}>Payment</th>
-                <th style={{ textAlign: 'center', width: 130 }}>Tax Category</th>
-                <th style={{ textAlign: 'center', width: 85 }}>Tax Rate</th>
-                <th style={{ textAlign: 'right', width: 130 }}>Pre-Tax (¥)</th>
-                <th style={{ textAlign: 'right', width: 120 }}>Tax (¥)</th>
-                <th style={{ textAlign: 'right', width: 130 }}>Total (¥)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={10} style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                    Loading tax expense records...
-                  </td>
-                </tr>
-              ) : expenses.length === 0 ? (
-                <tr>
-                  <td colSpan={10} style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                    No expense records found matching the specified filters.
-                  </td>
-                </tr>
-              ) : (
-                expenses.map((exp, idx) => {
-                  const hasTax = exp.tax_percent_used && Number(exp.tax_percent_used) > 0;
-                  const amt = Number(exp.amount || 0);
-                  const taxAmt = exp.tax_amount !== null && exp.tax_amount !== undefined
-                    ? Number(exp.tax_amount)
-                    : (hasTax ? Math.round(amt * Number(exp.tax_percent_used) / 100) : 0);
-                  const totalAmt = amt + taxAmt;
-                  const taxCat = exp.tax_category || 'exclusive';
-
-                  return (
-                    <tr key={exp.id}>
-                      <td style={{ textAlign: 'center', color: '#94a3b8' }}>
-                        {(currentPage - 1) * pageSize + idx + 1}
-                      </td>
-                      <td style={{ fontWeight: 600 }}>{exp.date}</td>
-                      <td>
-                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{exp.title}</div>
-                        {exp.description && (
-                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
-                            {exp.description}
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <span style={{ fontWeight: 500 }}>{sanitizeCategoryName(exp.category_name)}</span>
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <span className={`method-badge ${exp.is_cash ? 'cash' : 'bank'}`}>
-                          {exp.is_cash ? 'Cash' : 'Bank'}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {hasTax ? (
-                          taxCat === 'inclusive' ? (
-                            <span className="tax-badge inclusive">Tax Inclusive</span>
-                          ) : (
-                            <span className="tax-badge exclusive">Tax Exclusive</span>
-                          )
-                        ) : (
-                          <span className="tax-badge none">No Tax</span>
-                        )}
-                      </td>
-                      <td style={{ textAlign: 'center', fontWeight: 600 }}>
-                        {hasTax ? `${Number(exp.tax_percent_used).toFixed(1)}%` : '-'}
-                      </td>
-                      <td className="amount">
-                        ¥{formatNum(amt)}
-                      </td>
-                      <td className="amount tax">
-                        ¥{formatNum(taxAmt)}
-                      </td>
-                      <td className="amount total">
-                        ¥{formatNum(totalAmt)}
+          {/* Invoice Items Table Card */}
+          <div className="tax-table-card">
+            <div className="tax-table-wrapper">
+              <table className="tax-data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 45, textAlign: 'center' }}>#</th>
+                    <th style={{ width: 105 }}>Date</th>
+                    <th style={{ width: 120 }}>Order #</th>
+                    <th>Vehicle / Chassis</th>
+                    <th style={{ textAlign: 'center', width: 95 }}>Type</th>
+                    <th style={{ textAlign: 'center', width: 95 }}>Category</th>
+                    <th style={{ textAlign: 'center', width: 110 }}>Payment Status</th>
+                    <th style={{ textAlign: 'center', width: 90 }}>Payment Method</th>
+                    {/* Dynamic Headers for Selected Checklist Items */}
+                    {selectedChecklist.map((fieldKey) => {
+                      const fieldDef = INVOICE_CHECKLIST_FIELDS.find((f) => f.key === fieldKey);
+                      return (
+                        <th key={fieldKey} style={{ textAlign: 'right', minWidth: 125 }}>
+                          {fieldDef ? `${fieldDef.label} (¥)` : fieldKey}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoiceLoading ? (
+                    <tr>
+                      <td
+                        colSpan={8 + Math.max(selectedChecklist.length, 1)}
+                        style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}
+                      >
+                        Loading invoice tax records...
                       </td>
                     </tr>
-                  );
-                })
-              )}
+                  ) : flattenedInvoiceItems.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={8 + Math.max(selectedChecklist.length, 1)}
+                        style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}
+                      >
+                        No invoice records found matching the specified filters.
+                      </td>
+                    </tr>
+                  ) : (
+                    flattenedInvoiceItems.map((row, idx) => {
+                      const tType = (row.transactionType || '').toLowerCase();
+                      const tCat = (row.transactionCategory || '').toLowerCase();
+                      const pStatus = (row.paymentStatus || '').toLowerCase();
 
-              {/* Bottom Summary Totals Row */}
-              {!loading && expenses.length > 0 && (
-                <tr className="tax-table-total-row">
-                  <td colSpan={7} style={{ textAlign: 'right', fontWeight: 800 }}>
-                    Filtered Total ({stats.expense_count} records):
-                  </td>
-                  <td className="amount" style={{ fontWeight: 800 }}>
-                    ¥{formatNum(stats.total_original_amount)}
-                  </td>
-                  <td className="amount tax" style={{ fontWeight: 800 }}>
-                    ¥{formatNum(stats.total_tax_paid)}
-                  </td>
-                  <td className="amount total" style={{ fontWeight: 800 }}>
-                    ¥{formatNum(stats.grand_total_amount)}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                      return (
+                        <tr key={row.uniqueKey}>
+                          <td style={{ textAlign: 'center', color: '#94a3b8' }}>
+                            {(invoiceCurrentPage - 1) * invoicePageSize + idx + 1}
+                          </td>
+                          <td style={{ fontWeight: 600 }}>{row.transactionDate}</td>
+                          <td style={{ fontWeight: 700, color: '#0f172a' }}>{row.orderNumber}</td>
+                          <td>
+                            <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                              {row.vehicleText}
+                            </div>
+                            {row.totalItemsInOrder > 1 && (
+                              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                                Item {row.itemIndexInOrder} of {row.totalItemsInOrder}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className={`invoice-tag type-${tType || 'default'}`}>
+                              {(row.transactionType || '-').toUpperCase()}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className={`invoice-tag cat-${tCat || 'default'}`}>
+                              {(row.transactionCategory || '-').toUpperCase()}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className={`invoice-tag status-${pStatus || 'default'}`}>
+                              {(row.paymentStatus || '-').toUpperCase()}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className={`method-badge ${row.paymentMethod.toLowerCase() === 'cash' ? 'cash' : 'bank'}`}>
+                              {row.paymentMethod}
+                            </span>
+                          </td>
+                          {/* Dynamic Values for Selected Checklist Items */}
+                          {selectedChecklist.map((fieldKey) => {
+                            const val = row.item ? Number(row.item[fieldKey] || 0) : 0;
+                            const isTax = fieldKey.includes('tax');
+                            return (
+                              <td key={fieldKey} className={`amount ${isTax ? 'tax' : ''}`}>
+                                ¥{formatNum(val)}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })
+                  )}
 
-        {/* Pagination Section */}
-        {totalCount > 0 && (
-          <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid #e2e8f0' }}>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              pageSize={pageSize}
-              onPageSizeChange={(newSize) => {
-                setPageSize(newSize);
-                setCurrentPage(1);
-              }}
-              pageSizeOptions={[10, 25, 50, 100]}
-            />
+                  {/* Summary Totals Row */}
+                  {!invoiceLoading && flattenedInvoiceItems.length > 0 && selectedChecklist.length > 0 && (
+                    <tr className="tax-table-total-row">
+                      <td colSpan={8} style={{ textAlign: 'right', fontWeight: 800 }}>
+                        Filtered Total ({invoiceStats.total_orders || 0} orders / {invoiceStats.total_items || 0} items):
+                      </td>
+                      {selectedChecklist.map((fieldKey) => {
+                        const totalVal = Number(invoiceStats[fieldKey] || 0);
+                        const isTax = fieldKey.includes('tax');
+                        return (
+                          <td key={fieldKey} className={`amount ${isTax ? 'tax' : 'total'}`} style={{ fontWeight: 800 }}>
+                            ¥{formatNum(totalVal)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Invoice Pagination */}
+            {invoiceTotalOrders > 0 && (
+              <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid #e2e8f0' }}>
+                <Pagination
+                  currentPage={invoiceCurrentPage}
+                  totalPages={invoiceTotalPages}
+                  onPageChange={setInvoiceCurrentPage}
+                  pageSize={invoicePageSize}
+                  onPageSizeChange={(newSize) => {
+                    setInvoicePageSize(newSize);
+                    setInvoiceCurrentPage(1);
+                  }}
+                  pageSizeOptions={[10, 25, 50, 100]}
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
+
+      {/* =============================================================
+          VIEW 2: EXPENSE TAX REPORT
+      ============================================================= */}
+      {reportType === 'expense' && (
+        <>
+          {/* Statistics Metric Cards Grid */}
+          <div className="tax-stats-grid">
+            {/* Card 1: Total Expense Without Any Tax (Original Pre-Tax Amount) */}
+            <div className="tax-stat-card primary">
+              <div className="tax-stat-header">
+                <span className="tax-stat-label">Original / Pre-Tax Amount</span>
+                <div className="tax-stat-icon">
+                  <Calculator size={18} />
+                </div>
+              </div>
+              <div className="tax-stat-value">¥{formatNum(expenseStats.total_original_amount)}</div>
+              <div className="tax-stat-subtext">
+                <span>Base Expense Total</span>
+                <span>{expenseStats.expense_count} expenses</span>
+              </div>
+            </div>
+
+            {/* Card 2: Total Tax Paid */}
+            <div className="tax-stat-card accent-amber">
+              <div className="tax-stat-header">
+                <span className="tax-stat-label">Total Tax Paid</span>
+                <div className="tax-stat-icon">
+                  <Percent size={18} />
+                </div>
+              </div>
+              <div className="tax-stat-value" style={{ color: '#b45309' }}>
+                ¥{formatNum(expenseStats.total_tax_paid)}
+              </div>
+              <div className="tax-stat-subtext">
+                <span>Total Tax Accounted</span>
+                <span>
+                  Effective Rate:{' '}
+                  {expenseStats.total_original_amount > 0
+                    ? ((expenseStats.total_tax_paid / expenseStats.total_original_amount) * 100).toFixed(1)
+                    : 0}
+                  %
+                </span>
+              </div>
+            </div>
+
+            {/* Card 3: Grand Total Spent (Original + Tax) */}
+            <div className="tax-stat-card accent-green">
+              <div className="tax-stat-header">
+                <span className="tax-stat-label">Grand Total (With Tax)</span>
+                <div className="tax-stat-icon">
+                  <Receipt size={18} />
+                </div>
+              </div>
+              <div className="tax-stat-value" style={{ color: '#047857' }}>
+                ¥{formatNum(expenseStats.grand_total_amount)}
+              </div>
+              <div className="tax-stat-subtext">
+                <span>Total Payout</span>
+                <span>
+                  Pre-Tax ¥{formatNum(expenseStats.total_original_amount)} + Tax ¥{formatNum(expenseStats.total_tax_paid)}
+                </span>
+              </div>
+            </div>
+
+            {/* Card 4: Tax Inclusive Amount */}
+            <div className="tax-stat-card accent-purple">
+              <div className="tax-stat-header">
+                <span className="tax-stat-label">Tax-Inclusive Expenses</span>
+                <div className="tax-stat-icon">
+                  <Layers size={18} />
+                </div>
+              </div>
+              <div className="tax-stat-value">¥{formatNum(expenseStats.total_inclusive_amount)}</div>
+              <div className="tax-stat-subtext">
+                <span>Tax-Inclusive ({expenseStats.inclusive_count} items)</span>
+                <span>
+                  Base: ¥{formatNum(expenseStats.inclusive_base_amount)} | Tax: ¥{formatNum(expenseStats.inclusive_tax_amount)}
+                </span>
+              </div>
+            </div>
+
+            {/* Card 5: Tax Exclusive Amount */}
+            <div className="tax-stat-card">
+              <div className="tax-stat-header">
+                <span className="tax-stat-label">Tax-Exclusive Expenses</span>
+                <div className="tax-stat-icon">
+                  <Sparkles size={18} />
+                </div>
+              </div>
+              <div className="tax-stat-value">¥{formatNum(expenseStats.total_exclusive_amount)}</div>
+              <div className="tax-stat-subtext">
+                <span>Tax-Exclusive ({expenseStats.exclusive_count} items)</span>
+                <span>
+                  Base: ¥{formatNum(expenseStats.exclusive_base_amount)} | Tax: ¥{formatNum(expenseStats.exclusive_tax_amount)}
+                </span>
+              </div>
+            </div>
+
+            {/* Card 6: No Tax / Non-Taxable */}
+            <div className="tax-stat-card">
+              <div className="tax-stat-header">
+                <span className="tax-stat-label">Non-Taxable Expenses</span>
+                <div className="tax-stat-icon">
+                  <CheckCircle2 size={18} />
+                </div>
+              </div>
+              <div className="tax-stat-value">¥{formatNum(expenseStats.total_no_tax_amount)}</div>
+              <div className="tax-stat-subtext">
+                <span>Zero-Tax / Exempt (0%)</span>
+                <span>{expenseStats.no_tax_count} expenses without tax</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tax Rate Distribution Strip */}
+          {expenseStats.tax_rate_breakdown && expenseStats.tax_rate_breakdown.length > 0 && (
+            <div className="tax-rate-breakdown-panel">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>
+                <Percent size={15} style={{ color: '#0284c7' }} />
+                <span>Tax Rate Distribution:</span>
+              </div>
+
+              <div className="tax-rate-pills">
+                {expenseStats.tax_rate_breakdown.map((item) => (
+                  <div key={item.rate} className="tax-rate-pill">
+                    <span className="tax-rate-pill-badge">{item.rate > 0 ? `${item.rate}% Rate` : 'No Tax (0%)'}</span>
+                    <span style={{ fontWeight: 600 }}>Base: ¥{formatNum(item.base_amount)}</span>
+                    {item.rate > 0 && (
+                      <span style={{ color: '#b91c1c', fontWeight: 600 }}>Tax: ¥{formatNum(item.tax_amount)}</span>
+                    )}
+                    <span style={{ color: '#64748b', fontSize: '0.72rem' }}>({item.count} items)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Expense Filters Card */}
+          <div className="tax-filter-card">
+            <div className="tax-filter-grid">
+              {/* Year Filter */}
+              <div className="filter-item">
+                <label>Year</label>
+                <YearSelector
+                  selectedYear={filterYear}
+                  onYearChange={(yearVal) => {
+                    setFilterYear(yearVal);
+                    setExpenseCurrentPage(1);
+                  }}
+                  placeholder="All Years"
+                />
+              </div>
+
+              {/* Month Filter */}
+              <div className="filter-item">
+                <label>Month</label>
+                <select
+                  value={filterMonth}
+                  onChange={(e) => {
+                    setFilterMonth(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Months</option>
+                  {monthOptions.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date From */}
+              <div className="filter-item">
+                <label>Date From</label>
+                <input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={(e) => {
+                    setFilterDateFrom(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Date To */}
+              <div className="filter-item">
+                <label>Date To</label>
+                <input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={(e) => {
+                    setFilterDateTo(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Category */}
+              <div className="filter-item">
+                <label>Category</label>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => {
+                    setFilterCategory(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {sanitizeCategoryName(c.name)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Payment Status / Method */}
+              <div className="filter-item">
+                <label>Payment Method</label>
+                <select
+                  value={filterPaymentStatus}
+                  onChange={(e) => {
+                    setFilterPaymentStatus(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Payment Types</option>
+                  <option value="cash">Cash</option>
+                  <option value="bank">Bank / Transfer</option>
+                </select>
+              </div>
+
+              {/* Tax Category */}
+              <div className="filter-item">
+                <label>Tax Category</label>
+                <select
+                  value={filterTaxCategory}
+                  onChange={(e) => {
+                    setFilterTaxCategory(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Tax Types</option>
+                  <option value="inclusive">Tax Inclusive</option>
+                  <option value="exclusive">Tax Exclusive</option>
+                  <option value="none">No Tax (0%)</option>
+                </select>
+              </div>
+
+              {/* Actions */}
+              <div className="filter-actions">
+                <button
+                  type="button"
+                  className="btn-filter-reset"
+                  onClick={handleResetExpenseFilters}
+                  title="Reset all filters"
+                >
+                  <RotateCcw size={14} style={{ display: 'inline', marginRight: 4 }} />
+                  Reset Filters
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Expenses Table Card */}
+          <div className="tax-table-card">
+            <div className="tax-table-wrapper">
+              <table className="tax-data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 45, textAlign: 'center' }}>#</th>
+                    <th style={{ width: 110 }}>Date</th>
+                    <th>Title / Description</th>
+                    <th>Category</th>
+                    <th style={{ textAlign: 'center', width: 90 }}>Payment</th>
+                    <th style={{ textAlign: 'center', width: 130 }}>Tax Category</th>
+                    <th style={{ textAlign: 'center', width: 85 }}>Tax Rate</th>
+                    <th style={{ textAlign: 'right', width: 130 }}>Pre-Tax (¥)</th>
+                    <th style={{ textAlign: 'right', width: 120 }}>Tax (¥)</th>
+                    <th style={{ textAlign: 'right', width: 130 }}>Total (¥)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenseLoading ? (
+                    <tr>
+                      <td colSpan={10} style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                        Loading tax expense records...
+                      </td>
+                    </tr>
+                  ) : expenses.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                        No expense records found matching the specified filters.
+                      </td>
+                    </tr>
+                  ) : (
+                    expenses.map((exp, idx) => {
+                      const hasTax = exp.tax_percent_used && Number(exp.tax_percent_used) > 0;
+                      const amt = Number(exp.amount || 0);
+                      const taxAmt =
+                        exp.tax_amount !== null && exp.tax_amount !== undefined
+                          ? Number(exp.tax_amount)
+                          : hasTax
+                          ? Math.round((amt * Number(exp.tax_percent_used)) / 100)
+                          : 0;
+                      const totalAmt = amt + taxAmt;
+                      const taxCat = exp.tax_category || 'exclusive';
+
+                      return (
+                        <tr key={exp.id}>
+                          <td style={{ textAlign: 'center', color: '#94a3b8' }}>
+                            {(expenseCurrentPage - 1) * expensePageSize + idx + 1}
+                          </td>
+                          <td style={{ fontWeight: 600 }}>{exp.date}</td>
+                          <td>
+                            <div style={{ fontWeight: 600, color: '#0f172a' }}>{exp.title}</div>
+                            {exp.description && (
+                              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                                {exp.description}
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <span style={{ fontWeight: 500 }}>{sanitizeCategoryName(exp.category_name)}</span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className={`method-badge ${exp.is_cash ? 'cash' : 'bank'}`}>
+                              {exp.is_cash ? 'Cash' : 'Bank'}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            {hasTax ? (
+                              taxCat === 'inclusive' ? (
+                                <span className="tax-badge inclusive">Tax Inclusive</span>
+                              ) : (
+                                <span className="tax-badge exclusive">Tax Exclusive</span>
+                              )
+                            ) : (
+                              <span className="tax-badge none">No Tax</span>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'center', fontWeight: 600 }}>
+                            {hasTax ? `${Number(exp.tax_percent_used).toFixed(1)}%` : '-'}
+                          </td>
+                          <td className="amount">¥{formatNum(amt)}</td>
+                          <td className="amount tax">¥{formatNum(taxAmt)}</td>
+                          <td className="amount total">¥{formatNum(totalAmt)}</td>
+                        </tr>
+                      );
+                    })
+                  )}
+
+                  {/* Summary Totals Row */}
+                  {!expenseLoading && expenses.length > 0 && (
+                    <tr className="tax-table-total-row">
+                      <td colSpan={7} style={{ textAlign: 'right', fontWeight: 800 }}>
+                        Filtered Total ({expenseStats.expense_count} records):
+                      </td>
+                      <td className="amount" style={{ fontWeight: 800 }}>
+                        ¥{formatNum(expenseStats.total_original_amount)}
+                      </td>
+                      <td className="amount tax" style={{ fontWeight: 800 }}>
+                        ¥{formatNum(expenseStats.total_tax_paid)}
+                      </td>
+                      <td className="amount total" style={{ fontWeight: 800 }}>
+                        ¥{formatNum(expenseStats.grand_total_amount)}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Expense Pagination */}
+            {expenseTotalCount > 0 && (
+              <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid #e2e8f0' }}>
+                <Pagination
+                  currentPage={expenseCurrentPage}
+                  totalPages={expenseTotalPages}
+                  onPageChange={setExpenseCurrentPage}
+                  pageSize={expensePageSize}
+                  onPageSizeChange={(newSize) => {
+                    setExpensePageSize(newSize);
+                    setExpenseCurrentPage(1);
+                  }}
+                  pageSizeOptions={[10, 25, 50, 100]}
+                />
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
