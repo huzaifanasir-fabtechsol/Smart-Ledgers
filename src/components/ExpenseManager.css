@@ -58,3 +58,8 @@
   outline: none !important;
   box-shadow: none !important;
 }
+
+.amount-cell {
+  white-space: nowrap !important;
+  vertical-align: middle;
+}

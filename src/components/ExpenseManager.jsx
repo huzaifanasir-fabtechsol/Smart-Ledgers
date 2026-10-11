@@ -914,7 +914,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 <th>Shop</th>
                 <th>{t.description}</th>
                 <th>Payment / Transaction</th>
-                <th>{t.amount}</th>
+                <th style={{ minWidth: '150px' }}>{t.amount}</th>
                 <th style={{ width: '60px' }}>{t.actions}</th>
               </tr>
             </thead>
@@ -978,34 +978,53 @@ const ExpenseManager = ({ language = 'en' }) => {
                         )}
                       </div>
                     </td>
-                    <td className="amount-cell">
-                      <div style={{ fontWeight: 700 }}>¥{Number(expense.amount || 0).toLocaleString()}</div>
+                    <td className="amount-cell" style={{ whiteSpace: 'nowrap' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                        ¥{Number(
+                          expense.tax_category === 'inclusive' && Number(expense.tax_amount || 0) > 0
+                            ? (expense.total_amount != null ? expense.total_amount : (Number(expense.amount || 0) + Number(expense.tax_amount || 0)))
+                            : expense.amount
+                        ).toLocaleString()}
+                      </div>
                       {expense.tax_percent_used != null && Number(expense.tax_percent_used) > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginTop: '0.25rem' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <span
-                              style={{
-                                fontSize: '0.68rem',
-                                padding: '0.1rem 0.4rem',
-                                borderRadius: '4px',
-                                fontWeight: 700,
-                                background: expense.tax_category === 'inclusive' ? '#e0f2fe' : '#fef3c7',
-                                color: expense.tax_category === 'inclusive' ? '#0369a1' : '#b45309',
-                                border: `1px solid ${expense.tax_category === 'inclusive' ? '#bae6fd' : '#fde68a'}`
-                              }}
-                            >
-                              {expense.tax_category === 'inclusive' ? (t.taxInclusiveShort || 'Tax Incl.') : (t.taxExclusiveShort || 'Tax Excl.')}
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            marginTop: '0.2rem',
+                            fontSize: '0.72rem',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={
+                            expense.tax_category === 'inclusive'
+                              ? `Total: ¥${(Number(expense.amount || 0) + Number(expense.tax_amount || 0)).toLocaleString()} • Pre-tax: ¥${Number(expense.amount || 0).toLocaleString()} • Tax (${Number(expense.tax_percent_used)}%): ¥${Number(expense.tax_amount || 0).toLocaleString()}`
+                              : `Base: ¥${Number(expense.amount || 0).toLocaleString()} • Tax (${Number(expense.tax_percent_used)}%): ¥${Number(expense.tax_amount || 0).toLocaleString()} • Total: ¥${(Number(expense.amount || 0) + Number(expense.tax_amount || 0)).toLocaleString()}`
+                          }
+                        >
+                          <span
+                            style={{
+                              fontSize: '0.65rem',
+                              padding: '0.1rem 0.35rem',
+                              borderRadius: '4px',
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                              background: expense.tax_category === 'inclusive' ? '#e0f2fe' : '#fef3c7',
+                              color: expense.tax_category === 'inclusive' ? '#0369a1' : '#b45309',
+                              border: `1px solid ${expense.tax_category === 'inclusive' ? '#bae6fd' : '#fde68a'}`,
+                              lineHeight: 1.2
+                            }}
+                          >
+                            {expense.tax_category === 'inclusive' ? (t.taxInclusiveShort || 'Tax Incl.') : (t.taxExclusiveShort || 'Tax Excl.')} {Number(expense.tax_percent_used)}%
+                          </span>
+                          <span style={{ color: '#d97706', fontWeight: 600 }}>
+                            Tax: ¥{Number(expense.tax_amount || 0).toLocaleString()}
+                          </span>
+                          {expense.tax_category === 'exclusive' && (
+                            <span style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem', fontWeight: 500 }}>
+                              (Total: ¥{(Number(expense.amount || 0) + Number(expense.tax_amount || 0)).toLocaleString()})
                             </span>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>
-                              {Number(expense.tax_percent_used).toFixed(2)}%
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600 }}>
-                            {t.taxAmountLabel || 'Tax'}: ¥{Number(expense.tax_amount || 0).toLocaleString()}
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>
-                            {t.totalInclusiveAmount || 'Total'}: ¥{(Number(expense.amount || 0) + Number(expense.tax_amount || 0)).toLocaleString()}
-                          </div>
+                          )}
                         </div>
                       )}
                     </td>
