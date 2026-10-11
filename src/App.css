@@ -2,31 +2,33 @@
 
 .app-container {
   display: flex;
-  height: 100vh;
-  max-height: 100vh;
+  min-height: 100vh;
   background-color: var(--background);
   width: 100%;
-  max-width: 100vw;
   box-sizing: border-box;
-  overflow: hidden;
+  position: relative;
 }
 
-/* Sidebar design */
+/* Sidebar design - fixed in place, never scrolls away */
 .sidebar {
   width: 248px;
   background: var(--sidebar);
   color: var(--sidebar-foreground);
-  margin: 1rem 0 1rem 1rem;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  height: calc(100vh - 2rem);
+  margin: 0;
   border-radius: 24px;
   padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 2rem);
   flex-shrink: 0;
   z-index: 100;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
   border: 1px solid var(--sidebar-border);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
 }
 
 .sidebar.collapsed {
@@ -165,18 +167,22 @@
 /* Main content styling */
 .main-content {
   flex: 1;
-  padding: 1.75rem 2rem;
+  margin-left: calc(248px + 2rem);
+  padding: 1.75rem 2rem 4rem 2rem;
   background: var(--background);
-  height: 100vh;
-  max-height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-height: 100vh;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  max-width: 1550px;
-  width: 100%;
+  max-width: 1600px;
+  width: calc(100% - 248px - 2rem);
   box-sizing: border-box;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: calc(76px + 2rem);
+  width: calc(100% - 76px - 2rem);
 }
 
 .main-topbar {
@@ -214,8 +220,11 @@
     left: 0;
   }
 
-  .main-content {
-    padding: 1.5rem;
+  .main-content,
+  .sidebar.collapsed ~ .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 1.25rem 1rem 3.5rem 1rem;
   }
 }
 
