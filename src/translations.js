@@ -265,3 +265,4 @@ export const translations = {
     totalInclusiveAmount: '支払総額 (税込)',
   }
 };
+hb
