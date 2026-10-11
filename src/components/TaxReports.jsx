@@ -207,6 +207,12 @@ const TaxReports = () => {
 
   const formatNum = (val) => Number(val || 0).toLocaleString();
 
+  const sanitizeCategoryName = (name) => {
+    if (!name) return '-';
+    const clean = String(name).replace(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]+/g, '').replace(/\(\s*\)/g, '').trim();
+    return clean || name;
+  };
+
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
   return (
@@ -489,7 +495,7 @@ const TaxReports = () => {
             <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}>
               <option value="">All Categories</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>{sanitizeCategoryName(c.name)}</option>
               ))}
             </select>
           </div>
@@ -592,7 +598,7 @@ const TaxReports = () => {
                         )}
                       </td>
                       <td>
-                        <span style={{ fontWeight: 500 }}>{exp.category_name || '-'}</span>
+                        <span style={{ fontWeight: 500 }}>{sanitizeCategoryName(exp.category_name)}</span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <span className={`method-badge ${exp.is_cash ? 'cash' : 'bank'}`}>
