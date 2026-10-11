@@ -719,7 +719,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
             <select value={formData.transaction_type} onChange={(e) => handleTransactionTypeChange(e.target.value)}>
               <option value="sale">{t.sale}</option>
               <option value="purchase">{t.purchase}</option>
-              <option value="nagare">Nagare (流れ)</option>
+              <option value="nagare">{t.nagare || 'Nagare'}</option>
               {/* <option value="auction">{t.auction}</option> */}
             </select>
           </div>

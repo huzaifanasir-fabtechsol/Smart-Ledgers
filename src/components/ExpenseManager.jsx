@@ -994,7 +994,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                                 border: `1px solid ${expense.tax_category === 'inclusive' ? '#bae6fd' : '#fde68a'}`
                               }}
                             >
-                              {expense.tax_category === 'inclusive' ? (t.taxInclusiveShort || '税込') : (t.taxExclusiveShort || '税抜')}
+                              {expense.tax_category === 'inclusive' ? (t.taxInclusiveShort || 'Tax Incl.') : (t.taxExclusiveShort || 'Tax Excl.')}
                             </span>
                             <span style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>
                               {Number(expense.tax_percent_used).toFixed(2)}%
@@ -1429,7 +1429,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <span style={{ fontWeight: 700, fontSize: '0.85rem', color: expenseForm.tax_category === 'exclusive' ? 'var(--primary)' : 'var(--foreground)' }}>
-                              🏷️ {t.taxExclusive || 'Tax Exclusive (税抜)'}
+                              🏷️ {t.taxExclusive || 'Tax Exclusive'}
                             </span>
                             <span style={{
                               width: '14px', height: '14px', borderRadius: '50%',
@@ -1458,7 +1458,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <span style={{ fontWeight: 700, fontSize: '0.85rem', color: expenseForm.tax_category === 'inclusive' ? 'var(--primary)' : 'var(--foreground)' }}>
-                              🧾 {t.taxInclusive || 'Tax Inclusive (税込)'}
+                              🧾 {t.taxInclusive || 'Tax Inclusive'}
                             </span>
                             <span style={{
                               width: '14px', height: '14px', borderRadius: '50%',
@@ -1546,13 +1546,13 @@ const ExpenseManager = ({ language = 'en' }) => {
                               color: taxSettlement.mode === 'inclusive' ? '#0369a1' : '#b45309',
                             }}
                           >
-                            {taxSettlement.mode === 'inclusive' ? (t.taxInclusiveShort || '税込') : (t.taxExclusiveShort || '税抜')} ({taxSettlement.rate}%)
+                            {taxSettlement.mode === 'inclusive' ? (t.taxInclusiveShort || 'Tax Incl.') : (t.taxExclusiveShort || 'Tax Excl.')} ({taxSettlement.rate}%)
                           </span>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', paddingTop: '0.2rem' }}>
                           <div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)' }}>{t.originalPreTaxAmount || 'Original (税抜)'}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)' }}>{t.originalPreTaxAmount || 'Original Amount'}</div>
                             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)' }}>
                               ¥{taxSettlement.originalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                             </div>
@@ -1564,7 +1564,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                             </div>
                           </div>
                           <div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)' }}>{t.totalInclusiveAmount || 'Total (税込)'}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)' }}>{t.totalInclusiveAmount || 'Total Amount'}</div>
                             <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary)' }}>
                               ¥{taxSettlement.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                             </div>
@@ -1728,7 +1728,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                     }}>
                       <span>ℹ️</span>
                       <span>
-                        <strong style={{ color: '#15803d' }}>Deposit (入金)</strong> = Money into account &nbsp;•&nbsp; <strong style={{ color: '#b91c1c' }}>Withdraw (出金)</strong> = Money out of account
+                        <strong style={{ color: '#15803d' }}>{language === 'ja' ? '入金 (Deposit)' : 'Deposit'}</strong> = {language === 'ja' ? '口座への入金' : 'Money into account'} &nbsp;•&nbsp; <strong style={{ color: '#b91c1c' }}>{language === 'ja' ? '出金 (Withdraw)' : 'Withdraw'}</strong> = {language === 'ja' ? '口座からの出金' : 'Money out of account'}
                       </span>
                     </div>
 
