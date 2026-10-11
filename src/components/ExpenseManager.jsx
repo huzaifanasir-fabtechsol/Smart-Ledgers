@@ -25,6 +25,7 @@ const EXPENSE_INITIAL_FORM = {
   category_name: '',
   is_cash: false,
   apply_tax: false,
+  tax_category: 'exclusive',
   tax_percent_used: '',
 };
 
@@ -128,6 +129,41 @@ const ExpenseManager = ({ language = 'en' }) => {
     () => transactions.filter((t) => Number(t.deposit) > 0).length,
     [transactions]
   );
+
+  const taxSettlement = useMemo(() => {
+    const rawAmount = parseFloat(expenseForm.amount);
+    if (isNaN(rawAmount) || rawAmount <= 0 || !expenseForm.apply_tax) {
+      return null;
+    }
+    const rate = parseFloat(expenseForm.tax_percent_used);
+    if (isNaN(rate) || rate <= 0) {
+      return null;
+    }
+
+    if (expenseForm.tax_category === 'inclusive') {
+      // Amount entered includes tax: base = amount / (1 + rate / 100)
+      const base = parseFloat((rawAmount / (1 + rate / 100)).toFixed(2));
+      const tax = parseFloat((rawAmount - base).toFixed(2));
+      return {
+        mode: 'inclusive',
+        originalAmount: base,
+        taxAmount: tax,
+        totalAmount: rawAmount,
+        rate,
+      };
+    } else {
+      // Amount entered is pre-tax base amount: tax = amount * (rate / 100)
+      const tax = parseFloat((rawAmount * rate / 100).toFixed(2));
+      const total = parseFloat((rawAmount + tax).toFixed(2));
+      return {
+        mode: 'exclusive',
+        originalAmount: rawAmount,
+        taxAmount: tax,
+        totalAmount: total,
+        rate,
+      };
+    }
+  }, [expenseForm.amount, expenseForm.apply_tax, expenseForm.tax_category, expenseForm.tax_percent_used]);
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
@@ -391,15 +427,23 @@ const ExpenseManager = ({ language = 'en' }) => {
     const rateVal = hasTax ? String(expense.tax_percent_used) : '';
     const matchesPreset = hasTax && taxRates.some((tr) => Number(tr.rate) === Number(expense.tax_percent_used));
     setIsCustomTax(hasTax && !matchesPreset);
+
+    const taxCategory = expense.tax_category || 'exclusive';
+    // If tax category is inclusive, the total amount entered was (amount + tax_amount)
+    const displayAmount = (hasTax && taxCategory === 'inclusive')
+      ? (expense.total_amount != null ? String(expense.total_amount) : String(Number(expense.amount || 0) + Number(expense.tax_amount || 0)))
+      : (expense.amount != null ? String(expense.amount) : '');
+
     setExpenseForm({
       title: expense.title || '',
-      amount: expense.amount || '',
+      amount: displayAmount,
       description: expense.description || '',
       date: expense.date || '',
       category: expense.category ? String(expense.category) : '',
       category_name: expense.category_name || '',
       is_cash: Boolean(expense.is_cash),
       apply_tax: hasTax,
+      tax_category: taxCategory,
       tax_percent_used: rateVal,
     });
     setTxTypeFilter('all');
@@ -540,11 +584,26 @@ const ExpenseManager = ({ language = 'en' }) => {
       const endpoint = editingExpense ? `/expenses/${editingExpense.id}/` : '/expenses/';
       const method = editingExpense ? 'PATCH' : 'POST';
 
-      const baseAmount = Number(expenseForm.amount);
+      const rawAmount = Number(expenseForm.amount);
       const taxPercent = expenseForm.apply_tax && expenseForm.tax_percent_used !== ''
         ? Number(expenseForm.tax_percent_used)
         : null;
-      const taxAmount = taxPercent != null ? parseFloat((baseAmount * taxPercent / 100).toFixed(2)) : null;
+
+      let baseAmount = rawAmount;
+      let taxAmount = null;
+      const taxCategory = expenseForm.apply_tax ? (expenseForm.tax_category || 'exclusive') : 'exclusive';
+
+      if (taxPercent != null && taxPercent > 0) {
+        if (taxCategory === 'inclusive') {
+          // Entered amount is total gross inclusive: settle into base amount and tax
+          baseAmount = parseFloat((rawAmount / (1 + taxPercent / 100)).toFixed(2));
+          taxAmount = parseFloat((rawAmount - baseAmount).toFixed(2));
+        } else {
+          // Entered amount is pre-tax base amount
+          baseAmount = rawAmount;
+          taxAmount = parseFloat((rawAmount * taxPercent / 100).toFixed(2));
+        }
+      }
 
       const payload = {
         title: expenseForm.title.trim(),
@@ -557,6 +616,7 @@ const ExpenseManager = ({ language = 'en' }) => {
         restaurant: selectedRestaurant ? selectedRestaurant.id : null,
         spare_part: selectedSparePart ? selectedSparePart.id : null,
         is_cash: Boolean(expenseForm.is_cash),
+        tax_category: taxCategory,
         tax_percent_used: taxPercent,
         tax_amount: taxAmount,
       };
@@ -919,10 +979,33 @@ const ExpenseManager = ({ language = 'en' }) => {
                       </div>
                     </td>
                     <td className="amount-cell">
-                      <div>¥{Number(expense.amount || 0).toLocaleString()}</div>
+                      <div style={{ fontWeight: 700 }}>¥{Number(expense.amount || 0).toLocaleString()}</div>
                       {expense.tax_percent_used != null && Number(expense.tax_percent_used) > 0 && (
-                        <div style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600, marginTop: '0.2rem' }}>
-                          🧾 Tax {Number(expense.tax_percent_used).toFixed(2)}% = ¥{Number(expense.tax_amount || 0).toLocaleString()}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginTop: '0.25rem' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <span
+                              style={{
+                                fontSize: '0.68rem',
+                                padding: '0.1rem 0.4rem',
+                                borderRadius: '4px',
+                                fontWeight: 700,
+                                background: expense.tax_category === 'inclusive' ? '#e0f2fe' : '#fef3c7',
+                                color: expense.tax_category === 'inclusive' ? '#0369a1' : '#b45309',
+                                border: `1px solid ${expense.tax_category === 'inclusive' ? '#bae6fd' : '#fde68a'}`
+                              }}
+                            >
+                              {expense.tax_category === 'inclusive' ? (t.taxInclusiveShort || '税込') : (t.taxExclusiveShort || '税抜')}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>
+                              {Number(expense.tax_percent_used).toFixed(2)}%
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600 }}>
+                            {t.taxAmountLabel || 'Tax'}: ¥{Number(expense.tax_amount || 0).toLocaleString()}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>
+                            {t.totalInclusiveAmount || 'Total'}: ¥{(Number(expense.amount || 0) + Number(expense.tax_amount || 0)).toLocaleString()}
+                          </div>
                         </div>
                       )}
                     </td>
@@ -1294,11 +1377,11 @@ const ExpenseManager = ({ language = 'en' }) => {
               </div>
 
               {/* ── Tax Section ── */}
-              <div style={{ marginTop: '1rem', padding: '0.85rem 1rem', background: 'var(--secondary)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+              <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--secondary)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: expenseForm.apply_tax ? '1rem' : 0 }}>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>🧾 Apply Tax</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Optionally track a tax amount for this expense</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>🧾 {t.applyTax || 'Apply Tax'}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Choose tax-inclusive or tax-exclusive category</div>
                   </div>
                   <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', gap: '0.5rem' }}>
                     <input
@@ -1311,6 +1394,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                         setExpenseForm((prev) => ({
                           ...prev,
                           apply_tax: checked,
+                          tax_category: prev.tax_category || 'exclusive',
                           tax_percent_used: checked ? defaultRate : '',
                         }));
                       }}
@@ -1323,49 +1407,169 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </div>
 
                 {expenseForm.apply_tax && (
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <div className="form-group" style={{ flex: '1 1 200px', margin: 0 }}>
-                      <label style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.8rem', fontWeight: 600 }}>Tax Rate</label>
-                      <select
-                        value={isCustomTax ? '__custom__' : expenseForm.tax_percent_used}
-                        onChange={(e) => {
-                          if (e.target.value === '__custom__') {
-                            setIsCustomTax(true);
-                            setExpenseForm((prev) => ({ ...prev, tax_percent_used: '' }));
-                          } else {
-                            setIsCustomTax(false);
-                            setExpenseForm((prev) => ({ ...prev, tax_percent_used: e.target.value }));
-                          }
-                        }}
-                        style={{ width: '100%' }}
-                      >
-                        <option value="">— Select a rate —</option>
-                        {taxRates.map((tr) => (
-                          <option key={tr.id} value={String(tr.rate)}>
-                            {tr.name} ({Number(tr.rate).toFixed(2)}%)
-                          </option>
-                        ))}
-                        <option value="__custom__">Custom %</option>
-                      </select>
-                    </div>
-                    {isCustomTax && (
-                      <div className="form-group" style={{ flex: '0 0 140px', margin: 0 }}>
-                        <label style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.8rem', fontWeight: 600 }}>Custom %</label>
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                          <input
-                            type="number" step="0.01" min="0" max="100"
-                            placeholder="10.00"
-                            value={expenseForm.tax_percent_used}
-                            style={{ paddingRight: '2rem' }}
-                            onChange={(e) => setExpenseForm((prev) => ({ ...prev, tax_percent_used: e.target.value }))}
-                          />
-                          <span style={{ position: 'absolute', right: '10px', color: 'var(--muted-foreground)', fontWeight: 600, fontSize: '0.85rem', pointerEvents: 'none' }}>%</span>
-                        </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {/* Tax Category Selector */}
+                    <div>
+                      <label style={{ marginBottom: '0.45rem', display: 'block', fontSize: '0.8rem', fontWeight: 600 }}>
+                        {t.taxCategory || 'Tax Category'}
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => setExpenseForm((prev) => ({ ...prev, tax_category: 'exclusive' }))}
+                          style={{
+                            padding: '0.7rem 0.85rem',
+                            borderRadius: '10px',
+                            border: `2px solid ${expenseForm.tax_category === 'exclusive' ? 'var(--primary)' : 'var(--border)'}`,
+                            background: expenseForm.tax_category === 'exclusive' ? 'color-mix(in srgb, var(--primary) 12%, var(--card))' : 'var(--card)',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.85rem', color: expenseForm.tax_category === 'exclusive' ? 'var(--primary)' : 'var(--foreground)' }}>
+                              🏷️ {t.taxExclusive || 'Tax Exclusive (税抜)'}
+                            </span>
+                            <span style={{
+                              width: '14px', height: '14px', borderRadius: '50%',
+                              border: `2px solid ${expenseForm.tax_category === 'exclusive' ? 'var(--primary)' : 'var(--muted-foreground)'}`,
+                              background: expenseForm.tax_category === 'exclusive' ? 'var(--primary)' : 'transparent',
+                              display: 'inline-block'
+                            }} />
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+                            Tax is added on top of entered amount
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setExpenseForm((prev) => ({ ...prev, tax_category: 'inclusive' }))}
+                          style={{
+                            padding: '0.7rem 0.85rem',
+                            borderRadius: '10px',
+                            border: `2px solid ${expenseForm.tax_category === 'inclusive' ? 'var(--primary)' : 'var(--border)'}`,
+                            background: expenseForm.tax_category === 'inclusive' ? 'color-mix(in srgb, var(--primary) 12%, var(--card))' : 'var(--card)',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.85rem', color: expenseForm.tax_category === 'inclusive' ? 'var(--primary)' : 'var(--foreground)' }}>
+                              🧾 {t.taxInclusive || 'Tax Inclusive (税込)'}
+                            </span>
+                            <span style={{
+                              width: '14px', height: '14px', borderRadius: '50%',
+                              border: `2px solid ${expenseForm.tax_category === 'inclusive' ? 'var(--primary)' : 'var(--muted-foreground)'}`,
+                              background: expenseForm.tax_category === 'inclusive' ? 'var(--primary)' : 'transparent',
+                              display: 'inline-block'
+                            }} />
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+                            Tax is included inside entered amount
+                          </div>
+                        </button>
                       </div>
-                    )}
-                    {expenseForm.tax_percent_used !== '' && !isNaN(Number(expenseForm.tax_percent_used)) && expenseForm.amount !== '' && (
-                      <div style={{ padding: '0.5rem 0.85rem', background: '#fef3c7', borderRadius: '10px', border: '1px solid #fde68a', fontSize: '0.82rem', fontWeight: 700, color: '#92400e', whiteSpace: 'nowrap' }}>
-                        Tax = ¥{(Number(expenseForm.amount) * Number(expenseForm.tax_percent_used) / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                    </div>
+
+                    {/* Tax Rate Row */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                      <div className="form-group" style={{ flex: '1 1 200px', margin: 0 }}>
+                        <label style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.8rem', fontWeight: 600 }}>
+                          {t.taxRate || 'Tax Rate'}
+                        </label>
+                        <select
+                          value={isCustomTax ? '__custom__' : expenseForm.tax_percent_used}
+                          onChange={(e) => {
+                            if (e.target.value === '__custom__') {
+                              setIsCustomTax(true);
+                              setExpenseForm((prev) => ({ ...prev, tax_percent_used: '' }));
+                            } else {
+                              setIsCustomTax(false);
+                              setExpenseForm((prev) => ({ ...prev, tax_percent_used: e.target.value }));
+                            }
+                          }}
+                          style={{ width: '100%' }}
+                        >
+                          <option value="">— Select a rate —</option>
+                          {taxRates.map((tr) => (
+                            <option key={tr.id} value={String(tr.rate)}>
+                              {tr.name} ({Number(tr.rate).toFixed(2)}%)
+                            </option>
+                          ))}
+                          <option value="__custom__">Custom %</option>
+                        </select>
+                      </div>
+                      {isCustomTax && (
+                        <div className="form-group" style={{ flex: '0 0 140px', margin: 0 }}>
+                          <label style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.8rem', fontWeight: 600 }}>Custom %</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type="number" step="0.01" min="0" max="100"
+                              placeholder="10.00"
+                              value={expenseForm.tax_percent_used}
+                              style={{ paddingRight: '2rem' }}
+                              onChange={(e) => setExpenseForm((prev) => ({ ...prev, tax_percent_used: e.target.value }))}
+                            />
+                            <span style={{ position: 'absolute', right: '10px', color: 'var(--muted-foreground)', fontWeight: 600, fontSize: '0.85rem', pointerEvents: 'none' }}>%</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Live Settlement Breakdown Card */}
+                    {taxSettlement && (
+                      <div
+                        style={{
+                          padding: '0.85rem 1rem',
+                          background: 'var(--card)',
+                          borderRadius: '10px',
+                          border: '1px solid var(--border)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            🧮 {t.taxSettlement || 'Tax Settlement Breakdown'}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '0.15rem 0.5rem',
+                              borderRadius: '6px',
+                              background: taxSettlement.mode === 'inclusive' ? '#e0f2fe' : '#fef3c7',
+                              color: taxSettlement.mode === 'inclusive' ? '#0369a1' : '#b45309',
+                            }}
+                          >
+                            {taxSettlement.mode === 'inclusive' ? (t.taxInclusiveShort || '税込') : (t.taxExclusiveShort || '税抜')} ({taxSettlement.rate}%)
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', paddingTop: '0.2rem' }}>
+                          <div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)' }}>{t.originalPreTaxAmount || 'Original (税抜)'}</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)' }}>
+                              ¥{taxSettlement.originalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)' }}>{t.taxAmountLabel || 'Tax Amount'}</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f59e0b' }}>
+                              ¥{taxSettlement.taxAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)' }}>{t.totalInclusiveAmount || 'Total (税込)'}</div>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary)' }}>
+                              ¥{taxSettlement.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>

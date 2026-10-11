@@ -118,7 +118,18 @@ export const translations = {
     allYears: 'All Years',
     paidInCash: 'Paid in Cash',
     cashOnly: 'Cash Only',
-    nonCash: 'Non-Cash / Bank'
+    nonCash: 'Non-Cash / Bank',
+    taxCategory: 'Tax Category',
+    taxInclusive: 'Tax Inclusive (税込)',
+    taxExclusive: 'Tax Exclusive (税抜)',
+    taxInclusiveShort: 'Tax Incl.',
+    taxExclusiveShort: 'Tax Excl.',
+    applyTax: 'Apply Tax',
+    taxRate: 'Tax Rate',
+    taxSettlement: 'Tax Settlement Breakdown',
+    originalPreTaxAmount: 'Original Amount (税抜)',
+    taxAmountLabel: 'Tax Amount',
+    totalInclusiveAmount: 'Total Amount (税込)',
   },
   ja: {
     appTitle: '経費管理',
@@ -238,6 +249,17 @@ export const translations = {
     allYears: 'すべての年',
     paidInCash: '現金払い',
     cashOnly: '現金のみ',
-    nonCash: '銀行 / その他'
+    nonCash: '銀行 / その他',
+    taxCategory: '税区分',
+    taxInclusive: '税込 (Tax Inclusive)',
+    taxExclusive: '税抜 (Tax Exclusive)',
+    taxInclusiveShort: '税込',
+    taxExclusiveShort: '税抜',
+    applyTax: '消費税を適用',
+    taxRate: '税率',
+    taxSettlement: '税金精算内訳',
+    originalPreTaxAmount: '本体価格 (税抜)',
+    taxAmountLabel: '消費税額',
+    totalInclusiveAmount: '支払総額 (税込)',
   }
 };
