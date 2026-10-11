@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { apiRequest, getErrorMessage, downloadExpenseTaxExcel } from '../api';
 import Pagination from './Pagination';
+import YearSelector from './YearSelector';
 import './TaxReports.css';
 
 const TaxReports = () => {
@@ -58,7 +59,6 @@ const TaxReports = () => {
   });
 
   // Filters State
-  const [search, setSearch] = useState('');
   const [filterYear, setFilterYear] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
   const [filterDateFrom, setFilterDateFrom] = useState('');
@@ -66,10 +66,6 @@ const TaxReports = () => {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterPaymentStatus, setFilterPaymentStatus] = useState('');
   const [filterTaxCategory, setFilterTaxCategory] = useState('');
-
-  // Available Years
-  const currentYear = new Date().getFullYear();
-  const yearOptions = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3, currentYear - 4];
 
   // Month Options
   const monthOptions = [
@@ -102,7 +98,6 @@ const TaxReports = () => {
     reportType,
     currentPage,
     pageSize,
-    search,
     filterYear,
     filterMonth,
     filterDateFrom,
@@ -114,7 +109,6 @@ const TaxReports = () => {
 
   const buildFilterQueryParams = () => {
     const params = new URLSearchParams();
-    if (search.trim()) params.append('search', search.trim());
     if (filterYear) params.append('year', filterYear);
     if (filterMonth) params.append('month', filterMonth);
     if (filterDateFrom) params.append('date_from', filterDateFrom);
@@ -175,7 +169,6 @@ const TaxReports = () => {
   };
 
   const handleResetFilters = () => {
-    setSearch('');
     setFilterYear('');
     setFilterMonth('');
     setFilterDateFrom('');
@@ -449,12 +442,14 @@ const TaxReports = () => {
           {/* Year Filter */}
           <div className="filter-item">
             <label>Year</label>
-            <select value={filterYear} onChange={(e) => { setFilterYear(e.target.value); setCurrentPage(1); }}>
-              <option value="">All Years</option>
-              {yearOptions.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+            <YearSelector
+              value={filterYear}
+              onChange={(val) => {
+                setFilterYear(val);
+                setCurrentPage(1);
+              }}
+              placeholder="All Years"
+            />
           </div>
 
           {/* Month Filter */}
@@ -524,17 +519,6 @@ const TaxReports = () => {
               <option value="exclusive">Tax Exclusive</option>
               <option value="none">No Tax (0%)</option>
             </select>
-          </div>
-
-          {/* Search Query */}
-          <div className="filter-item filter-search-item">
-            <label>Search Keyword</label>
-            <input
-              type="text"
-              placeholder="Title, description, vendor..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-            />
           </div>
 
           {/* Actions */}

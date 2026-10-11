@@ -290,11 +290,6 @@
   min-width: 0;
 }
 
-.filter-item.filter-search-item {
-  grid-column: span 2;
-  min-width: 200px;
-}
-
 .filter-item label {
   font-size: 0.72rem;
   font-weight: 700;
@@ -324,6 +319,39 @@
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* YearSelector integration inside filter panel */
+.filter-item .year-selector {
+  width: 100%;
+  display: flex;
+}
+
+.filter-item .year-selector-box {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  padding: 0 0.5rem 0 0.65rem;
+  background: #ffffff;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.filter-item .year-selector-box:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.filter-item .year-selector-input {
+  font-size: 0.82rem !important;
+  color: #1e293b !important;
+  height: 100% !important;
+  padding: 0 !important;
+  font-weight: 500;
 }
 
 .filter-actions {
@@ -656,13 +684,6 @@
 }
 
 /* Responsive Media Queries */
-@media (max-width: 900px) {
-  .filter-item.filter-search-item {
-    grid-column: span 1;
-    min-width: 0;
-  }
-}
-
 @media (max-width: 768px) {
   .tax-reports-header {
     flex-direction: column;
