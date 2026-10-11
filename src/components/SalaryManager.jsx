@@ -13,7 +13,12 @@ import {
   DollarSign,
   Calculator,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Info,
+  RotateCcw,
+  Clock,
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { apiRequest, getErrorMessage, downloadSalaryExcel, downloadSalaryPdf } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
@@ -91,11 +96,21 @@ const SalaryManager = () => {
     net_amount: '0',
 
     // Attendance
+    daily_working_hours: '8.0',
     working_days: '20',
+    required_working_hours: '160',
     working_hours: '160',
+    hourly_wage: '0',
     overtime_hours: '0',
     holiday_overtime_hours: '0',
     midnight_overtime_hours: '0',
+    regular_ot_pay: '0',
+    holiday_ot_pay: '0',
+    midnight_ot_pay: '0',
+    calculated_overtime_allowance: '0',
+    absence_deduction: '0',
+    late_early_deduction: '0',
+    calculated_leave_deduction: '0',
     paid_leaves: '0',
     statutory_leaves: '8',
     absence_days: '0',
@@ -138,7 +153,7 @@ const SalaryManager = () => {
     };
   }, []);
 
-  // Instant Mathematical Recalculation
+  // Instant Mathematical Recalculation Matching Japan Labor & Payroll Standards
   const recalculateLocally = (state) => {
     const basic = Number(state.basic_salary || 0);
     const commuting = Number(state.commuting_allowance || 0);
@@ -146,9 +161,34 @@ const SalaryManager = () => {
     const allowances = Number(state.allowances || 0);
     const leaveDed = Number(state.leave_deduction || 0);
 
+    // Attendance & Required Hours Calculation
+    const days = Number(state.working_days || 0);
+    const dailyHrs = Number(state.daily_working_hours || 8.0);
+    const reqHrs = Math.round(days * dailyHrs * 100) / 100;
+    const hourlyWage = reqHrs > 0 ? Math.round((basic / reqHrs) * 100) / 100 : 0;
+
+    // Overtime Breakdown: 1.25x Regular, 1.35x Holiday, 0.25x Midnight Premium
+    const otHrs = Number(state.overtime_hours || 0);
+    const holOtHrs = Number(state.holiday_overtime_hours || 0);
+    const midOtHrs = Number(state.midnight_overtime_hours || 0);
+
+    const regOtPay = Math.round(hourlyWage * 1.25 * otHrs);
+    const holOtPay = Math.round(hourlyWage * 1.35 * holOtHrs);
+    const midOtPay = Math.round(hourlyWage * 0.25 * midOtHrs);
+    const calcOtAllowance = regOtPay + holOtPay + midOtPay;
+
+    // Absence & Leave Deductions
+    const absDays = Number(state.absence_days || 0);
+    const lateHrs = Number(state.late_early_hours || 0);
+    const absDed = Math.round(absDays * dailyHrs * hourlyWage);
+    const lateDed = Math.round(lateHrs * hourlyWage);
+    const calcLeaveDed = absDed + lateDed;
+
+    // Earnings
     const taxablePayment = Math.max(0, basic + overtime + allowances - leaveDed);
     const grossPayment = taxablePayment + commuting;
 
+    // Deductions & Social Insurance
     const health = Number(state.health_insurance || 0);
     const pension = Number(state.welfare_pension || 0);
     const employment = Number(state.employment_insurance || 0);
@@ -165,6 +205,15 @@ const SalaryManager = () => {
 
     return {
       ...state,
+      required_working_hours: String(reqHrs),
+      hourly_wage: String(hourlyWage),
+      regular_ot_pay: String(regOtPay),
+      holiday_ot_pay: String(holOtPay),
+      midnight_ot_pay: String(midOtPay),
+      calculated_overtime_allowance: String(calcOtAllowance),
+      absence_deduction: String(absDed),
+      late_early_deduction: String(lateDed),
+      calculated_leave_deduction: String(calcLeaveDed),
       taxable_payment: String(taxablePayment),
       gross_payment: String(grossPayment),
       total_social_insurance: String(totalSocial),
@@ -215,7 +264,7 @@ const SalaryManager = () => {
     }
   };
 
-  // Perform Live Calculation via API (Kyokai Kenpo & NTA Withholding Tax Brackets)
+  // Perform Live Calculation via API (Kyokai Kenpo ~4.99%, Pension 9.15%, Employment 0.60%, & NTA Withholding Tax Brackets)
   const runLiveCalculation = async (currentValues, overrides = customOverrides) => {
     const val = currentValues || formData;
     if (!val.employee) return;
@@ -233,6 +282,14 @@ const SalaryManager = () => {
         other_deductions: Number(val.other_deductions || 0),
         dependents_count: Number(val.dependents_count || 0),
         employment_insurance_exempt: Boolean(val.employment_insurance_exempt),
+        daily_working_hours: Number(val.daily_working_hours || 8.0),
+        working_days: Number(val.working_days || 20),
+        working_hours: Number(val.working_hours || 160),
+        overtime_hours: Number(val.overtime_hours || 0),
+        holiday_overtime_hours: Number(val.holiday_overtime_hours || 0),
+        midnight_overtime_hours: Number(val.midnight_overtime_hours || 0),
+        absence_days: Number(val.absence_days || 0),
+        late_early_hours: Number(val.late_early_hours || 0),
       };
 
       if (overrides.health_insurance) payload.custom_health_insurance = Number(val.health_insurance);
@@ -261,6 +318,10 @@ const SalaryManager = () => {
             resident_tax: String(result.resident_tax),
             total_deductions: String(result.total_deductions),
             net_amount: String(result.net_amount),
+            required_working_hours: String(result.required_working_hours || prev.required_working_hours),
+            hourly_wage: String(result.hourly_wage || prev.hourly_wage),
+            calculated_overtime_allowance: String(result.calculated_overtime_allowance || prev.calculated_overtime_allowance),
+            calculated_leave_deduction: String(result.calculated_leave_deduction || prev.calculated_leave_deduction),
           };
           return recalculateLocally(updated);
         });
@@ -283,11 +344,19 @@ const SalaryManager = () => {
       };
       setCustomOverrides(clearedOverrides);
 
+      const dailyHrs = emp.daily_working_hours != null ? Number(emp.daily_working_hours) : 8.0;
+      const days = Number(formData.working_days || 20);
+      const reqHours = Math.round(days * dailyHrs * 100) / 100;
+
       const updated = recalculateLocally({
         ...formData,
         employee: String(empId),
         basic_salary: String(emp.basic_salary || '0'),
         commuting_allowance: String(emp.commuting_allowance || '0'),
+        daily_working_hours: String(dailyHrs),
+        working_days: String(days),
+        required_working_hours: String(reqHours),
+        working_hours: String(reqHours),
         dependents_count: emp.dependents_count || 0,
         employment_insurance_exempt: Boolean(emp.employment_insurance_exempt),
       });
@@ -300,23 +369,77 @@ const SalaryManager = () => {
 
   const handleFieldChange = (field, value) => {
     let newOverrides = { ...customOverrides };
+    let extraState = {};
+
     if (['health_insurance', 'welfare_pension', 'employment_insurance', 'income_tax'].includes(field)) {
       newOverrides[field] = true;
       setCustomOverrides(newOverrides);
     }
 
-    const nextForm = recalculateLocally({ ...formData, [field]: value });
+    // Auto-calculate required working hours when working_days or daily_working_hours changes
+    if (field === 'working_days' || field === 'daily_working_hours') {
+      const days = field === 'working_days' ? Number(value || 0) : Number(formData.working_days || 0);
+      const dHours = field === 'daily_working_hours' ? Number(value || 8.0) : Number(formData.daily_working_hours || 8.0);
+      const reqHrs = Math.round(days * dHours * 100) / 100;
+      extraState.required_working_hours = String(reqHrs);
+
+      if (Number(formData.overtime_hours || 0) === 0) {
+        extraState.working_hours = String(reqHrs);
+      }
+    }
+
+    // If working_hours is updated, auto-calculate overtime if worked > required
+    if (field === 'working_hours') {
+      const worked = Number(value || 0);
+      const req = Number(formData.required_working_hours || (Number(formData.working_days || 20) * Number(formData.daily_working_hours || 8.0)));
+      if (worked > req) {
+        const ot = Math.max(0, Math.round((worked - req) * 100) / 100);
+        extraState.overtime_hours = String(ot);
+      }
+    }
+
+    // If overtime_hours is updated, reconcile working_hours = req + overtime
+    if (field === 'overtime_hours') {
+      const ot = Number(value || 0);
+      const req = Number(formData.required_working_hours || (Number(formData.working_days || 20) * Number(formData.daily_working_hours || 8.0)));
+      extraState.working_hours = String(Math.round((req + ot) * 100) / 100);
+    }
+
+    const nextForm = recalculateLocally({ ...formData, ...extraState, [field]: value });
     setFormData(nextForm);
 
     // Run backend calculation if earnings or taxable base changes
     if (
       [
         'basic_salary', 'commuting_allowance', 'overtime_allowance', 'allowances',
-        'leave_deduction', 'health_insurance', 'welfare_pension', 'employment_insurance'
+        'leave_deduction', 'health_insurance', 'welfare_pension', 'employment_insurance',
+        'working_days', 'daily_working_hours', 'working_hours', 'overtime_hours',
+        'holiday_overtime_hours', 'midnight_overtime_hours', 'absence_days', 'late_early_hours'
       ].includes(field)
     ) {
       runLiveCalculation(nextForm, newOverrides);
     }
+  };
+
+  const handleApplyOvertimeToEarnings = (amt) => {
+    const next = recalculateLocally({ ...formData, overtime_allowance: String(amt) });
+    setFormData(next);
+    runLiveCalculation(next);
+    toast.success(`Applied calculated overtime pay of ¥${Number(amt).toLocaleString()} to Earnings`);
+  };
+
+  const handleApplyLeaveDeduction = (amt) => {
+    const next = recalculateLocally({ ...formData, leave_deduction: String(amt) });
+    setFormData(next);
+    runLiveCalculation(next);
+    toast.success(`Applied calculated leave deduction of ¥${Number(amt).toLocaleString()} to Deductions`);
+  };
+
+  const handleResetSingleOverride = (field) => {
+    const updatedOverrides = { ...customOverrides, [field]: false };
+    setCustomOverrides(updatedOverrides);
+    runLiveCalculation(formData, updatedOverrides);
+    toast.info(`Reset ${field.replace(/_/g, ' ')} to standard statutory calculation`);
   };
 
   const handleResetToAutoCalculate = () => {
@@ -353,7 +476,14 @@ const SalaryManager = () => {
   const openEditModal = (sal) => {
     setEditingSalary(sal);
     setActiveTab('earnings');
-    setFormData({
+    const emp = allEmployees.find((e) => String(e.id) === String(sal.employee));
+    const dailyHrs = String(emp?.daily_working_hours || 8.0);
+    const days = Number(sal.working_days || 0);
+    const reqHrs = sal.required_working_hours
+      ? String(sal.required_working_hours)
+      : String(Math.round(days * Number(dailyHrs) * 100) / 100);
+
+    const initialFormData = recalculateLocally({
       employee: String(sal.employee),
       salary_month: sal.salary_month || '',
       payment_date: sal.payment_date || '',
@@ -379,6 +509,8 @@ const SalaryManager = () => {
 
       net_amount: String(sal.net_amount || '0'),
 
+      daily_working_hours: dailyHrs,
+      required_working_hours: reqHrs,
       working_days: String(sal.working_days || '0'),
       working_hours: String(sal.working_hours || '0'),
       overtime_hours: String(sal.overtime_hours || '0'),
@@ -394,6 +526,14 @@ const SalaryManager = () => {
       dependents_count: 0,
       employment_insurance_exempt: false,
       manual_tax_override: true,
+    });
+
+    setFormData(initialFormData);
+    setCustomOverrides({
+      health_insurance: false,
+      welfare_pension: false,
+      employment_insurance: false,
+      income_tax: false,
     });
     setFormErrors({});
     setShowModal(true);
@@ -432,6 +572,7 @@ const SalaryManager = () => {
         net_amount: Number(formData.net_amount),
 
         working_days: Number(formData.working_days || 0),
+        required_working_hours: Number(formData.required_working_hours || 0),
         working_hours: Number(formData.working_hours || 0),
         overtime_hours: Number(formData.overtime_hours || 0),
         holiday_overtime_hours: Number(formData.holiday_overtime_hours || 0),
@@ -781,7 +922,19 @@ const SalaryManager = () => {
                     </div>
 
                     <div className="form-group">
-                      <label>Overtime Pay (¥)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Overtime Pay (¥)</label>
+                        {Number(formData.calculated_overtime_allowance || 0) > 0 && (
+                          <button
+                            type="button"
+                            className="btn-reset-field"
+                            onClick={() => handleApplyOvertimeToEarnings(formData.calculated_overtime_allowance)}
+                            title="Apply overtime pay calculated from Attendance hours"
+                          >
+                            ⚡ Apply ¥{Number(formData.calculated_overtime_allowance).toLocaleString()}
+                          </button>
+                        )}
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -832,35 +985,92 @@ const SalaryManager = () => {
               {/* Tab 2: Deductions & Taxes */}
               {activeTab === 'deductions' && (
                 <div className="form-tab-pane">
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: 8,
-                      padding: '0.6rem 1rem',
-                      marginBottom: '1.25rem'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.85rem', color: '#475569' }}>
-                      💡 Editing any insurance or deduction field updates Total Social Insurance, Taxable Base, and Net Pay in real-time.
-                    </span>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
-                      onClick={handleResetToAutoCalculate}
-                      title="Reset all deductions to standard calculated rates"
-                    >
-                      <Calculator size={14} /> ⚡ Reset to Auto-Calculate
-                    </button>
+                  {/* Japan Statutory Rules Reference Banner */}
+                  <div className="japan-rules-banner">
+                    <div className="japan-rules-header">
+                      <div className="japan-rules-title">
+                        <Info size={16} style={{ color: '#0284c7' }} />
+                        <span>Japanese Statutory Social Insurance & Tax Guidelines (2026 Standards)</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ fontSize: '0.78rem', padding: '0.3rem 0.65rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                        onClick={handleResetToAutoCalculate}
+                        title="Recalculate all insurance and withholding taxes based on statutory rates"
+                      >
+                        <RotateCcw size={13} /> ↺ Reset All to Auto Rates
+                      </button>
+                    </div>
+
+                    <div className="japan-rules-grid">
+                      <div className="japan-rule-item">
+                        <div className="japan-rule-name">
+                          <span>Health Insurance</span>
+                          <span className="japan-rule-rate">4.99%</span>
+                        </div>
+                        <div className="japan-rule-desc">
+                          Kyokai Kenpo Tokyo: 9.98% split equally (4.99% employee / 4.99% employer). Standard Monthly Remuneration (標準報酬月額).
+                        </div>
+                      </div>
+
+                      <div className="japan-rule-item">
+                        <div className="japan-rule-name">
+                          <span>Welfare Pension</span>
+                          <span className="japan-rule-rate">9.15%</span>
+                        </div>
+                        <div className="japan-rule-desc">
+                          Kousei Nenkin: Fixed statutory rate 18.30% split equally (9.15% employee / 9.15% employer). Grade brackets 1–32.
+                        </div>
+                      </div>
+
+                      <div className="japan-rule-item">
+                        <div className="japan-rule-name">
+                          <span>Employment Insurance</span>
+                          <span className="japan-rule-rate">0.60%</span>
+                        </div>
+                        <div className="japan-rule-desc">
+                          General Business standard: 6/1,000 (0.60% employee share / 9.5/1,000 employer share) applied to gross payment.
+                        </div>
+                      </div>
+
+                      <div className="japan-rule-item">
+                        <div className="japan-rule-name">
+                          <span>Withholding Income Tax</span>
+                          <span className="japan-rule-rate">NTA Kou-ran</span>
+                        </div>
+                        <div className="japan-rule-desc">
+                          Calculated on (Taxable Pay − Social Insurance) via National Tax Agency Monthly Withholding Tax Table (源泉徴収税額表・甲欄).
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
+                  {/* Deduction Inputs Grid */}
                   <div className="form-grid-3">
+                    {/* Health Insurance */}
                     <div className="form-group">
-                      <label>Health Insurance (¥)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Health Insurance (¥)</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="rate-badge">4.99%</span>
+                          {customOverrides.health_insurance ? (
+                            <span className="override-pill manual">
+                              ✏️ Override
+                              <button
+                                type="button"
+                                className="btn-reset-field"
+                                onClick={() => handleResetSingleOverride('health_insurance')}
+                                title="Reset to statutory calculation"
+                              >
+                                ↺ Reset
+                              </button>
+                            </span>
+                          ) : (
+                            <span className="override-pill auto">⚡ Auto</span>
+                          )}
+                        </div>
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -871,8 +1081,29 @@ const SalaryManager = () => {
                       />
                     </div>
 
+                    {/* Welfare Pension */}
                     <div className="form-group">
-                      <label>Welfare Pension (¥)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Welfare Pension (¥)</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="rate-badge">9.15%</span>
+                          {customOverrides.welfare_pension ? (
+                            <span className="override-pill manual">
+                              ✏️ Override
+                              <button
+                                type="button"
+                                className="btn-reset-field"
+                                onClick={() => handleResetSingleOverride('welfare_pension')}
+                                title="Reset to statutory calculation"
+                              >
+                                ↺ Reset
+                              </button>
+                            </span>
+                          ) : (
+                            <span className="override-pill auto">⚡ Auto</span>
+                          )}
+                        </div>
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -883,8 +1114,29 @@ const SalaryManager = () => {
                       />
                     </div>
 
+                    {/* Employment Insurance */}
                     <div className="form-group">
-                      <label>Employment Insurance (¥)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Employment Insurance (¥)</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="rate-badge">0.60%</span>
+                          {customOverrides.employment_insurance ? (
+                            <span className="override-pill manual">
+                              ✏️ Override
+                              <button
+                                type="button"
+                                className="btn-reset-field"
+                                onClick={() => handleResetSingleOverride('employment_insurance')}
+                                title="Reset to statutory calculation"
+                              >
+                                ↺ Reset
+                              </button>
+                            </span>
+                          ) : (
+                            <span className="override-pill auto">⚡ Auto</span>
+                          )}
+                        </div>
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -895,6 +1147,7 @@ const SalaryManager = () => {
                       />
                     </div>
 
+                    {/* Total Social Insurance */}
                     <div className="form-group">
                       <label>Total Social Insurance (¥)</label>
                       <input
@@ -904,8 +1157,10 @@ const SalaryManager = () => {
                         readOnly
                         style={{ background: 'var(--surface-sunken, #f1f5f9)', fontWeight: 700 }}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Health + Welfare + Employment Insurance</span>
                     </div>
 
+                    {/* Taxable Income Base */}
                     <div className="form-group">
                       <label>Taxable Income Base (¥)</label>
                       <input
@@ -913,12 +1168,34 @@ const SalaryManager = () => {
                         className="form-input"
                         value={formData.taxable_income_base}
                         readOnly
-                        style={{ background: 'var(--surface-sunken, #f1f5f9)' }}
+                        style={{ background: 'var(--surface-sunken, #f1f5f9)', fontWeight: 600 }}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Taxable Payment − Total Social Insurance</span>
                     </div>
 
+                    {/* Withholding Income Tax */}
                     <div className="form-group">
-                      <label>Income Tax (¥)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Income Tax (源泉徴収税) (¥)</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="rate-badge">NTA Table</span>
+                          {customOverrides.income_tax ? (
+                            <span className="override-pill manual">
+                              ✏️ Override
+                              <button
+                                type="button"
+                                className="btn-reset-field"
+                                onClick={() => handleResetSingleOverride('income_tax')}
+                                title="Reset to statutory calculation"
+                              >
+                                ↺ Reset
+                              </button>
+                            </span>
+                          ) : (
+                            <span className="override-pill auto">⚡ Auto</span>
+                          )}
+                        </div>
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -929,8 +1206,9 @@ const SalaryManager = () => {
                       />
                     </div>
 
+                    {/* Resident Tax */}
                     <div className="form-group">
-                      <label>Resident Tax (¥)</label>
+                      <label>Resident Tax (住民税) (¥)</label>
                       <input
                         type="number"
                         min="0"
@@ -939,10 +1217,24 @@ const SalaryManager = () => {
                         value={formData.resident_tax}
                         onChange={(e) => handleFieldChange('resident_tax', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Municipal tax notice (Special collection)</span>
                     </div>
 
+                    {/* Leave Deduction */}
                     <div className="form-group">
-                      <label>Leave Deduction (¥)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Leave Deduction (欠勤控除) (¥)</label>
+                        {Number(formData.calculated_leave_deduction || 0) > 0 && (
+                          <button
+                            type="button"
+                            className="btn-reset-field"
+                            onClick={() => handleApplyLeaveDeduction(formData.calculated_leave_deduction)}
+                            title="Apply attendance-calculated leave deduction"
+                          >
+                            ⚡ Apply ¥{Number(formData.calculated_leave_deduction).toLocaleString()}
+                          </button>
+                        )}
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -951,8 +1243,10 @@ const SalaryManager = () => {
                         value={formData.leave_deduction}
                         onChange={(e) => handleFieldChange('leave_deduction', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Absence & late/early wage deductions</span>
                     </div>
 
+                    {/* Other Deductions */}
                     <div className="form-group">
                       <label>Other Deductions (¥)</label>
                       <input
@@ -963,16 +1257,18 @@ const SalaryManager = () => {
                         value={formData.other_deductions}
                         onChange={(e) => handleFieldChange('other_deductions', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Dormitory, company loan, union fees, etc.</span>
                     </div>
 
+                    {/* Total Deductions Highlight */}
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                      <label>Total Deductions (¥)</label>
+                      <label>Total Deductions (控除合計額) (¥)</label>
                       <input
                         type="number"
                         className="form-input"
                         value={formData.total_deductions}
                         readOnly
-                        style={{ background: '#fef2f2', color: '#b91c1c', fontWeight: 800 }}
+                        style={{ background: '#fef2f2', color: '#b91c1c', fontWeight: 800, fontSize: '1.05rem' }}
                       />
                     </div>
                   </div>
@@ -982,9 +1278,84 @@ const SalaryManager = () => {
               {/* Tab 3: Attendance */}
               {activeTab === 'attendance' && (
                 <div className="form-tab-pane">
-                  <div className="form-grid-3">
+                  {/* Attendance Calculation Summary Metric Cards */}
+                  <div className="attendance-summary-cards">
+                    <div className="attendance-card-metric highlight">
+                      <div className="metric-title">所定労働時間 (Required Hours)</div>
+                      <div className="metric-value">{formData.required_working_hours || 0} hrs</div>
+                      <div className="metric-sub">
+                        {formData.working_days || 0} days × {formData.daily_working_hours || 8.0} hrs/day
+                      </div>
+                    </div>
+
+                    <div className="attendance-card-metric">
+                      <div className="metric-title">時間単価 (Hourly Wage Basis)</div>
+                      <div className="metric-value">
+                        ¥{Number(formData.hourly_wage || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>/ hr</span>
+                      </div>
+                      <div className="metric-sub">
+                        Basic ¥{Number(formData.basic_salary || 0).toLocaleString()} ÷ {formData.required_working_hours || 1} hrs
+                      </div>
+                    </div>
+
+                    <div className="attendance-card-metric">
+                      <div className="metric-title">割増賃金 (Overtime Premium)</div>
+                      <div className="metric-value" style={{ color: '#2563eb' }}>
+                        ¥{Number(formData.calculated_overtime_allowance || 0).toLocaleString()}
+                      </div>
+                      <div className="metric-sub">
+                        1.25× Reg ({formData.overtime_hours || 0}h) + 1.35× Hol ({formData.holiday_overtime_hours || 0}h) + 0.25× Mid ({formData.midnight_overtime_hours || 0}h)
+                      </div>
+                    </div>
+
+                    <div className="attendance-card-metric">
+                      <div className="metric-title">欠勤・遅刻控除 (Leave Deduction)</div>
+                      <div className="metric-value" style={{ color: '#dc2626' }}>
+                        ¥{Number(formData.calculated_leave_deduction || 0).toLocaleString()}
+                      </div>
+                      <div className="metric-sub">
+                        {formData.absence_days || 0}d absence (¥{Number(formData.absence_deduction || 0).toLocaleString()}) + {formData.late_early_hours || 0}h late (¥{Number(formData.late_early_deduction || 0).toLocaleString()})
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Action Box to Apply Computed Values */}
+                  {(Number(formData.calculated_overtime_allowance || 0) > 0 || Number(formData.calculated_leave_deduction || 0) > 0) && (
+                    <div className="attendance-calc-action-box">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: '#334155' }}>
+                        <Sparkles size={16} style={{ color: '#d97706' }} />
+                        <span>Attendance-based calculations available:</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                        {Number(formData.calculated_overtime_allowance || 0) > 0 && (
+                          <button
+                            type="button"
+                            className="btn-primary"
+                            style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
+                            onClick={() => handleApplyOvertimeToEarnings(formData.calculated_overtime_allowance)}
+                          >
+                            Apply ¥{Number(formData.calculated_overtime_allowance).toLocaleString()} to Overtime Pay
+                          </button>
+                        )}
+                        {Number(formData.calculated_leave_deduction || 0) > 0 && (
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem', borderColor: '#ef4444', color: '#b91c1c' }}
+                            onClick={() => handleApplyLeaveDeduction(formData.calculated_leave_deduction)}
+                          >
+                            Apply ¥{Number(formData.calculated_leave_deduction).toLocaleString()} to Leave Deduction
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Attendance Fields Grid */}
+                  <div className="form-grid-3" style={{ marginTop: '1.25rem' }}>
+                    {/* Working Days */}
                     <div className="form-group">
-                      <label>Working Days</label>
+                      <label>Working Days (出勤日数) *</label>
                       <input
                         type="number"
                         min="0"
@@ -993,10 +1364,43 @@ const SalaryManager = () => {
                         value={formData.working_days}
                         onChange={(e) => handleFieldChange('working_days', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Actual scheduled days worked</span>
                     </div>
 
+                    {/* Daily Working Hours */}
                     <div className="form-group">
-                      <label>Working Hours</label>
+                      <label>Req. Hours / Day (所定労働時間/日)</label>
+                      <input
+                        type="number"
+                        min="0.5"
+                        max="24"
+                        step="0.25"
+                        className="form-input"
+                        value={formData.daily_working_hours}
+                        onChange={(e) => handleFieldChange('daily_working_hours', e.target.value)}
+                      />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Contracted standard daily hours (default: 8.0)</span>
+                    </div>
+
+                    {/* Total Required Hours */}
+                    <div className="form-group">
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Required Hours (所定時間)</label>
+                        <span className="override-pill auto">⚡ Auto</span>
+                      </div>
+                      <input
+                        type="number"
+                        className="form-input"
+                        value={formData.required_working_hours}
+                        readOnly
+                        style={{ background: 'var(--surface-sunken, #f1f5f9)', fontWeight: 700, color: '#0369a1' }}
+                      />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Days × Req. Hours/Day</span>
+                    </div>
+
+                    {/* Actual Worked Hours */}
+                    <div className="form-group">
+                      <label>Actual Worked Hours (実労働時間)</label>
                       <input
                         type="number"
                         min="0"
@@ -1005,10 +1409,15 @@ const SalaryManager = () => {
                         value={formData.working_hours}
                         onChange={(e) => handleFieldChange('working_hours', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Total hours on clock (Required + Overtime)</span>
                     </div>
 
+                    {/* Regular Overtime */}
                     <div className="form-group">
-                      <label>Regular Overtime (hrs)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Regular Overtime (hrs)</label>
+                        <span className="rate-badge">1.25×</span>
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -1017,10 +1426,15 @@ const SalaryManager = () => {
                         value={formData.overtime_hours}
                         onChange={(e) => handleFieldChange('overtime_hours', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Over 8h/day or 40h/week (時間外労働)</span>
                     </div>
 
+                    {/* Holiday Overtime */}
                     <div className="form-group">
-                      <label>Holiday Overtime (hrs)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Holiday Overtime (hrs)</label>
+                        <span className="rate-badge">1.35×</span>
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -1029,10 +1443,15 @@ const SalaryManager = () => {
                         value={formData.holiday_overtime_hours}
                         onChange={(e) => handleFieldChange('holiday_overtime_hours', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Statutory holiday work (法定休日労働)</span>
                     </div>
 
+                    {/* Midnight Overtime */}
                     <div className="form-group">
-                      <label>Midnight Overtime (hrs)</label>
+                      <div className="form-label-with-badge">
+                        <label style={{ margin: 0 }}>Midnight Overtime (hrs)</label>
+                        <span className="rate-badge">+0.25×</span>
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -1041,10 +1460,12 @@ const SalaryManager = () => {
                         value={formData.midnight_overtime_hours}
                         onChange={(e) => handleFieldChange('midnight_overtime_hours', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>22:00 – 05:00 late night work (深夜労働)</span>
                     </div>
 
+                    {/* Paid Leave */}
                     <div className="form-group">
-                      <label>Paid Leave (days)</label>
+                      <label>Paid Leave (有休) (days)</label>
                       <input
                         type="number"
                         min="0"
@@ -1053,10 +1474,12 @@ const SalaryManager = () => {
                         value={formData.paid_leaves}
                         onChange={(e) => handleFieldChange('paid_leaves', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Statutory annual paid leave taken</span>
                     </div>
 
+                    {/* Scheduled Off Days */}
                     <div className="form-group">
-                      <label>Scheduled Off Days</label>
+                      <label>Scheduled Off Days (所定休日)</label>
                       <input
                         type="number"
                         min="0"
@@ -1065,10 +1488,12 @@ const SalaryManager = () => {
                         value={formData.statutory_leaves}
                         onChange={(e) => handleFieldChange('statutory_leaves', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Weekends and calendar holidays</span>
                     </div>
 
+                    {/* Absence Days */}
                     <div className="form-group">
-                      <label>Absence (days)</label>
+                      <label>Absence (欠勤) (days)</label>
                       <input
                         type="number"
                         min="0"
@@ -1077,10 +1502,12 @@ const SalaryManager = () => {
                         value={formData.absence_days}
                         onChange={(e) => handleFieldChange('absence_days', e.target.value)}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Unpaid absent workdays</span>
                     </div>
 
+                    {/* Late / Early */}
                     <div className="form-group">
-                      <label>Late / Early (Times / Hours)</label>
+                      <label>Late / Early (遅刻・早退)</label>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <input
                           type="number"
@@ -1090,6 +1517,7 @@ const SalaryManager = () => {
                           className="form-input"
                           value={formData.late_early_count}
                           onChange={(e) => handleFieldChange('late_early_count', e.target.value)}
+                          title="Number of occurrences"
                         />
                         <input
                           type="number"
@@ -1099,10 +1527,13 @@ const SalaryManager = () => {
                           className="form-input"
                           value={formData.late_early_hours}
                           onChange={(e) => handleFieldChange('late_early_hours', e.target.value)}
+                          title="Total hours late or left early"
                         />
                       </div>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Times count & total deductible hours</span>
                     </div>
 
+                    {/* Remarks */}
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                       <label>Remarks</label>
                       <textarea
@@ -1110,7 +1541,7 @@ const SalaryManager = () => {
                         rows={2}
                         value={formData.remarks}
                         onChange={(e) => handleFieldChange('remarks', e.target.value)}
-                        placeholder="e.g. February 2026 Salary"
+                        placeholder="e.g. Standard 8h shifts, regular overtime included."
                       />
                     </div>
                   </div>

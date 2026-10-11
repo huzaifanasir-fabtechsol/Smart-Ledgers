@@ -29,7 +29,7 @@ const EmployeeManager = () => {
   const emptyForm = {
     name: '', email: '', phone: '', role: '', address: '',
     employment_start_month: '', basic_salary: '',
-    commuting_allowance: '0', dependents_count: '0', employment_insurance_exempt: false,
+    commuting_allowance: '0', daily_working_hours: '8.0', dependents_count: '0', employment_insurance_exempt: false,
     status: 'active',
   };
   const [formData, setFormData] = useState(emptyForm);
@@ -105,6 +105,11 @@ const EmployeeManager = () => {
     } else if (Number(formData.basic_salary) < 0) {
       errors.basic_salary = 'Basic salary cannot be negative';
     }
+    if (!formData.daily_working_hours && formData.daily_working_hours !== 0) {
+      errors.daily_working_hours = 'Required hours/day is required';
+    } else if (Number(formData.daily_working_hours) <= 0 || Number(formData.daily_working_hours) > 24) {
+      errors.daily_working_hours = 'Hours must be between 0.5 and 24';
+    }
     if (Number(formData.commuting_allowance) < 0) {
       errors.commuting_allowance = 'Commuting allowance cannot be negative';
     }
@@ -133,6 +138,7 @@ const EmployeeManager = () => {
       employment_start_month: emp.employment_start_month,
       basic_salary: emp.basic_salary,
       commuting_allowance: emp.commuting_allowance != null ? String(emp.commuting_allowance) : '0',
+      daily_working_hours: emp.daily_working_hours != null ? String(emp.daily_working_hours) : '8.0',
       dependents_count: emp.dependents_count != null ? String(emp.dependents_count) : '0',
       employment_insurance_exempt: Boolean(emp.employment_insurance_exempt),
       status: emp.status,
@@ -151,6 +157,7 @@ const EmployeeManager = () => {
         ...formData,
         basic_salary: Number(formData.basic_salary),
         commuting_allowance: Number(formData.commuting_allowance || 0),
+        daily_working_hours: Number(formData.daily_working_hours || 8.0),
         dependents_count: Number(formData.dependents_count || 0),
         employment_insurance_exempt: Boolean(formData.employment_insurance_exempt),
       };
@@ -287,6 +294,7 @@ const EmployeeManager = () => {
                   <th>Role</th>
                   <th>Start Month</th>
                   <th>Basic Salary</th>
+                  <th>Req. Hrs/Day</th>
                   <th>Commuting (¥)</th>
                   <th>Dependents</th>
                   <th>Status</th>
@@ -305,6 +313,11 @@ const EmployeeManager = () => {
                     <td><span className="badge badge-role">{emp.role}</span></td>
                     <td>{formatMonthDisplay(emp.employment_start_month)}</td>
                     <td><strong>¥{Number(emp.basic_salary).toLocaleString()}</strong></td>
+                    <td>
+                      <span className="badge" style={{ background: '#ecfdf5', color: '#047857', fontWeight: 600 }}>
+                        {emp.daily_working_hours || 8.0}h / day
+                      </span>
+                    </td>
                     <td>¥{Number(emp.commuting_allowance || 0).toLocaleString()}</td>
                     <td>
                       <span className="badge" style={{ background: 'var(--surface-sunken)', color: 'var(--ink-1)' }}>
@@ -444,6 +457,24 @@ const EmployeeManager = () => {
                     placeholder="200000"
                   />
                   {formErrors.basic_salary && <span className="field-error">{formErrors.basic_salary}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label>Required Hours / Day (hrs) *</label>
+                  <input
+                    type="number"
+                    min="0.5"
+                    max="24"
+                    step="0.5"
+                    className={`form-input ${formErrors.daily_working_hours ? 'input-error' : ''}`}
+                    value={formData.daily_working_hours}
+                    onChange={e => setFormData({ ...formData, daily_working_hours: e.target.value })}
+                    placeholder="8.0"
+                  />
+                  {formErrors.daily_working_hours && <span className="field-error">{formErrors.daily_working_hours}</span>}
+                  <small style={{ color: 'var(--ink-2)', fontSize: '0.75rem', marginTop: 3, display: 'block' }}>
+                    Scheduled work hours/day (所定労働時間・通常8.0h)
+                  </small>
                 </div>
 
                 <div className="form-group">

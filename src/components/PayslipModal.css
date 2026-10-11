@@ -363,6 +363,171 @@
   to { transform: scale(1); opacity: 1; }
 }
 
+/* Japan Rules & Rate Guide */
+.japan-rules-banner {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.japan-rules-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.japan-rules-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.japan-rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.japan-rule-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.japan-rule-name {
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  justify-content: space-between;
+}
+
+.japan-rule-rate {
+  font-weight: 700;
+  color: #0284c7;
+}
+
+.japan-rule-desc {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+/* Rate badge on input labels */
+.form-label-with-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  width: 100%;
+}
+
+.rate-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.override-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.override-pill.auto {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.override-pill.manual {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px dashed #f59e0b;
+}
+
+.btn-reset-field {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  text-decoration: underline;
+}
+
+/* Attendance Calculation Cards */
+.attendance-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.attendance-card-metric {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.attendance-card-metric.highlight {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.attendance-card-metric .metric-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.attendance-card-metric .metric-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 0.2rem;
+}
+
+.attendance-card-metric.highlight .metric-value {
+  color: #15803d;
+}
+
+.attendance-card-metric .metric-sub {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.attendance-calc-action-box {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 /* Print Styles */
 @media print {
   .no-print, .payslip-modal-header, .salary-manager, .sidebar, .main-topbar {

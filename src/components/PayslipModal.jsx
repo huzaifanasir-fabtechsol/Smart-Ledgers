@@ -223,6 +223,14 @@ const PayslipModal = ({ salary, companyInfo, onClose }) => {
                   <div className="att-val">{salary.working_days || 0} days</div>
                 </div>
                 <div className="kyuyo-att-item">
+                  <div className="att-lbl">Required Hours</div>
+                  <div className="att-val">
+                    {salary.required_working_hours
+                      ? `${salary.required_working_hours} hrs`
+                      : `${Math.round((salary.working_days || 0) * 8 * 10) / 10} hrs`}
+                  </div>
+                </div>
+                <div className="kyuyo-att-item">
                   <div className="att-lbl">Working Hours</div>
                   <div className="att-val">{salary.working_hours || 0} hrs</div>
                 </div>
