@@ -794,19 +794,19 @@ const SalaryManager = () => {
             return sal ? (
               <>
                 <button onClick={() => { setViewingPayslip(sal); setOpenMenuId(null); }}>
-                  <Eye size={15} /> 👁️ View Payslip
+                  <Eye size={15} /> View Payslip
                 </button>
                 <button onClick={() => { handleDownloadExcel(sal); setOpenMenuId(null); }}>
-                  <FileSpreadsheet size={15} style={{ color: '#16a34a' }} /> 📗 Export Excel (.xlsx)
+                  <FileSpreadsheet size={15} style={{ color: '#16a34a' }} /> Export Excel (.xlsx)
                 </button>
                 <button onClick={() => { handleDownloadPdf(sal); setOpenMenuId(null); }}>
-                  <FileText size={15} style={{ color: '#dc2626' }} /> 📕 Export PDF (.pdf)
+                  <FileText size={15} style={{ color: '#dc2626' }} /> Export PDF (.pdf)
                 </button>
                 <button onClick={() => openEditModal(sal)}>
-                  <Edit2 size={15} /> ✏️ Edit
+                  <Edit2 size={15} /> Edit
                 </button>
                 <button className="danger" onClick={() => { setShowDeleteConfirm(sal); setOpenMenuId(null); }}>
-                  <Trash2 size={15} /> 🗑️ Delete
+                  <Trash2 size={15} /> Delete
                 </button>
               </>
             ) : null;
