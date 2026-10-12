@@ -863,7 +863,6 @@ const TaxReports = () => {
                     <th style={{ width: 45, textAlign: 'center' }}>#</th>
                     <th style={{ width: 105 }}>Date</th>
                     <th style={{ width: 120 }}>Order #</th>
-                    <th>Vehicle / Chassis</th>
                     <th style={{ textAlign: 'center', width: 95 }}>Type</th>
                     <th style={{ textAlign: 'center', width: 95 }}>Category</th>
                     <th style={{ textAlign: 'center', width: 110 }}>Payment Status</th>
@@ -883,7 +882,7 @@ const TaxReports = () => {
                   {invoiceLoading ? (
                     <tr>
                       <td
-                        colSpan={8 + Math.max(selectedChecklist.length, 1)}
+                        colSpan={7 + Math.max(selectedChecklist.length, 1)}
                         style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}
                       >
                         Loading invoice tax records...
@@ -892,7 +891,7 @@ const TaxReports = () => {
                   ) : flattenedInvoiceItems.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={8 + Math.max(selectedChecklist.length, 1)}
+                        colSpan={7 + Math.max(selectedChecklist.length, 1)}
                         style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}
                       >
                         No invoice records found matching the specified filters.
@@ -911,16 +910,6 @@ const TaxReports = () => {
                           </td>
                           <td style={{ fontWeight: 600 }}>{row.transactionDate}</td>
                           <td style={{ fontWeight: 700, color: '#0f172a' }}>{row.orderNumber}</td>
-                          <td>
-                            <div style={{ fontWeight: 600, color: '#1e293b' }}>
-                              {row.vehicleText}
-                            </div>
-                            {row.totalItemsInOrder > 1 && (
-                              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                                Item {row.itemIndexInOrder} of {row.totalItemsInOrder}
-                              </div>
-                            )}
-                          </td>
                           <td style={{ textAlign: 'center' }}>
                             <span className={`invoice-tag type-${tType || 'default'}`}>
                               {(row.transactionType || '-').toUpperCase()}
@@ -959,7 +948,7 @@ const TaxReports = () => {
                   {/* Summary Totals Row */}
                   {!invoiceLoading && flattenedInvoiceItems.length > 0 && selectedChecklist.length > 0 && (
                     <tr className="tax-table-total-row">
-                      <td colSpan={8} style={{ textAlign: 'right', fontWeight: 800 }}>
+                      <td colSpan={7} style={{ textAlign: 'right', fontWeight: 800 }}>
                         Filtered Total ({invoiceStats.total_orders || 0} orders / {invoiceStats.total_items || 0} items):
                       </td>
                       {selectedChecklist.map((fieldKey) => {
