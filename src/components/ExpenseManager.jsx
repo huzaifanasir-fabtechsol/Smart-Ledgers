@@ -9,6 +9,7 @@ import DateInput from './DateInput';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import YearSelector from './YearSelector';
 import Pagination from './Pagination';
+import ExpenseBulkImport from './ExpenseBulkImport';
 import './ExpenseManager.css';
 
 const CATEGORY_INITIAL_FORM = {
@@ -828,6 +829,14 @@ const ExpenseManager = ({ language = 'en' }) => {
           <button className="btn-secondary" onClick={exportToPDF}>
             📄 {t.exportPdf || 'Export PDF'}
           </button>
+          <ExpenseBulkImport
+            companyAccounts={companyAccounts}
+            onImported={() => {
+              fetchExpenses();
+              fetchCategories();
+              fetchAllCategories();
+            }}
+          />
           <button className="btn-primary" onClick={openCreateExpenseModal}>
             {t.addExpense}
           </button>
