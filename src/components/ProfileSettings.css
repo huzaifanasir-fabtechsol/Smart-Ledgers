@@ -8,3 +8,43 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Letterhead designer */
+.lh-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.lh-section-title {
+  margin: 1.25rem 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.lh-form .form-row { flex-wrap: wrap; }
+.lh-preview {
+  position: sticky;
+  top: 1rem;
+  min-width: 0;
+}
+.lh-preview-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.lh-stage {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0.75rem;
+  overflow: hidden;
+}
+.lh-stage > div {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  margin: 0 auto;
+}
+@media (max-width: 1100px) {
+  .lh-layout { grid-template-columns: minmax(0, 1fr); }
+  .lh-preview { position: static; }
+}

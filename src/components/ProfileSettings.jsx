@@ -2,6 +2,7 @@
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { apiRequest } from "../api";
+import LetterheadPrinter from "./LetterheadPrinter";
 import "./ProfileSettings.css";
 
 const INITIAL_PROFILE = {
@@ -398,6 +399,8 @@ const ProfileSettings = ({ onUserUpdate }) => {
           <button type="submit" className="btn-primary" disabled={savingPassword}>{savingPassword ? "Updating..." : "Update Password"}</button>
         </form>
       </div>
+
+      <LetterheadPrinter profile={profile} />
 
       <ToastContainer position="top-right" autoClose={3000} />
     </div>

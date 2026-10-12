@@ -1,0 +1,118 @@
+/* Letterhead paper (A4). Imported with ?inline so the same CSS is used on screen and in the print iframe. */
+.lh-paper {
+  --lh-accent: #1e3a8a;
+  box-sizing: border-box;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 16mm 18mm 14mm;
+  background: #fff;
+  color: #1f2937;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.lh-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--lh-accent);
+}
+.lh-head.lh-center {
+  flex-direction: column;
+  text-align: center;
+  gap: 6px;
+}
+.lh-logo {
+  max-height: 22mm;
+  max-width: 55mm;
+  object-fit: contain;
+  display: block;
+}
+.lh-name {
+  margin: 0;
+  font-size: 22pt;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--lh-accent);
+  line-height: 1.15;
+}
+.lh-tagline {
+  margin: 2px 0 0;
+  font-size: 8.5pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.lh-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 18px;
+  margin-top: 8px;
+  font-size: 8.5pt;
+  color: #4b5563;
+}
+.lh-contact.lh-center { justify-content: center; }
+.lh-contact b { color: #111827; font-weight: 600; }
+
+.lh-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14mm;
+  font-size: 9.5pt;
+}
+.lh-meta .lh-right { text-align: right; }
+
+.lh-recipient {
+  margin-top: 8mm;
+  white-space: pre-wrap;
+}
+
+.lh-title {
+  margin: 8mm 0 0;
+  text-align: center;
+  font-size: 13pt;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.lh-title span {
+  display: inline-block;
+  padding-bottom: 3px;
+  border-bottom: 2px solid var(--lh-accent);
+}
+
+.lh-body {
+  flex: 1;
+  margin-top: 8mm;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.lh-sign {
+  margin-top: 14mm;
+  margin-bottom: 14mm;
+}
+.lh-sign .lh-closing { margin-bottom: 16mm; }
+.lh-sign .lh-signer { font-weight: 700; font-size: 11pt; }
+.lh-sign .lh-role { color: var(--lh-accent); font-weight: 600; font-size: 9.5pt; }
+
+.lh-foot {
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid #d1d5db;
+  text-align: center;
+  font-size: 7.5pt;
+  color: #6b7280;
+}
+
+.lh-paper {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
