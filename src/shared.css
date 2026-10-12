@@ -518,6 +518,19 @@ tbody tr[style*="cursor: pointer"]:hover td {
   z-index: 10;
 }
 
+/* In the padded .modal, pin the action bar flush to the modal's bottom edge
+   so scrolled content can't show through the padding gap beneath it. */
+.modal {
+  --modal-pad: 2.25rem;
+}
+
+.modal .modal-actions {
+  bottom: calc(-1 * var(--modal-pad));
+  margin: 1.5rem calc(-1 * var(--modal-pad)) calc(-1 * var(--modal-pad));
+  padding: 1rem var(--modal-pad);
+  border-radius: 0 0 24px 24px;
+}
+
 .modal-large {
   max-width: 880px;
 }
@@ -986,6 +999,7 @@ textarea.form-input {
   }
 
   .modal {
+    --modal-pad: 1.5rem;
     padding: 1.5rem;
     border-radius: 20px;
   }
@@ -1000,6 +1014,10 @@ textarea.form-input {
     gap: 0.75rem;
     margin-top: 1.5rem;
     padding-top: 1.25rem;
+  }
+
+  .modal .modal-actions {
+    border-radius: 0 0 20px 20px;
   }
 
   .modal-actions button {
