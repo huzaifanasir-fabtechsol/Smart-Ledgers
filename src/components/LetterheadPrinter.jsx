@@ -2,10 +2,95 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import paperCss from "./Letterhead.css?inline";
 
-const STORAGE_KEY = "letterhead_settings_v1";
+const STORAGE_KEY = "letterhead_settings_v2";
 const PAPER_PX = 794; // A4 width at 96dpi
 
 const todayString = () => new Date().toISOString().slice(0, 10);
+
+// Decorative artwork, drawn on an A4 canvas of 210 x 297 units (mm). c1 = primary, c2 = secondary.
+const chevron = (x, y, w, h, fill, key) => (
+  <polygon
+    key={key}
+    fill={fill}
+    points={`${x},${y} ${x + w},${y} ${x + w + h / 2},${y + h / 2} ${x + w},${y + h} ${x},${y + h} ${x + h / 2},${y + h / 2}`}
+  />
+);
+
+const TEMPLATES = {
+  angles: {
+    label: "Angles",
+    top: "36mm",
+    bottom: "24mm",
+    head: "lh-left",
+    art: (c1, c2) => (
+      <>
+        <polygon fill={c1} points="0,0 125,0 98,17 0,17" />
+        <polygon fill={c2} points="0,17 98,17 86,25 0,25" />
+        <polygon fill={c2} points="160,0 210,0 210,14" />
+        <polygon fill={c1} points="210,297 210,276 150,297" />
+        <polygon fill={c2} points="210,297 210,287 176,297" />
+        <polygon fill={c2} points="0,297 0,287 30,297" />
+      </>
+    ),
+  },
+  chevron: {
+    label: "Chevron",
+    top: "26mm",
+    bottom: "22mm",
+    head: "lh-left",
+    art: (c1, c2) => (
+      <>
+        {[c1, c2, c1].map((c, i) => chevron(i * 10 - 4, 0, 7, 13, c, `t${i}`))}
+        <g transform="translate(210,297) rotate(180)">
+          {[c1, c2, c1].map((c, i) => chevron(i * 10 - 4, 0, 7, 13, c, `b${i}`))}
+        </g>
+        <rect x="0" y="294" width="150" height="3" fill={c1} />
+      </>
+    ),
+  },
+  wave: {
+    label: "Wave",
+    top: "32mm",
+    bottom: "26mm",
+    head: "lh-center",
+    art: (c1, c2) => (
+      <>
+        <polygon fill={c1} points="0,0 210,0 210,10 105,22 0,10" />
+        <polygon fill={c2} points="0,10 105,22 210,10 210,12.5 105,24.5 0,12.5" />
+        <polygon fill={c1} points="0,297 0,291 105,284 210,291 210,297" />
+        <polygon fill={c2} points="0,289 105,282 210,289 210,291 105,284 0,291" />
+      </>
+    ),
+  },
+  corner: {
+    label: "Corner Cut",
+    top: "18mm",
+    bottom: "22mm",
+    head: "lh-left lh-narrow",
+    art: (c1, c2) => (
+      <>
+        <polygon fill={c1} points="210,0 210,44 118,0" />
+        <polygon fill={c2} points="210,0 210,28 150,0" />
+        <polygon fill={c1} points="0,297 0,278 42,297" />
+        <polygon fill={c2} points="0,297 0,288 20,297" />
+      </>
+    ),
+  },
+  classic: {
+    label: "Classic Bars",
+    top: "20mm",
+    bottom: "18mm",
+    head: "lh-center",
+    art: (c1, c2) => (
+      <>
+        <rect x="0" y="0" width="210" height="7" fill={c1} />
+        <rect x="0" y="7" width="210" height="1.6" fill={c2} />
+        <rect x="0" y="293" width="210" height="4" fill={c1} />
+        <rect x="0" y="291.2" width="210" height="1.2" fill={c2} />
+      </>
+    ),
+  },
+};
 
 const buildDefaults = (profile) => ({
   logo: "",
@@ -16,18 +101,11 @@ const buildDefaults = (profile) => ({
   email: profile?.company_email || "",
   website: profile?.company_website || "",
   registration: profile?.business_registration || "",
-  accent: "#1e3a8a",
-  layout: "left",
-  showFooter: true,
-  footerText: "",
-  refNo: "",
+  template: "angles",
+  color1: "#1e3a8a",
+  color2: "#3b82f6",
+  showDate: true,
   date: todayString(),
-  recipient: "",
-  title: "",
-  body: "",
-  closing: "Sincerely,",
-  signerName: "",
-  signerRole: "",
 });
 
 // Shrink the uploaded logo so it is cheap to keep in localStorage and to print.
@@ -65,7 +143,6 @@ const LetterheadPrinter = ({ profile }) => {
   const stageRef = useRef(null);
   const paperRef = useRef(null);
 
-  // Keep the saved letterhead (everything except the per-letter content) between visits.
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -98,7 +175,16 @@ const LetterheadPrinter = ({ profile }) => {
   };
 
   const fillFromProfile = () => {
-    setForm((prev) => ({ ...prev, ...buildDefaults(profile), logo: prev.logo, accent: prev.accent, layout: prev.layout }));
+    const d = buildDefaults(profile);
+    setForm((prev) => ({
+      ...prev,
+      companyName: d.companyName,
+      address: d.address,
+      phone: d.phone,
+      email: d.email,
+      website: d.website,
+      registration: d.registration,
+    }));
     toast.success("Company details loaded from your settings");
   };
 
@@ -114,8 +200,8 @@ const LetterheadPrinter = ({ profile }) => {
     const doc = iframe.contentWindow.document;
     doc.open();
     doc.write(
-      `<!doctype html><html><head><meta charset="utf-8"><title>${(form.companyName || "Letterhead").replace(/[<&]/g, "")}</title>` +
-        `<style>${paperCss}@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#fff}.lh-paper{min-height:296mm}</style></head><body>${paperRef.current.outerHTML}</body></html>`
+      `<!doctype html><html><head><meta charset="utf-8"><title>${form.companyName.replace(/[<&]/g, "")} letterhead</title>` +
+        `<style>${paperCss}@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#fff}.lh-paper{height:296mm}</style></head><body>${paperRef.current.outerHTML}</body></html>`
     );
     doc.close();
 
@@ -135,6 +221,7 @@ const LetterheadPrinter = ({ profile }) => {
     }
   };
 
+  const tpl = TEMPLATES[form.template] || TEMPLATES.angles;
   const contact = [
     form.address && ["Address", form.address],
     form.phone && ["Phone", form.phone],
@@ -142,15 +229,12 @@ const LetterheadPrinter = ({ profile }) => {
     form.website && ["Web", form.website],
     form.registration && ["Reg. No", form.registration],
   ].filter(Boolean);
-  const centered = form.layout === "center";
-  const footerLine =
-    form.footerText || [form.companyName, form.email, form.website].filter(Boolean).join("  |  ");
 
   return (
     <div className="table-section">
       <div className="table-header"><h3>Letterhead</h3></div>
       <p style={{ margin: "0 0 1.5rem 0", fontSize: "0.875rem", color: "var(--muted-foreground)" }}>
-        Design your company letterhead, check the preview, then print it or save it as a PDF.
+        Pick a design, choose your colors, check the preview, then print it or save it as a PDF.
         Your letterhead details are remembered on this device.
       </p>
 
@@ -158,6 +242,33 @@ const LetterheadPrinter = ({ profile }) => {
         <div className="lh-form">
           <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap" }}>
             <button type="button" className="btn-secondary" onClick={fillFromProfile}>Use my company details</button>
+          </div>
+
+          <h4 className="lh-section-title">Design</h4>
+          <div className="lh-templates">
+            {Object.entries(TEMPLATES).map(([key, t]) => (
+              <button
+                type="button"
+                key={key}
+                className={`lh-template-btn ${form.template === key ? "active" : ""}`}
+                onClick={() => set("template", key)}
+              >
+                <svg viewBox="0 0 210 297" width="54" height="76" style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 3 }}>
+                  {t.art(form.color1, form.color2)}
+                </svg>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="form-row">
+            <div className="form-group" style={{ maxWidth: 160 }}>
+              <label>Primary Color</label>
+              <input type="color" name="color1" value={form.color1} onChange={onChange} style={{ height: 42, padding: 4 }} />
+            </div>
+            <div className="form-group" style={{ maxWidth: 160 }}>
+              <label>Secondary Color</label>
+              <input type="color" name="color2" value={form.color2} onChange={onChange} style={{ height: 42, padding: 4 }} />
+            </div>
           </div>
 
           <h4 className="lh-section-title">Company</h4>
@@ -182,40 +293,18 @@ const LetterheadPrinter = ({ profile }) => {
             <div className="form-group"><label>Website</label><input type="text" name="website" value={form.website} onChange={onChange} /></div>
             <div className="form-group"><label>Registration No.</label><input type="text" name="registration" value={form.registration} onChange={onChange} /></div>
           </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Header Layout</label>
-              <select name="layout" value={form.layout} onChange={onChange}>
-                <option value="left">Logo left, name beside it</option>
-                <option value="center">Centered</option>
-              </select>
-            </div>
-            <div className="form-group" style={{ maxWidth: 140 }}>
-              <label>Accent Color</label>
-              <input type="color" name="accent" value={form.accent} onChange={onChange} style={{ height: 42, padding: 4 }} />
-            </div>
-          </div>
-          <label style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.75rem" }}>
-            <input type="checkbox" name="showFooter" checked={form.showFooter} onChange={onChange} style={{ width: "auto" }} />
-            Show footer line
-          </label>
-          {form.showFooter && (
-            <div className="form-group"><label>Footer Text (optional)</label><input type="text" name="footerText" value={form.footerText} onChange={onChange} placeholder="Leave blank to use name, email and website" /></div>
-          )}
 
-          <h4 className="lh-section-title">Letter Content (optional)</h4>
-          <div className="form-row">
-            <div className="form-group"><label>Reference No.</label><input type="text" name="refNo" value={form.refNo} onChange={onChange} /></div>
-            <div className="form-group"><label>Date</label><input type="date" name="date" value={form.date} onChange={onChange} /></div>
-          </div>
-          <div className="form-group"><label>Recipient</label><textarea name="recipient" value={form.recipient} onChange={onChange} rows="3" placeholder={"To,\nMr. Name\nCompany"} /></div>
-          <div className="form-group"><label>Subject / Title</label><input type="text" name="title" value={form.title} onChange={onChange} /></div>
-          <div className="form-group"><label>Letter Body</label><textarea name="body" value={form.body} onChange={onChange} rows="8" placeholder="Leave empty to print a blank letterhead" /></div>
-          <div className="form-row">
-            <div className="form-group"><label>Closing</label><input type="text" name="closing" value={form.closing} onChange={onChange} /></div>
-            <div className="form-group"><label>Signatory Name</label><input type="text" name="signerName" value={form.signerName} onChange={onChange} /></div>
-            <div className="form-group"><label>Signatory Title</label><input type="text" name="signerRole" value={form.signerRole} onChange={onChange} /></div>
-          </div>
+          <h4 className="lh-section-title">Date</h4>
+          <label style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.75rem" }}>
+            <input type="checkbox" name="showDate" checked={form.showDate} onChange={onChange} style={{ width: "auto" }} />
+            Print a date above the footer
+          </label>
+          {form.showDate && (
+            <div className="form-group" style={{ maxWidth: 220 }}>
+              <label>Date</label>
+              <input type="date" name="date" value={form.date} onChange={onChange} />
+            </div>
+          )}
         </div>
 
         <div className="lh-preview">
@@ -227,41 +316,35 @@ const LetterheadPrinter = ({ profile }) => {
             <div style={{ width: PAPER_PX * scale, height: 1123 * scale, overflow: "hidden" }}>
               <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: PAPER_PX }}>
                 <style>{paperCss}</style>
-                <div className="lh-paper" ref={paperRef} style={{ "--lh-accent": form.accent }}>
-                  <div className={`lh-head ${centered ? "lh-center" : ""}`}>
+                <div
+                  className="lh-paper"
+                  ref={paperRef}
+                  style={{ "--lh-c1": form.color1, "--lh-c2": form.color2, "--lh-top": tpl.top, "--lh-bottom": tpl.bottom }}
+                >
+                  <svg className="lh-art" viewBox="0 0 210 297" preserveAspectRatio="none" aria-hidden="true">
+                    {tpl.art(form.color1, form.color2)}
+                  </svg>
+
+                  <div className={`lh-head ${tpl.head}`}>
                     {form.logo && <img className="lh-logo" src={form.logo} alt="" />}
                     <div>
                       <h1 className="lh-name">{form.companyName || "Your Company Name"}</h1>
                       {form.tagline && <p className="lh-tagline">{form.tagline}</p>}
                     </div>
                   </div>
+
+                  <div className="lh-spacer" />
+
+                  {form.showDate && form.date && (
+                    <div className="lh-date"><span><b>Date:</b> {form.date}</span></div>
+                  )}
                   {contact.length > 0 && (
-                    <div className={`lh-contact ${centered ? "lh-center" : ""}`}>
+                    <div className="lh-foot">
                       {contact.map(([label, value]) => (
                         <span key={label}><b>{label}:</b> {value}</span>
                       ))}
                     </div>
                   )}
-
-                  {(form.refNo || form.date) && (
-                    <div className="lh-meta">
-                      <div>{form.refNo && <><b>Ref No:</b> {form.refNo}</>}</div>
-                      <div className="lh-right">{form.date && <><b>Date:</b> {form.date}</>}</div>
-                    </div>
-                  )}
-                  {form.recipient && <div className="lh-recipient">{form.recipient}</div>}
-                  {form.title && <h2 className="lh-title"><span>{form.title}</span></h2>}
-                  <div className="lh-body">{form.body}</div>
-
-                  {(form.signerName || form.signerRole) && (
-                    <div className="lh-sign">
-                      {form.closing && <div className="lh-closing">{form.closing}</div>}
-                      {form.signerName && <div className="lh-signer">{form.signerName}</div>}
-                      {form.signerRole && <div className="lh-role">{form.signerRole}</div>}
-                    </div>
-                  )}
-
-                  {form.showFooter && footerLine && <div className="lh-foot">{footerLine}</div>}
                 </div>
               </div>
             </div>

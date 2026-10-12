@@ -48,3 +48,28 @@
   .lh-layout { grid-template-columns: minmax(0, 1fr); }
   .lh-preview { position: static; }
 }
+
+.lh-templates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.lh-template-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.55rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lh-template-btn.active {
+  border-color: var(--primary);
+  background: var(--secondary);
+}
