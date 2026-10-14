@@ -173,9 +173,12 @@
 }
 
 .sidebar.collapsed .sidebar-nav {
-  padding-right: 0;
+  padding: 0.75rem 0;
   /* Still scrolls on short screens, but the scrollbar no longer eats the 52px column */
   scrollbar-width: none;
+  /* Soft fade at both ends hints that the list continues; the padding keeps it off the icons */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 0.75rem, #000 calc(100% - 0.75rem), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 0.75rem, #000 calc(100% - 0.75rem), transparent);
 }
 
 .sidebar.collapsed .sidebar-nav::-webkit-scrollbar {

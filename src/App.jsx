@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -56,6 +56,7 @@ function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const t = translations[language];
@@ -75,6 +76,11 @@ function AppContent() {
       setSidebarOpen(false);
     }
   }, [location.pathname]);
+
+  // On short screens the menu scrolls; keep the current page's link in view.
+  useEffect(() => {
+    navRef.current?.querySelector('.nav-item.active')?.scrollIntoView({ block: 'nearest' });
+  }, [location.pathname, sidebarOpen, isAuthenticated]);
 
   const handleLogin = (token, userData) => {
     setIsAuthenticated(true);
@@ -209,7 +215,7 @@ function AppContent() {
           </button>
         </div>
 
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" ref={navRef}>
           {menuSections.map((section, sectionIndex) => (
             <div key={section.title || `section-${sectionIndex}`} className="nav-section">
               {sectionIndex > 0 && (sidebarOpen && section.title
