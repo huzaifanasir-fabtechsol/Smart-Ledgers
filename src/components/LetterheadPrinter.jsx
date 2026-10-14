@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { apiRequest, getErrorMessage } from "../api";
 import paperCss from "./Letterhead.css?inline";
 
 const STORAGE_KEY = "letterhead_settings_v2";
@@ -130,6 +131,37 @@ const fileToLogoDataUrl = (file) =>
     reader.readAsDataURL(file);
   });
 
+// The editor works with camelCase form fields; the API uses snake_case record fields.
+const toPayload = (form) => ({
+  name: form.companyName.trim(),
+  logo: form.logo,
+  tagline: form.tagline,
+  address: form.address,
+  phone: form.phone,
+  email: form.email,
+  website: form.website,
+  registration: form.registration,
+  template: form.template,
+  color1: form.color1,
+  color2: form.color2,
+  show_date: form.showDate,
+});
+
+const fromRecord = (r) => ({
+  logo: r.logo || "",
+  companyName: r.name || "",
+  tagline: r.tagline || "",
+  address: r.address || "",
+  phone: r.phone || "",
+  email: r.email || "",
+  website: r.website || "",
+  registration: r.registration || "",
+  template: r.template,
+  color1: r.color1,
+  color2: r.color2,
+  showDate: r.show_date,
+});
+
 const LetterheadPrinter = ({ profile }) => {
   const [form, setForm] = useState(() => {
     const defaults = buildDefaults(profile);
@@ -139,6 +171,11 @@ const LetterheadPrinter = ({ profile }) => {
     } catch { /* ignore corrupt storage */ }
     return defaults;
   });
+  const [saved, setSaved] = useState([]);
+  const [loadingSaved, setLoadingSaved] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [activeId, setActiveId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [scale, setScale] = useState(0.6);
   const stageRef = useRef(null);
   const paperRef = useRef(null);
@@ -148,6 +185,23 @@ const LetterheadPrinter = ({ profile }) => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
     } catch { /* storage full or blocked: preview and print still work */ }
   }, [form]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await apiRequest("/account/letterheads/");
+        if (!response.ok) throw new Error(await getErrorMessage(response));
+        const data = await response.json();
+        if (!cancelled) setSaved(Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : []);
+      } catch (error) {
+        if (!cancelled) toast.error(error.message || "Failed to load saved letterheads");
+      } finally {
+        if (!cancelled) setLoadingSaved(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Fit the A4 paper to the width of the preview column.
   useEffect(() => {
@@ -186,6 +240,60 @@ const LetterheadPrinter = ({ profile }) => {
       registration: d.registration,
     }));
     toast.success("Company details loaded from your settings");
+  };
+
+  const activeRecord = saved.find((r) => r.id === activeId) || null;
+  const dirty = !!activeRecord && JSON.stringify(toPayload(form)) !== JSON.stringify(toPayload(fromRecord(activeRecord)));
+
+  // Create (no id) or update (id) a saved letterhead on the server.
+  const persist = async (id) => {
+    if (!form.companyName.trim()) {
+      toast.error("Enter a company name first, it is used as the saved name");
+      return;
+    }
+    setBusy(true);
+    try {
+      const response = await apiRequest(id ? `/account/letterheads/${id}/` : "/account/letterheads/", {
+        method: id ? "PATCH" : "POST",
+        body: JSON.stringify(toPayload(form)),
+      });
+      if (!response.ok) throw new Error(await getErrorMessage(response));
+      const record = await response.json();
+      setSaved((prev) => (id ? prev.map((r) => (r.id === id ? record : r)) : [record, ...prev]));
+      setActiveId(record.id);
+      toast.success(id ? `Updated "${record.name}"` : `Saved "${record.name}"`);
+    } catch (error) {
+      toast.error(error.message || "Failed to save letterhead");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const loadRecord = (record) => {
+    setForm({ ...buildDefaults(profile), ...fromRecord(record), date: todayString() });
+    setActiveId(record.id);
+    toast.info(`Loaded "${record.name}"`);
+  };
+
+  const deleteRecord = async (id) => {
+    setBusy(true);
+    try {
+      const response = await apiRequest(`/account/letterheads/${id}/`, { method: "DELETE" });
+      if (!response.ok && response.status !== 204) throw new Error(await getErrorMessage(response));
+      setSaved((prev) => prev.filter((r) => r.id !== id));
+      if (activeId === id) setActiveId(null);
+      toast.success("Letterhead deleted");
+    } catch (error) {
+      toast.error(error.message || "Failed to delete letterhead");
+    } finally {
+      setBusy(false);
+      setConfirmDeleteId(null);
+    }
+  };
+
+  const startBlank = () => {
+    setForm(buildDefaults(profile));
+    setActiveId(null);
   };
 
   const handlePrint = () => {
@@ -240,8 +348,53 @@ const LetterheadPrinter = ({ profile }) => {
 
       <div className="lh-layout">
         <div className="lh-form">
-          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-            <button type="button" className="btn-secondary" onClick={fillFromProfile}>Use my company details</button>
+          <h4 className="lh-section-title" style={{ marginTop: 0 }}>Saved Letterheads</h4>
+          {loadingSaved ? (
+            <p className="lh-empty">Loading...</p>
+          ) : saved.length === 0 ? (
+            <p className="lh-empty">Nothing saved yet. Design a letterhead below and press "Save as new".</p>
+          ) : (
+            <div className="lh-saved">
+              {saved.map((r) => {
+                const t = TEMPLATES[r.template] || TEMPLATES.angles;
+                return (
+                  <div key={r.id} className={`lh-saved-item ${r.id === activeId ? "active" : ""}`}>
+                    <svg viewBox="0 0 210 297" width="30" height="42" style={{ flexShrink: 0, background: "#fff", border: "1px solid var(--border)", borderRadius: 2 }}>
+                      {t.art(r.color1, r.color2)}
+                    </svg>
+                    <div className="lh-saved-info">
+                      <strong>{r.name}</strong>
+                      <small>{t.label} &middot; {new Date(r.updated_at).toLocaleDateString()}</small>
+                    </div>
+                    {confirmDeleteId === r.id ? (
+                      <div className="lh-saved-actions">
+                        <button type="button" className="btn-secondary" style={{ color: "#dc2626", borderColor: "#fca5a5" }} disabled={busy} onClick={() => deleteRecord(r.id)}>Delete?</button>
+                        <button type="button" className="btn-secondary" onClick={() => setConfirmDeleteId(null)}>No</button>
+                      </div>
+                    ) : (
+                      <div className="lh-saved-actions">
+                        <button type="button" className="btn-secondary" onClick={() => loadRecord(r)}>{r.id === activeId ? "Reload" : "Use / Edit"}</button>
+                        <button type="button" className="btn-secondary" style={{ color: "#dc2626", borderColor: "#fca5a5" }} onClick={() => setConfirmDeleteId(r.id)} aria-label={`Delete ${r.name}`}>🗑️</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="lh-savebar">
+            {activeRecord && (
+              <span className="lh-editing">
+                Editing <strong>{activeRecord.name}</strong>{dirty ? " (unsaved changes)" : ""}
+              </span>
+            )}
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              {activeRecord && <button type="button" className="btn-primary" onClick={() => persist(activeRecord.id)} disabled={busy || !dirty}>Update saved</button>}
+              <button type="button" className={activeRecord ? "btn-secondary" : "btn-primary"} onClick={() => persist(null)} disabled={busy}>Save as new</button>
+              <button type="button" className="btn-secondary" onClick={startBlank}>New blank</button>
+              <button type="button" className="btn-secondary" onClick={fillFromProfile}>Use my company details</button>
+            </div>
           </div>
 
           <h4 className="lh-section-title">Design</h4>

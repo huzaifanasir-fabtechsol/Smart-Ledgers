@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { apiRequest, downloadFile } from '../api';
+import DeleteConfirmModal from './DeleteConfirmModal';
 
 const SEEN_JOB_KEY = 'expenseImportSeenJobId';
 const POLL_INTERVAL_MS = 1500;
@@ -30,6 +31,16 @@ const fetchLatestJob = async () => {
   return data.job;
 };
 
+// Transactions from an import that now carry more than one expense, with all their expenses.
+const fetchReview = async (jobId) => {
+  const response = await apiRequest(`/expenses/bulk-import/review/?job=${jobId}`);
+  if (!response.ok) throw new Error('Failed to load linked expenses');
+  const data = await response.json();
+  return data.transactions || [];
+};
+
+const yen = (value) => `¥${Number(value || 0).toLocaleString()}`;
+
 const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
   const [job, setJob] = useState(null);
   const [seenJobId, setSeenJobId] = useState(() => localStorage.getItem(SEEN_JOB_KEY));
@@ -39,9 +50,25 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
   const [uploading, setUploading] = useState(false);
   const [rowErrors, setRowErrors] = useState(null);
   const [totalErrors, setTotalErrors] = useState(0);
+  const [viewingLast, setViewingLast] = useState(false);
+  const [review, setReview] = useState(null);   // { jobId, items }
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const isActive = Boolean(job?.is_active);
   const hasUnseenResult = Boolean(job) && !isActive && String(job.id) !== seenJobId;
+  const showingResult = Boolean(job) && !isActive && (hasUnseenResult || viewingLast);
+  const reviewJobId = showingResult && job.status === 'completed' ? job.id : null;
+  const reviewItems = review && review.jobId === reviewJobId ? review.items : null;
+
+  // Load the transactions to review whenever a completed import's result is on screen.
+  useEffect(() => {
+    if (!reviewJobId) return undefined;
+    let cancelled = false;
+    fetchReview(reviewJobId)
+      .then((items) => { if (!cancelled) setReview({ jobId: reviewJobId, items }); })
+      .catch(() => { if (!cancelled) setReview({ jobId: reviewJobId, items: [] }); });
+    return () => { cancelled = true; };
+  }, [reviewJobId]);
 
   const announceFinished = (finishedJob) => {
     if (finishedJob.status === 'completed') {
@@ -96,14 +123,34 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
 
   const closeModal = () => {
     if (hasUnseenResult) markSeen();
+    setViewingLast(false);
     setShowModal(false);
     setRowErrors(null);
   };
 
   const startAnother = () => {
     markSeen();
+    setViewingLast(false);
     setFile(null);
     setRowErrors(null);
+  };
+
+  const handleDeleteExpense = async () => {
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    try {
+      const response = await apiRequest(`/expenses/${target.id}/`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete expense');
+      toast.success(`Expense #${target.id} deleted`);
+      if (onImported) onImported();
+    } catch {
+      toast.error('Failed to delete expense');
+    }
+    try {
+      setReview({ jobId: job.id, items: await fetchReview(job.id) });
+    } catch {
+      // Keep the current list; it refreshes the next time the result is opened.
+    }
   };
 
   const handleDownloadTemplate = async () => {
@@ -241,22 +288,122 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
             <b>New categories created:</b> {createdCategories.join(', ')}
           </div>
         )}
-        {warnings.length > 0 && (
-          <div style={{ ...errorBoxStyle, background: '#fffbeb', border: '1px solid #fcd34d', marginTop: '1rem' }}>
-            <div style={{ fontWeight: 700, color: '#92400e', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
-              Please review ({warnings.length}):
-            </div>
-            <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#92400e', fontSize: '0.8125rem', lineHeight: 1.4 }}>
-              {warnings.map((warning, idx) => <li key={idx}>{warning}</li>)}
-            </ul>
+        {renderReview(warnings.length)}
+      </div>
+    );
+  };
+
+  // Live list (re-read from the server), so it shrinks as duplicates are deleted.
+  const renderReview = (warningCount) => {
+    if (reviewItems === null) {
+      return warningCount > 0 ? (
+        <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#64748b' }}>Loading linked expenses...</div>
+      ) : null;
+    }
+    if (reviewItems.length === 0) {
+      return warningCount > 0 ? (
+        <div style={{ ...infoBoxStyle, marginTop: '1rem', marginBottom: 0 }}>
+          ✅ Every transaction flagged by this import now has a single expense.
+        </div>
+      ) : null;
+    }
+
+    return (
+      <div style={{ marginTop: '1.25rem' }}>
+        <div style={{ ...errorBoxStyle, background: '#fffbeb', border: '1px solid #fcd34d', maxHeight: 'none' }}>
+          <div style={{ fontWeight: 700, color: '#92400e', fontSize: '0.9rem' }}>
+            Please review: {reviewItems.length} transaction{reviewItems.length === 1 ? '' : 's'} now
+            {reviewItems.length === 1 ? ' has' : ' have'} more than one expense
           </div>
-        )}
+          <div style={{ color: '#92400e', fontSize: '0.8125rem', marginTop: '0.25rem' }}>
+            If two expenses below are the same charge, delete one of them.
+          </div>
+        </div>
+        <div className="table-container" style={{ minHeight: 0, marginTop: '0.75rem' }}>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Source</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reviewItems.map((tx) => (
+                <Fragment key={tx.id}>
+                  <tr>
+                    <td colSpan={8} style={{ background: '#f1f5f9', textAlign: 'left', color: '#1e293b' }}>
+                      <b>Transaction {tx.transaction_id}</b>
+                      {' · '}{tx.date}
+                      {' · '}{Number(tx.withdraw) > 0 ? `Withdraw ${yen(tx.withdraw)}` : `Deposit ${yen(tx.deposit)}`}
+                      {tx.description ? ` · ${tx.description}` : ''}
+                      {tx.notes ? <span style={{ color: '#64748b' }}>{` · ${tx.notes}`}</span> : null}
+                    </td>
+                  </tr>
+                  {tx.expenses.map((expense) => (
+                    <tr key={expense.id}>
+                      <td>#{expense.id}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{expense.date}</td>
+                      <td>{expense.title}</td>
+                      <td>{expense.description || '-'}</td>
+                      <td>{expense.category || '-'}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        <b>{yen(expense.total_amount)}</b>
+                        {Number(expense.tax_amount) > 0 && (
+                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                            {yen(expense.amount)} + tax {yen(expense.tax_amount)}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <span style={{
+                          padding: '0.15rem 0.55rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 600, whiteSpace: 'nowrap',
+                          background: expense.from_this_import ? '#dbeafe' : '#f1f5f9',
+                          color: expense.from_this_import ? '#1d4ed8' : '#475569',
+                        }}
+                        >
+                          {expense.from_this_import ? 'This import' : 'Existing'}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn-danger"
+                          style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem', borderRadius: 10 }}
+                          onClick={() => setDeleteTarget(expense)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
 
   const renderForm = () => (
     <form onSubmit={handleSubmit} id="expense-bulk-import-form" className="modal-form">
+      {job && !isActive && (
+        <div style={{ ...infoBoxStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+          <span>
+            Last import: <b>{job.file_name}</b> ({job.status === 'completed' ? 'completed' : 'failed'}
+            {job.finished_at ? `, ${new Date(job.finished_at).toLocaleString()}` : ''})
+          </span>
+          <button type="button" onClick={() => setViewingLast(true)} style={{ ...linkButtonStyle, whiteSpace: 'nowrap' }}>
+            View result
+          </button>
+        </div>
+      )}
       <div style={infoBoxStyle}>
         <div style={{ fontWeight: 600, marginBottom: '0.35rem', color: '#1e293b' }}>Excel columns (all required):</div>
         <div style={{ marginBottom: '0.5rem' }}>{COLUMNS.join(' · ')}</div>
@@ -318,7 +465,7 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
   if (isActive) {
     body = renderProgress();
     actions = <button type="button" className="btn-secondary" onClick={closeModal}>Close</button>;
-  } else if (hasUnseenResult) {
+  } else if (showingResult) {
     body = renderResult();
     actions = (
       <>
@@ -346,7 +493,7 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
 
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-box" style={{ maxWidth: 640 }}>
+          <div className="modal-box" style={{ maxWidth: showingResult && reviewItems?.length ? 1100 : 640 }}>
             <div className="modal-header">
               <h3>Bulk Import Expenses & Transactions</h3>
               <button className="modal-close" type="button" onClick={closeModal} disabled={uploading}>×</button>
@@ -356,6 +503,18 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
           </div>
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteExpense}
+        title="Delete Expense"
+        message={deleteTarget
+          ? `Delete expense #${deleteTarget.id} '${deleteTarget.title}' ${yen(deleteTarget.total_amount)} `
+            + `(${deleteTarget.category || 'no category'}, ${deleteTarget.date})? This cannot be undone. `
+            + 'The bank transaction itself is kept.'
+          : ''}
+      />
     </>
   );
 };
