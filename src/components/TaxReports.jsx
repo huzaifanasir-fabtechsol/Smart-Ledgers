@@ -570,6 +570,147 @@ const TaxReports = () => {
       ============================================================= */}
       {reportType === 'invoice' && (
         <>
+          {/* Invoice Filters Card */}
+          <div className="tax-filter-card">
+            <div className="tax-filter-grid">
+              {/* Year Filter */}
+              <div className="filter-item">
+                <label>Year</label>
+                <YearSelector
+                  selectedYear={invoiceYear}
+                  onYearChange={(yearVal) => {
+                    setInvoiceYear(yearVal);
+                    setInvoiceCurrentPage(1);
+                  }}
+                  placeholder="All Years"
+                />
+              </div>
+
+              {/* Month Filter */}
+              <div className="filter-item">
+                <label>Month</label>
+                <select
+                  value={invoiceMonth}
+                  onChange={(e) => {
+                    setInvoiceMonth(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Months</option>
+                  {monthOptions.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date From */}
+              <div className="filter-item">
+                <label>Date From</label>
+                <input
+                  type="date"
+                  value={invoiceDateFrom}
+                  onChange={(e) => {
+                    setInvoiceDateFrom(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Date To */}
+              <div className="filter-item">
+                <label>Date To</label>
+                <input
+                  type="date"
+                  value={invoiceDateTo}
+                  onChange={(e) => {
+                    setInvoiceDateTo(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Type (transaction_type) */}
+              <div className="filter-item">
+                <label>Type</label>
+                <select
+                  value={invoiceType}
+                  onChange={(e) => {
+                    setInvoiceType(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Types</option>
+                  <option value="purchase">Purchase</option>
+                  <option value="sale">Sale</option>
+                  <option value="auction">Auction</option>
+                  <option value="nagare">Nagare</option>
+                </select>
+              </div>
+
+              {/* Category (transaction_catagory) */}
+              <div className="filter-item">
+                <label>Category</label>
+                <select
+                  value={invoiceCategory}
+                  onChange={(e) => {
+                    setInvoiceCategory(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Categories</option>
+                  <option value="local">Local</option>
+                  <option value="foreign">Foreign</option>
+                </select>
+              </div>
+
+              {/* Payment Status */}
+              <div className="filter-item">
+                <label>Payment Status</label>
+                <select
+                  value={invoicePaymentStatus}
+                  onChange={(e) => {
+                    setInvoicePaymentStatus(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="completed">Completed</option>
+                  <option value="pending">Pending</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+
+              {/* Payment Method */}
+              <div className="filter-item">
+                <label>Payment Method</label>
+                <select
+                  value={invoicePaymentMethod}
+                  onChange={(e) => {
+                    setInvoicePaymentMethod(e.target.value);
+                    setInvoiceCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Methods</option>
+                  <option value="cash">Cash</option>
+                  <option value="bank">Bank / Transfer</option>
+                </select>
+              </div>
+
+              {/* Reset Actions */}
+              <div className="filter-actions">
+                <button
+                  type="button"
+                  className="btn-filter-reset"
+                  onClick={handleResetInvoiceFilters}
+                  title="Reset all filters"
+                >
+                  <RotateCcw size={14} style={{ display: 'inline', marginRight: 4 }} />
+                  Reset Filters
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Fee & Tax Checklist Card */}
           <div className="invoice-checklist-card">
             <div className="invoice-checklist-header">
@@ -713,146 +854,6 @@ const TaxReports = () => {
             </div>
           )}
 
-          {/* Invoice Filters Card */}
-          <div className="tax-filter-card">
-            <div className="tax-filter-grid">
-              {/* Year Filter */}
-              <div className="filter-item">
-                <label>Year</label>
-                <YearSelector
-                  selectedYear={invoiceYear}
-                  onYearChange={(yearVal) => {
-                    setInvoiceYear(yearVal);
-                    setInvoiceCurrentPage(1);
-                  }}
-                  placeholder="All Years"
-                />
-              </div>
-
-              {/* Month Filter */}
-              <div className="filter-item">
-                <label>Month</label>
-                <select
-                  value={invoiceMonth}
-                  onChange={(e) => {
-                    setInvoiceMonth(e.target.value);
-                    setInvoiceCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Months</option>
-                  {monthOptions.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Date From */}
-              <div className="filter-item">
-                <label>Date From</label>
-                <input
-                  type="date"
-                  value={invoiceDateFrom}
-                  onChange={(e) => {
-                    setInvoiceDateFrom(e.target.value);
-                    setInvoiceCurrentPage(1);
-                  }}
-                />
-              </div>
-
-              {/* Date To */}
-              <div className="filter-item">
-                <label>Date To</label>
-                <input
-                  type="date"
-                  value={invoiceDateTo}
-                  onChange={(e) => {
-                    setInvoiceDateTo(e.target.value);
-                    setInvoiceCurrentPage(1);
-                  }}
-                />
-              </div>
-
-              {/* Type (transaction_type) */}
-              <div className="filter-item">
-                <label>Type</label>
-                <select
-                  value={invoiceType}
-                  onChange={(e) => {
-                    setInvoiceType(e.target.value);
-                    setInvoiceCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Types</option>
-                  <option value="purchase">Purchase</option>
-                  <option value="sale">Sale</option>
-                  <option value="auction">Auction</option>
-                  <option value="nagare">Nagare</option>
-                </select>
-              </div>
-
-              {/* Category (transaction_catagory) */}
-              <div className="filter-item">
-                <label>Category</label>
-                <select
-                  value={invoiceCategory}
-                  onChange={(e) => {
-                    setInvoiceCategory(e.target.value);
-                    setInvoiceCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Categories</option>
-                  <option value="local">Local</option>
-                  <option value="foreign">Foreign</option>
-                </select>
-              </div>
-
-              {/* Payment Status */}
-              <div className="filter-item">
-                <label>Payment Status</label>
-                <select
-                  value={invoicePaymentStatus}
-                  onChange={(e) => {
-                    setInvoicePaymentStatus(e.target.value);
-                    setInvoiceCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Statuses</option>
-                  <option value="completed">Completed</option>
-                  <option value="pending">Pending</option>
-                  <option value="failed">Failed</option>
-                </select>
-              </div>
-
-              {/* Payment Method */}
-              <div className="filter-item">
-                <label>Payment Method</label>
-                <select
-                  value={invoicePaymentMethod}
-                  onChange={(e) => {
-                    setInvoicePaymentMethod(e.target.value);
-                    setInvoiceCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Methods</option>
-                  <option value="cash">Cash</option>
-                  <option value="bank">Bank / Transfer</option>
-                </select>
-              </div>
-
-              {/* Reset Actions */}
-              <div className="filter-actions">
-                <button
-                  type="button"
-                  className="btn-filter-reset"
-                  onClick={handleResetInvoiceFilters}
-                  title="Reset all filters"
-                >
-                  <RotateCcw size={14} style={{ display: 'inline', marginRight: 4 }} />
-                  Reset Filters
-                </button>
-              </div>
-            </div>
-          </div>
 
           {/* Invoice Items Table Card */}
           <div className="tax-table-card">
