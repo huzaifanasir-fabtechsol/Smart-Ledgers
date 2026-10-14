@@ -164,6 +164,42 @@
   font-weight: 700;
 }
 
+/* Collapsed sidebar: a single centred icon column */
+.sidebar.collapsed .sidebar-header {
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0;
+  margin-bottom: 1.25rem;
+}
+
+.sidebar.collapsed .sidebar-nav {
+  padding-right: 0;
+  /* Still scrolls on short screens, but the scrollbar no longer eats the 52px column */
+  scrollbar-width: none;
+}
+
+.sidebar.collapsed .sidebar-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0.65rem 0;
+}
+
+.sidebar.collapsed .nav-section-divider {
+  margin: 0.35rem 0.5rem;
+}
+
+/* The language picker becomes a globe button (it still opens the language list) */
+.sidebar.collapsed #google_translate_element select.goog-te-combo {
+  padding: 0 !important;
+  color: transparent !important;
+  background-position: center !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
 .nav-item .icon {
   display: flex;
   align-items: center;

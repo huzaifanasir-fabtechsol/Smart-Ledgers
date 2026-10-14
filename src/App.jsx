@@ -239,7 +239,7 @@ function AppContent() {
           <div
             id="google_translate_element"
             className="google-translate-wrapper"
-            style={{ padding: '0.5rem 0.25rem', width: '100%', display: sidebarOpen ? 'block' : 'none' }}
+            style={{ padding: '0.5rem 0.25rem', width: '100%' }}
           />
           <button className="nav-item" onClick={handleLogout} title="Logout">
             <span className="icon">
