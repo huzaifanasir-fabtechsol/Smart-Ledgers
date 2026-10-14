@@ -111,6 +111,29 @@
   background: var(--color-lime);
 }
 
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-section-title {
+  padding: 0.85rem 1rem 0.3rem;
+  color: var(--sidebar-foreground);
+  opacity: 0.5;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nav-section-divider {
+  height: 1px;
+  margin: 0.5rem 0.75rem;
+  background: var(--sidebar-border);
+}
+
 .nav-item {
   display: flex;
   align-items: center;

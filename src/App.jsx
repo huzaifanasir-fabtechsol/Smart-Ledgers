@@ -98,24 +98,63 @@ function AppContent() {
     return <Login onLogin={handleLogin} />;
   }
 
-  const menuItems = [
-    { path: '/dashboard', label: t.dashboard, icon: LayoutDashboard },
-    { path: '/expenses', label: t.manageExpenses, icon: Receipt },
-    { path: '/tax-reports', label: 'Tax Reports', icon: Calculator },
-    { path: '/inovice', label: t.orders, icon: FileText },
-    { path: '/customers', label: 'Customers', icon: Users },
-    { path: '/salers', label: 'Salers', icon: UserSquare2 },
-    { path: '/auctions', label: 'Auctions', icon: Gavel },
-    { path: '/categories', label: t.carCategories, icon: Car },
-    { path: '/cars', label: 'Collection', icon: Wallet },
-    { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
-    { path: '/restaurants', label: 'Restaurants', icon: UtensilsCrossed },
-    { path: '/spare-parts', label: 'Shops', icon: Store },
-    { path: '/company-accounts', label: 'Accounts', icon: Landmark },
-    { path: '/employees', label: 'Employees', icon: BriefcaseBusiness },
-    { path: '/salaries', label: 'Salaries', icon: BadgeDollarSign },
-    { path: '/export', label: t.dataExport, icon: Download },
-    { path: '/settings', label: 'Settings', icon: Settings },
+  // Sidebar links grouped by area. A section without a title is shown without a heading.
+  const menuSections = [
+    {
+      items: [
+        { path: '/dashboard', label: t.dashboard, icon: LayoutDashboard },
+      ],
+    },
+    {
+      title: 'Sales',
+      items: [
+        { path: '/inovice', label: t.orders, icon: FileText },
+        { path: '/customers', label: 'Customers', icon: Users },
+        { path: '/salers', label: 'Salers', icon: UserSquare2 },
+        { path: '/auctions', label: 'Auctions', icon: Gavel },
+      ],
+    },
+    {
+      title: 'Vehicles',
+      items: [
+        { path: '/cars', label: 'Collection', icon: Wallet },
+        { path: '/categories', label: t.carCategories, icon: Car },
+      ],
+    },
+    {
+      title: 'Expenses',
+      items: [
+        { path: '/expenses', label: t.manageExpenses, icon: Receipt },
+        { path: '/restaurants', label: 'Restaurants', icon: UtensilsCrossed },
+        { path: '/spare-parts', label: 'Shops', icon: Store },
+      ],
+    },
+    {
+      title: 'Banking',
+      items: [
+        { path: '/company-accounts', label: 'Accounts', icon: Landmark },
+        { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
+      ],
+    },
+    {
+      title: 'HR',
+      items: [
+        { path: '/employees', label: 'Employees', icon: BriefcaseBusiness },
+        { path: '/salaries', label: 'Salaries', icon: BadgeDollarSign },
+      ],
+    },
+    {
+      title: 'Reports',
+      items: [
+        { path: '/tax-reports', label: 'Tax Reports', icon: Calculator },
+        { path: '/export', label: t.dataExport, icon: Download },
+      ],
+    },
+    {
+      items: [
+        { path: '/settings', label: 'Settings', icon: Settings },
+      ],
+    },
   ];
 
   const isActive = (path) => {
@@ -171,22 +210,29 @@ function AppContent() {
         </div>
 
         <nav className="sidebar-nav">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-                title={item.label}
-              >
-                <span className="icon">
-                  <Icon size={18} />
-                </span>
-                {sidebarOpen && <span className="label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
-              </Link>
-            );
-          })}
+          {menuSections.map((section, sectionIndex) => (
+            <div key={section.title || `section-${sectionIndex}`} className="nav-section">
+              {sectionIndex > 0 && (sidebarOpen && section.title
+                ? <div className="nav-section-title">{section.title}</div>
+                : <div className="nav-section-divider" />)}
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+                    title={item.label}
+                  >
+                    <span className="icon">
+                      <Icon size={18} />
+                    </span>
+                    {sidebarOpen && <span className="label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="sidebar-footer">
