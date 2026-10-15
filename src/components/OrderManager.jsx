@@ -161,6 +161,21 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
     }
   };
 
+  const handleToggleHighlight = async (order) => {
+    const next = !order.is_highlighted;
+    setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, is_highlighted: next } : o)));
+    try {
+      const response = await apiRequest(`/revenue/orders/${order.id}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_highlighted: next })
+      });
+      if (!response.ok) throw new Error('failed');
+    } catch (error) {
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, is_highlighted: !next } : o)));
+      toast.error('Failed to update highlight');
+    }
+  };
+
   const handleEditStatus = (order) => {
     setEditingOrder(order);
     setPaymentStatus(order.payment_status || 'pending');
@@ -299,10 +314,20 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                     <tr 
                       key={order.id} 
                       onClick={() => handleViewDetails(order)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', ...(order.is_highlighted ? { background: '#fef9c3' } : {}) }}
                       className="table-row-hover"
                     >
-                      <td>{(currentPage - 1) * pageSize + index + 1}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleToggleHighlight(order); }}
+                          title={order.is_highlighted ? 'Remove highlight' : 'Highlight'}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: 0, marginRight: '0.3rem', color: order.is_highlighted ? '#eab308' : 'var(--muted-foreground)' }}
+                        >
+                          {order.is_highlighted ? '★' : '☆'}
+                        </button>
+                        {(currentPage - 1) * pageSize + index + 1}
+                      </td>
                       <td>
                         <span style={{ fontWeight: 600, color: 'var(--primary)', textDecoration: 'underline' }}>
                           {order.transaction_date}

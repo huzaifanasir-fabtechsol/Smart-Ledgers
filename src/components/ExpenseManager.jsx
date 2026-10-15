@@ -25,6 +25,7 @@ const EXPENSE_INITIAL_FORM = {
   category: '',
   category_name: '',
   is_cash: false,
+  is_highlighted: false,
   apply_tax: false,
   tax_category: 'exclusive',
   tax_percent_used: '',
@@ -443,6 +444,7 @@ const ExpenseManager = ({ language = 'en' }) => {
       category: expense.category ? String(expense.category) : '',
       category_name: expense.category_name || '',
       is_cash: Boolean(expense.is_cash),
+      is_highlighted: Boolean(expense.is_highlighted),
       apply_tax: hasTax,
       tax_category: taxCategory,
       tax_percent_used: rateVal,
@@ -617,6 +619,7 @@ const ExpenseManager = ({ language = 'en' }) => {
         restaurant: selectedRestaurant ? selectedRestaurant.id : null,
         spare_part: selectedSparePart ? selectedSparePart.id : null,
         is_cash: Boolean(expenseForm.is_cash),
+        is_highlighted: Boolean(expenseForm.is_highlighted),
         tax_category: taxCategory,
         tax_percent_used: taxPercent,
         tax_amount: taxAmount,
@@ -644,6 +647,21 @@ const ExpenseManager = ({ language = 'en' }) => {
       toast.error(error.message || 'Failed to save expense');
     } finally {
       setSavingExpense(false);
+    }
+  };
+
+  const handleToggleHighlight = async (expense) => {
+    const next = !expense.is_highlighted;
+    setExpenses((prev) => prev.map((e) => (e.id === expense.id ? { ...e, is_highlighted: next } : e)));
+    try {
+      const response = await apiRequest(`/expenses/${expense.id}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_highlighted: next }),
+      });
+      if (!response.ok) throw new Error(await getErrorMessage(response, 'Failed to update highlight'));
+    } catch (error) {
+      setExpenses((prev) => prev.map((e) => (e.id === expense.id ? { ...e, is_highlighted: !next } : e)));
+      toast.error(error.message || 'Failed to update highlight');
     }
   };
 
@@ -945,8 +963,18 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </tr>
               ) : (
                 expenses.map((expense, idx) => (
-                  <tr key={expense.id}>
-                    <td>{(expensePage - 1) * expensePageSize + idx + 1}</td>
+                  <tr key={expense.id} style={expense.is_highlighted ? { background: '#fef9c3' } : undefined}>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleHighlight(expense)}
+                        title={expense.is_highlighted ? 'Remove highlight' : 'Highlight'}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: 0, marginRight: '0.3rem', color: expense.is_highlighted ? '#eab308' : 'var(--muted-foreground)' }}
+                      >
+                        {expense.is_highlighted ? '★' : '☆'}
+                      </button>
+                      {(expensePage - 1) * expensePageSize + idx + 1}
+                    </td>
                     <td>{expense.date}</td>
                     <td>{expense.title}</td>
                     <td>{expense.category_name || '-'}</td>
@@ -1401,6 +1429,22 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <span style={{ fontSize: '0.875rem', fontWeight: 600, color: expenseForm.is_cash ? '#16a34a' : 'var(--muted-foreground)' }}>
                     {expenseForm.is_cash ? 'Cash' : 'No'}
                   </span>
+                </label>
+              </div>
+
+              <div style={{ marginTop: '1rem', padding: '0.85rem 1rem', background: 'var(--secondary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>⭐ Highlight</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Highlight this expense in the list</div>
+                </div>
+                <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', gap: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(expenseForm.is_highlighted)}
+                    onChange={(e) => setExpenseForm((prev) => ({ ...prev, is_highlighted: e.target.checked }))}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                  />
+                  <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{expenseForm.is_highlighted ? 'Yes' : 'No'}</span>
                 </label>
               </div>
 

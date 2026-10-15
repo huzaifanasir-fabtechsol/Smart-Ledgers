@@ -70,6 +70,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     account_number: '',
     auction_house: '',
     payment_status: 'pending',
+    is_highlighted: false,
     notes: '',
     items: []
   });
@@ -470,6 +471,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       account_number: order.other_details?.account_number || '',
       auction_house: order.other_details?.auction_house || '',
       payment_status: order.payment_status,
+      is_highlighted: Boolean(order.is_highlighted),
       notes: order.notes || '',
       items: order.items?.map((item) => normalizeOrderItem(item)) || []
     });
@@ -1056,6 +1058,18 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                   <option value="Bank">Bank</option>
                 </select>
               </div>
+            </div>
+
+            <div className="form-group">
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(formData.is_highlighted)}
+                  onChange={(e) => setFormData({...formData, is_highlighted: e.target.checked})}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }}
+                />
+                ⭐ Highlight this invoice in the list
+              </label>
             </div>
 
             {formData.payment_method === 'Bank' && (formData.transaction_type === 'purchase' ? selectedSaler : selectedCustomer) && (
