@@ -314,8 +314,8 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
                     <tr 
                       key={order.id} 
                       onClick={() => handleViewDetails(order)}
-                      style={{ cursor: 'pointer', ...(order.is_highlighted ? { background: '#fef9c3' } : {}) }}
-                      className="table-row-hover"
+                      style={{ cursor: 'pointer' }}
+                      className={`table-row-hover${order.is_highlighted ? ' row-highlighted' : ''}`}
                     >
                       <td>
                         <button
@@ -378,6 +378,7 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
               <>
                 <button onClick={() => handleViewDetails(order)}>👁️ View Details</button>
                 <button onClick={() => handleEdit(openMenuId)}>✏️ Edit</button>
+                <button onClick={() => { handleToggleHighlight(order); setOpenMenuId(null); }}>{order.is_highlighted ? '☆ Remove Highlight' : '⭐ Highlight'}</button>
                 <button onClick={() => handleGenerateInvoice(openMenuId)}>📄 Download PDF</button>
                 <button className="danger" onClick={() => { setShowDeleteConfirm(order); setOpenMenuId(null); }}>🗑️ Delete</button>
               </>

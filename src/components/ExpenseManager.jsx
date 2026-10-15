@@ -10,6 +10,7 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import YearSelector from './YearSelector';
 import Pagination from './Pagination';
 import ExpenseBulkImport from './ExpenseBulkImport';
+import '../shared.css';
 import './ExpenseManager.css';
 
 const CATEGORY_INITIAL_FORM = {
@@ -963,7 +964,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                 </tr>
               ) : (
                 expenses.map((expense, idx) => (
-                  <tr key={expense.id} style={expense.is_highlighted ? { background: '#fef9c3' } : undefined}>
+                  <tr key={expense.id} className={expense.is_highlighted ? 'row-highlighted' : undefined}>
                     <td>
                       <button
                         type="button"
@@ -1168,6 +1169,7 @@ const ExpenseManager = ({ language = 'en' }) => {
             return exp ? (
               <>
                 <button onClick={() => openEditExpenseModal(exp)}>✏️ Edit</button>
+                <button onClick={() => { handleToggleHighlight(exp); setOpenMenuId(null); }}>{exp.is_highlighted ? '☆ Remove Highlight' : '⭐ Highlight'}</button>
                 <button onClick={() => exportExpenseToPDF(exp)}>📄 Export PDF</button>
                 <button className="danger" onClick={() => { setShowDeleteConfirm({ type: 'expense', item: exp, label: `"${exp.title}"`, warning: '' }); setOpenMenuId(null); }}>🗑️ Delete</button>
               </>
