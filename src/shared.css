@@ -190,20 +190,15 @@ tbody tr:hover td {
 
 /* Highlighted rows */
 tbody tr.row-highlighted td {
-  background: #fef08a;
+  background: #fffbe6;
 }
 
 tbody tr.row-highlighted td:first-child {
-  box-shadow: inset 4px 0 0 #eab308;
+  box-shadow: inset 3px 0 0 #f5b301;
 }
 
 tbody tr.row-highlighted:hover td {
-  background: #fde047 !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  tbody tr.row-highlighted td { background: oklch(0.45 0.09 95); }
-  tbody tr.row-highlighted:hover td { background: oklch(0.5 0.1 95) !important; }
+  background: #fff3c4 !important;
 }
 
 tbody tr:last-child td {
