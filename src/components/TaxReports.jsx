@@ -44,7 +44,7 @@ const INVOICE_CHECKLIST_FIELDS = [
 const TaxReports = () => {
   // Modal for Report Type Selection: Expense or Invoice
   const [showTypeModal, setShowTypeModal] = useState(true);
-  const [reportType, setReportType] = useState('expense'); // 'expense' or 'invoice'
+  const [reportType, setReportType] = useState(null); // null until chosen, then 'expense' or 'invoice'
 
   // Common UI State
   const [exporting, setExporting] = useState(false);
@@ -111,7 +111,6 @@ const TaxReports = () => {
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [invoiceCurrentPage, setInvoiceCurrentPage] = useState(1);
   const [invoicePageSize, setInvoicePageSize] = useState(10);
-  const [invoiceTotalOrders, setInvoiceTotalOrders] = useState(0);
 
   const [invoiceStats, setInvoiceStats] = useState({
     total_orders: 0,
@@ -289,19 +288,31 @@ const TaxReports = () => {
   const fetchInvoiceOrders = async () => {
     setInvoiceLoading(true);
     try {
-      const params = buildInvoiceFilterParams();
-      params.append('page', invoiceCurrentPage);
-      params.append('page_size', invoicePageSize);
-      params.append('pageSize', invoicePageSize);
+      // Pagination is by flattened item row (not by order), so load every matching
+      // order and slice the rows client-side.
+      const all = [];
+      let page = 1;
+      while (true) {
+        const params = buildInvoiceFilterParams();
+        params.append('page', page);
+        params.append('page_size', 500);
+        params.append('pageSize', 500);
 
-      const response = await apiRequest(`/revenue/orders/?${params.toString()}`);
-      if (!response.ok) {
-        const msg = await getErrorMessage(response, 'Failed to fetch invoice orders');
-        throw new Error(msg);
+        const response = await apiRequest(`/revenue/orders/?${params.toString()}`);
+        if (!response.ok) {
+          const msg = await getErrorMessage(response, 'Failed to fetch invoice orders');
+          throw new Error(msg);
+        }
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          all.push(...data);
+          break;
+        }
+        all.push(...(data.results || []));
+        if (!data.next || page >= 100) break;
+        page += 1;
       }
-      const data = await response.json();
-      setInvoiceOrders(data.results || data || []);
-      setInvoiceTotalOrders(data.count || (Array.isArray(data) ? data.length : 0));
+      setInvoiceOrders(all);
     } catch (err) {
       toast.error(err.message || 'Failed to load invoice records');
       setInvoiceOrders([]);
@@ -317,8 +328,20 @@ const TaxReports = () => {
     }
   }, [
     reportType,
-    invoiceCurrentPage,
-    invoicePageSize,
+    invoiceYear,
+    invoiceMonth,
+    invoiceDateFrom,
+    invoiceDateTo,
+    invoiceType,
+    invoiceCategory,
+    invoicePaymentStatus,
+    invoicePaymentMethod,
+  ]);
+
+  // Keep the page in range when filters change the row count
+  useEffect(() => {
+    setInvoiceCurrentPage(1);
+  }, [
     invoiceYear,
     invoiceMonth,
     invoiceDateFrom,
@@ -452,7 +475,12 @@ const TaxReports = () => {
   };
 
   const expenseTotalPages = Math.ceil(expenseTotalCount / expensePageSize) || 1;
-  const invoiceTotalPages = Math.ceil(invoiceTotalOrders / invoicePageSize) || 1;
+  const invoiceTotalRows = flattenedInvoiceItems.length;
+  const invoiceTotalPages = Math.ceil(invoiceTotalRows / invoicePageSize) || 1;
+  const pagedInvoiceItems = flattenedInvoiceItems.slice(
+    (invoiceCurrentPage - 1) * invoicePageSize,
+    invoiceCurrentPage * invoicePageSize
+  );
 
   return (
     <div className="tax-reports-container">
@@ -470,8 +498,9 @@ const TaxReports = () => {
               <button
                 type="button"
                 className="tax-type-modal-close"
-                onClick={() => setShowTypeModal(false)}
+                onClick={() => reportType && setShowTypeModal(false)}
                 title="Close"
+                style={reportType ? undefined : { display: 'none' }}
               >
                 ×
               </button>
@@ -526,6 +555,7 @@ const TaxReports = () => {
         </div>
       )}
 
+      {reportType && (<>
       {/* Main Top Header */}
       <div className="tax-reports-header">
         <div className="tax-header-left">
@@ -899,7 +929,7 @@ const TaxReports = () => {
                       </td>
                     </tr>
                   ) : (
-                    flattenedInvoiceItems.map((row, idx) => {
+                    pagedInvoiceItems.map((row, idx) => {
                       const tType = (row.transactionType || '').toLowerCase();
                       const tCat = (row.transactionCategory || '').toLowerCase();
                       const pStatus = (row.paymentStatus || '').toLowerCase();
@@ -968,7 +998,7 @@ const TaxReports = () => {
             </div>
 
             {/* Invoice Pagination */}
-            {invoiceTotalOrders > 0 && (
+            {invoiceTotalRows > 0 && (
               <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid #e2e8f0' }}>
                 <Pagination
                   currentPage={invoiceCurrentPage}
@@ -1378,6 +1408,7 @@ const TaxReports = () => {
           </div>
         </>
       )}
+      </>)}
     </div>
   );
 };
