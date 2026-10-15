@@ -67,9 +67,9 @@ const PayslipModal = ({ salary, companyInfo, onClose }) => {
             <button className="btn-secondary" onClick={handleDownloadPdf} title="Export to PDF (.pdf)">
               <FileText size={16} style={{ color: '#dc2626' }} /> PDF
             </button>
-            <button className="btn-secondary" onClick={handlePrint} title="Print Statement">
+            {/* <button className="btn-secondary" onClick={handlePrint} title="Print Statement">
               <Printer size={16} /> Print
-            </button>
+            </button> */}
             <button className="modal-close" onClick={onClose}>
               <X size={18} />
             </button>
