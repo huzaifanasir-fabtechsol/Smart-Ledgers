@@ -207,18 +207,18 @@
   border-top: 1px dashed #cbd5e1;
 }
 
-.kyuyo-table tr.total-row {
+.kyuyo-table tr.kyuyo-total-row {
   background: #f1f5f9;
   font-weight: 800;
   font-size: 0.95rem;
   border-top: 2px solid #cbd5e1;
 }
 
-.kyuyo-col.earnings tr.total-row td.amount {
+.kyuyo-col.earnings tr.kyuyo-total-row td.amount {
   color: #047857;
 }
 
-.kyuyo-col.deductions tr.total-row td.amount {
+.kyuyo-col.deductions tr.kyuyo-total-row td.amount {
   color: #b91c1c;
 }
 

@@ -142,7 +142,7 @@ const PayslipModal = ({ salary, companyInfo, onClose }) => {
                       <td>Commuting Allowance</td>
                       <td className="amount">¥{num(salary.commuting_allowance)}</td>
                     </tr>
-                    <tr className="total-row">
+                    <tr className="kyuyo-total-row">
                       <td>Gross Payment Total</td>
                       <td className="amount">¥{num(salary.gross_payment)}</td>
                     </tr>
@@ -194,7 +194,7 @@ const PayslipModal = ({ salary, companyInfo, onClose }) => {
                         <td className="amount">¥{num(salary.other_deductions)}</td>
                       </tr>
                     )}
-                    <tr className="total-row">
+                    <tr className="kyuyo-total-row">
                       <td>Total Deductions</td>
                       <td className="amount">¥{num(salary.total_deductions)}</td>
                     </tr>
