@@ -980,7 +980,7 @@ const TaxReports = () => {
                   {!invoiceLoading && flattenedInvoiceItems.length > 0 && selectedChecklist.length > 0 && (
                     <tr className="tax-table-total-row">
                       <td colSpan={7} style={{ textAlign: 'right', fontWeight: 800 }}>
-                        Filtered Total ({invoiceStats.total_orders || 0} orders / {invoiceStats.total_items || 0} items):
+                        Filtered Total – all pages ({invoiceStats.total_orders || 0} orders / {invoiceStats.total_items || 0} items):
                       </td>
                       {selectedChecklist.map((fieldKey) => {
                         const totalVal = Number(invoiceStats[fieldKey] || 0);
@@ -1022,6 +1022,133 @@ const TaxReports = () => {
       ============================================================= */}
       {reportType === 'expense' && (
         <>
+          {/* Expense Filters Card */}
+          <div className="tax-filter-card">
+            <div className="tax-filter-grid">
+              {/* Year Filter */}
+              <div className="filter-item">
+                <label>Year</label>
+                <YearSelector
+                  selectedYear={filterYear}
+                  onYearChange={(yearVal) => {
+                    setFilterYear(yearVal);
+                    setExpenseCurrentPage(1);
+                  }}
+                  placeholder="All Years"
+                />
+              </div>
+
+              {/* Month Filter */}
+              <div className="filter-item">
+                <label>Month</label>
+                <select
+                  value={filterMonth}
+                  onChange={(e) => {
+                    setFilterMonth(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Months</option>
+                  {monthOptions.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date From */}
+              <div className="filter-item">
+                <label>Date From</label>
+                <input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={(e) => {
+                    setFilterDateFrom(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Date To */}
+              <div className="filter-item">
+                <label>Date To</label>
+                <input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={(e) => {
+                    setFilterDateTo(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Category */}
+              <div className="filter-item">
+                <label>Category</label>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => {
+                    setFilterCategory(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {sanitizeCategoryName(c.name)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Payment Status / Method */}
+              <div className="filter-item">
+                <label>Payment Method</label>
+                <select
+                  value={filterPaymentStatus}
+                  onChange={(e) => {
+                    setFilterPaymentStatus(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Payment Types</option>
+                  <option value="cash">Cash</option>
+                  <option value="bank">Bank / Transfer</option>
+                </select>
+              </div>
+
+              {/* Tax Category */}
+              <div className="filter-item">
+                <label>Tax Category</label>
+                <select
+                  value={filterTaxCategory}
+                  onChange={(e) => {
+                    setFilterTaxCategory(e.target.value);
+                    setExpenseCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Tax Types</option>
+                  <option value="inclusive">Tax Inclusive</option>
+                  <option value="exclusive">Tax Exclusive</option>
+                  <option value="mixed">Tax Mixed (Multi-Tax)</option>
+                  <option value="none">No Tax (0%)</option>
+                </select>
+              </div>
+
+              {/* Actions */}
+              <div className="filter-actions">
+                <button
+                  type="button"
+                  className="btn-filter-reset"
+                  onClick={handleResetExpenseFilters}
+                  title="Reset all filters"
+                >
+                  <RotateCcw size={14} style={{ display: 'inline', marginRight: 4 }} />
+                  Reset Filters
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Statistics Metric Cards Grid */}
           <div className="tax-stats-grid">
             {/* Card 1: Total Expense Without Any Tax (Original Pre-Tax Amount) */}
@@ -1172,133 +1299,6 @@ const TaxReports = () => {
               </div>
             </div>
           )}
-
-          {/* Expense Filters Card */}
-          <div className="tax-filter-card">
-            <div className="tax-filter-grid">
-              {/* Year Filter */}
-              <div className="filter-item">
-                <label>Year</label>
-                <YearSelector
-                  selectedYear={filterYear}
-                  onYearChange={(yearVal) => {
-                    setFilterYear(yearVal);
-                    setExpenseCurrentPage(1);
-                  }}
-                  placeholder="All Years"
-                />
-              </div>
-
-              {/* Month Filter */}
-              <div className="filter-item">
-                <label>Month</label>
-                <select
-                  value={filterMonth}
-                  onChange={(e) => {
-                    setFilterMonth(e.target.value);
-                    setExpenseCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Months</option>
-                  {monthOptions.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Date From */}
-              <div className="filter-item">
-                <label>Date From</label>
-                <input
-                  type="date"
-                  value={filterDateFrom}
-                  onChange={(e) => {
-                    setFilterDateFrom(e.target.value);
-                    setExpenseCurrentPage(1);
-                  }}
-                />
-              </div>
-
-              {/* Date To */}
-              <div className="filter-item">
-                <label>Date To</label>
-                <input
-                  type="date"
-                  value={filterDateTo}
-                  onChange={(e) => {
-                    setFilterDateTo(e.target.value);
-                    setExpenseCurrentPage(1);
-                  }}
-                />
-              </div>
-
-              {/* Category */}
-              <div className="filter-item">
-                <label>Category</label>
-                <select
-                  value={filterCategory}
-                  onChange={(e) => {
-                    setFilterCategory(e.target.value);
-                    setExpenseCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Categories</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {sanitizeCategoryName(c.name)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Payment Status / Method */}
-              <div className="filter-item">
-                <label>Payment Method</label>
-                <select
-                  value={filterPaymentStatus}
-                  onChange={(e) => {
-                    setFilterPaymentStatus(e.target.value);
-                    setExpenseCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Payment Types</option>
-                  <option value="cash">Cash</option>
-                  <option value="bank">Bank / Transfer</option>
-                </select>
-              </div>
-
-              {/* Tax Category */}
-              <div className="filter-item">
-                <label>Tax Category</label>
-                <select
-                  value={filterTaxCategory}
-                  onChange={(e) => {
-                    setFilterTaxCategory(e.target.value);
-                    setExpenseCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Tax Types</option>
-                  <option value="inclusive">Tax Inclusive</option>
-                  <option value="exclusive">Tax Exclusive</option>
-                  <option value="mixed">Tax Mixed (Multi-Tax)</option>
-                  <option value="none">No Tax (0%)</option>
-                </select>
-              </div>
-
-              {/* Actions */}
-              <div className="filter-actions">
-                <button
-                  type="button"
-                  className="btn-filter-reset"
-                  onClick={handleResetExpenseFilters}
-                  title="Reset all filters"
-                >
-                  <RotateCcw size={14} style={{ display: 'inline', marginRight: 4 }} />
-                  Reset Filters
-                </button>
-              </div>
-            </div>
-          </div>
 
           {/* Expenses Table Card */}
           <div className="tax-table-card">
