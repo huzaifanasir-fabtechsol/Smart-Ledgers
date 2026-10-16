@@ -87,6 +87,12 @@ const TaxReports = () => {
     exclusive_base_amount: 0,
     exclusive_tax_amount: 0,
     exclusive_count: 0,
+    total_mixed_amount: 0,
+    mixed_base_amount: 0,
+    mixed_tax_amount: 0,
+    mixed_excl_tax_amount: 0,
+    mixed_incl_tax_amount: 0,
+    mixed_count: 0,
     total_no_tax_amount: 0,
     no_tax_count: 0,
     expense_count: 0,
@@ -1243,7 +1249,7 @@ const TaxReports = () => {
             </div>
 
             {/* Card 6: Mixed / Multi-Tax Amount */}
-            {(expenseStats.mixed_count > 0 || (expenseStats.total_taxes_count && expenseStats.total_taxes_count > 0)) && (
+            {expenseStats.mixed_count > 0 && (
               <div className="tax-stat-card accent-indigo">
                 <div className="tax-stat-header">
                   <span className="tax-stat-label">Mixed (Multi-Tax) Expenses</span>
@@ -1255,7 +1261,7 @@ const TaxReports = () => {
                 <div className="tax-stat-subtext">
                   <span>Mixed Tax ({expenseStats.mixed_count || 0} items)</span>
                   <span>
-                    Excl: ¥{formatNum(expenseStats.mixed_excl_tax_amount || 0)} | Incl: ¥{formatNum(expenseStats.mixed_incl_tax_amount || 0)}
+                    Base: ¥{formatNum(expenseStats.mixed_base_amount || 0)} | Excl: ¥{formatNum(expenseStats.mixed_excl_tax_amount || 0)} | Incl: ¥{formatNum(expenseStats.mixed_incl_tax_amount || 0)}
                   </span>
                 </div>
               </div>

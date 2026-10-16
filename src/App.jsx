@@ -201,7 +201,7 @@ function AppContent() {
       title: 'Reports',
       items: [
         { path: '/tax-reports', label: 'Tax Reports', icon: Calculator },
-        { path: '/export', label: t.dataExport, icon: Download },
+        // { path: '/export', label: t.dataExport, icon: Download },
       ],
     },
     {
