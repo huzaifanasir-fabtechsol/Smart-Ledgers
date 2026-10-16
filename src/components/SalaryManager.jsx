@@ -20,7 +20,7 @@ import {
   AlertCircle,
   CheckCircle2
 } from 'lucide-react';
-import { apiRequest, getErrorMessage, downloadSalaryExcel, downloadSalaryPdf, downloadSalaryDocx } from '../api';
+import { apiRequest, getErrorMessage, downloadSalaryExcel, downloadSalaryPdf } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
 import PayslipModal from './PayslipModal';
@@ -638,16 +638,6 @@ const SalaryManager = () => {
     }
   };
 
-  const handleDownloadDocx = async (sal) => {
-    try {
-      toast.info(`Downloading Word (.docx) Payslip for ${sal.employee_name}...`);
-      await downloadSalaryDocx(sal.id, sal.employee_name, sal.salary_month);
-      toast.success('Word (.docx) Payslip downloaded');
-    } catch {
-      toast.error('Failed to download Word (.docx) file');
-    }
-  };
-
   const openMenu = (e, id) => {
     e.stopPropagation();
     if (openMenuId === id) {
@@ -808,9 +798,6 @@ const SalaryManager = () => {
                 </button>
                 <button onClick={() => { handleDownloadExcel(sal); setOpenMenuId(null); }}>
                   <FileSpreadsheet size={15} style={{ color: '#16a34a' }} /> Export Excel (.xlsx)
-                </button>
-                <button onClick={() => { handleDownloadDocx(sal); setOpenMenuId(null); }}>
-                  <FileText size={15} style={{ color: '#2563eb' }} /> Export Word (.docx)
                 </button>
                 <button onClick={() => { handleDownloadPdf(sal); setOpenMenuId(null); }}>
                   <FileText size={15} style={{ color: '#dc2626' }} /> Export PDF (.pdf)

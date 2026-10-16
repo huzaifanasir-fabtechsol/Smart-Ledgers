@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Download, FileSpreadsheet, FileText, Printer, X, Building2, User, Calendar, DollarSign } from 'lucide-react';
-import { downloadSalaryExcel, downloadSalaryPdf, downloadSalaryDocx } from '../api';
+import { downloadSalaryExcel, downloadSalaryPdf } from '../api';
 import { toast } from 'react-toastify';
 import './PayslipModal.css';
 
@@ -26,16 +26,6 @@ const PayslipModal = ({ salary, companyInfo, onClose }) => {
       toast.success('PDF Payslip downloaded');
     } catch {
       toast.error('Failed to download PDF payslip');
-    }
-  };
-
-  const handleDownloadDocx = async () => {
-    try {
-      toast.info('Downloading Word (.docx) Payslip...');
-      await downloadSalaryDocx(salary.id, salary.employee_name, salary.salary_month);
-      toast.success('Word (.docx) Payslip downloaded');
-    } catch {
-      toast.error('Failed to download Word (.docx) payslip');
     }
   };
 
@@ -73,9 +63,6 @@ const PayslipModal = ({ salary, companyInfo, onClose }) => {
           <div className="payslip-header-actions">
             <button className="btn-secondary" onClick={handleDownloadExcel} title="Export to Excel (.xlsx)">
               <FileSpreadsheet size={16} style={{ color: '#16a34a' }} /> Excel
-            </button>
-            <button className="btn-secondary" onClick={handleDownloadDocx} title="Export to Word (.docx) for editing">
-              <FileText size={16} style={{ color: '#2563eb' }} /> Word (.docx)
             </button>
             <button className="btn-secondary" onClick={handleDownloadPdf} title="Export to PDF (.pdf)">
               <FileText size={16} style={{ color: '#dc2626' }} /> PDF
