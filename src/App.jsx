@@ -123,8 +123,12 @@ function AppContent() {
   }, [location.pathname, sidebarOpen, isAuthenticated]);
 
   const handleLogin = (token, userData) => {
-    localStorage.removeItem(SCREEN_LOCK_KEY);
-    setLocked(false);
+    // A user with a lock PIN must enter it after every password login
+    const needsPin = Boolean(userData?.has_lock_pin);
+    if (needsPin) localStorage.setItem(SCREEN_LOCK_KEY, '1');
+    else localStorage.removeItem(SCREEN_LOCK_KEY);
+    setLocked(needsPin);
+    setHasLockPin(needsPin);
     setIsAuthenticated(true);
     setUser(userData);
     navigate('/dashboard');
