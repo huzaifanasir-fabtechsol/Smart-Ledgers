@@ -144,6 +144,10 @@
   border-left: 4px solid #8b5cf6;
 }
 
+.tax-stat-card.accent-indigo {
+  border-left: 4px solid #6366f1;
+}
+
 .tax-stat-card.accent-amber {
   border-left: 4px solid #f59e0b;
 }
@@ -493,6 +497,12 @@
   background: #eff6ff;
   color: #1d4ed8;
   border: 1px solid #bfdbfe;
+}
+
+.tax-badge.mixed {
+  background: #fdf4ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
 }
 
 .tax-badge.none {

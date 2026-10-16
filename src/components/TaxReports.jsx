@@ -1115,7 +1115,26 @@ const TaxReports = () => {
               </div>
             </div>
 
-            {/* Card 6: No Tax / Non-Taxable */}
+            {/* Card 6: Mixed / Multi-Tax Amount */}
+            {(expenseStats.mixed_count > 0 || (expenseStats.total_taxes_count && expenseStats.total_taxes_count > 0)) && (
+              <div className="tax-stat-card accent-indigo">
+                <div className="tax-stat-header">
+                  <span className="tax-stat-label">Mixed (Multi-Tax) Expenses</span>
+                  <div className="tax-stat-icon">
+                    <Layers size={18} />
+                  </div>
+                </div>
+                <div className="tax-stat-value" style={{ color: '#6366f1' }}>¥{formatNum(expenseStats.total_mixed_amount || 0)}</div>
+                <div className="tax-stat-subtext">
+                  <span>Mixed Tax ({expenseStats.mixed_count || 0} items)</span>
+                  <span>
+                    Excl: ¥{formatNum(expenseStats.mixed_excl_tax_amount || 0)} | Incl: ¥{formatNum(expenseStats.mixed_incl_tax_amount || 0)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Card 7: No Tax / Non-Taxable */}
             <div className="tax-stat-card">
               <div className="tax-stat-header">
                 <span className="tax-stat-label">Non-Taxable Expenses</span>
@@ -1261,6 +1280,7 @@ const TaxReports = () => {
                   <option value="">All Tax Types</option>
                   <option value="inclusive">Tax Inclusive</option>
                   <option value="exclusive">Tax Exclusive</option>
+                  <option value="mixed">Tax Mixed (Multi-Tax)</option>
                   <option value="none">No Tax (0%)</option>
                 </select>
               </div>
@@ -1348,7 +1368,14 @@ const TaxReports = () => {
                           </td>
                           <td style={{ textAlign: 'center' }}>
                             {hasTax ? (
-                              taxCat === 'inclusive' ? (
+                              taxCat === 'mixed' ? (
+                                <span
+                                  className="tax-badge mixed"
+                                  title={`${exp.number_of_taxes || 2} taxes: ${exp.number_of_exclusive || 0} Exclusive, ${exp.number_of_inclusive_tax || 0} Inclusive`}
+                                >
+                                  Tax Mixed ({exp.number_of_taxes || (Array.isArray(exp.taxes) ? exp.taxes.length : 2)})
+                                </span>
+                              ) : taxCat === 'inclusive' ? (
                                 <span className="tax-badge inclusive">Tax Inclusive</span>
                               ) : (
                                 <span className="tax-badge exclusive">Tax Exclusive</span>
@@ -1358,10 +1385,50 @@ const TaxReports = () => {
                             )}
                           </td>
                           <td style={{ textAlign: 'center', fontWeight: 600 }}>
-                            {hasTax ? `${Number(exp.tax_percent_used).toFixed(1)}%` : '-'}
+                            {hasTax ? (
+                              Array.isArray(exp.taxes) && exp.taxes.length > 1 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                  <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                    {exp.taxes.map((t, tidx) => (
+                                      <span
+                                        key={tidx}
+                                        style={{
+                                          fontSize: '0.68rem',
+                                          padding: '1px 4px',
+                                          borderRadius: '3px',
+                                          background: t.category === 'inclusive' ? '#ecfdf5' : '#eff6ff',
+                                          color: t.category === 'inclusive' ? '#047857' : '#1d4ed8',
+                                          border: `1px solid ${t.category === 'inclusive' ? '#a7f3d0' : '#bfdbfe'}`,
+                                          fontWeight: 700,
+                                          whiteSpace: 'nowrap',
+                                        }}
+                                      >
+                                        {t.rate}% {t.category === 'inclusive' ? 'inc' : 'exc'}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                                    Σ {Number(exp.tax_percent_used).toFixed(1)}%
+                                  </span>
+                                </div>
+                              ) : (
+                                `${Number(exp.tax_percent_used).toFixed(1)}%`
+                              )
+                            ) : (
+                              '-'
+                            )}
                           </td>
                           <td className="amount">¥{formatNum(amt)}</td>
-                          <td className="amount tax">¥{formatNum(taxAmt)}</td>
+                          <td className="amount tax">
+                            <div>¥{formatNum(taxAmt)}</div>
+                            {hasTax && (Number(exp.number_of_taxes) > 1 || (Array.isArray(exp.taxes) && exp.taxes.length > 1)) && (
+                              <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 500 }}>
+                                {Number(exp.exclusive_tax_amount || 0) > 0 && `Excl: ¥${formatNum(exp.exclusive_tax_amount)}`}
+                                {Number(exp.exclusive_tax_amount || 0) > 0 && Number(exp.inclusive_tax_amount || 0) > 0 && ' | '}
+                                {Number(exp.inclusive_tax_amount || 0) > 0 && `Incl: ¥${formatNum(exp.inclusive_tax_amount)}`}
+                              </div>
+                            )}
+                          </td>
                           <td className="amount total">¥{formatNum(totalAmt)}</td>
                         </tr>
                       );
