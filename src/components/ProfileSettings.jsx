@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { apiRequest } from "../api";
@@ -28,6 +29,7 @@ const INITIAL_TAX_FORM = { name: "", rate: "" };
 const extractErrorMessage = async (response, fallbackMessage) => {
   try {
     const data = await response.json();
+    if (typeof data?.error === "string") return data.error;
     if (typeof data?.detail === "string") return data.detail;
     if (typeof data?.message === "string") return data.message;
     if (Array.isArray(data?.non_field_errors) && data.non_field_errors.length > 0)
@@ -41,7 +43,11 @@ const extractErrorMessage = async (response, fallbackMessage) => {
   return fallbackMessage;
 };
 
-const ProfileSettings = ({ onUserUpdate }) => {
+const ProfileSettings = ({ onUserUpdate, onLockPinChange }) => {
+  const location = useLocation();
+  const [hasLockPin, setHasLockPin] = useState(false);
+  const [pinForm, setPinForm] = useState({ pin: "", confirm_pin: "", password: "" });
+  const [savingPin, setSavingPin] = useState(false);
   const [profile, setProfile] = useState(INITIAL_PROFILE);
   const [passwordForm, setPasswordForm] = useState(INITIAL_PASSWORD);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -59,6 +65,7 @@ const ProfileSettings = ({ onUserUpdate }) => {
   useEffect(() => {
     fetchProfile();
     fetchTaxRates();
+    if (location.state?.needLockPin) toast.info("Set a 6-digit lock PIN below to use Ctrl + Q");
   }, []);
 
   const fetchProfile = async () => {
@@ -70,6 +77,7 @@ const ProfileSettings = ({ onUserUpdate }) => {
         throw new Error(message);
       }
       const data = await response.json();
+      setHasLockPin(Boolean(data.has_lock_pin));
       setProfile({
         username: data.username || "",
         email: data.email || "",
@@ -86,6 +94,37 @@ const ProfileSettings = ({ onUserUpdate }) => {
     } finally {
       setLoadingProfile(false);
     }
+  };
+
+  const submitLockPin = async (method, body, successMessage) => {
+    setSavingPin(true);
+    try {
+      const response = await apiRequest("/account/lock-pin/", { method, body: JSON.stringify(body) });
+      if (!response.ok) {
+        throw new Error(await extractErrorMessage(response, "Failed to update lock PIN"));
+      }
+      const data = await response.json();
+      setHasLockPin(Boolean(data.has_lock_pin));
+      if (onLockPinChange) onLockPinChange(Boolean(data.has_lock_pin));
+      setPinForm({ pin: "", confirm_pin: "", password: "" });
+      toast.success(successMessage);
+    } catch (error) {
+      toast.error(error.message || "Failed to update lock PIN");
+    } finally {
+      setSavingPin(false);
+    }
+  };
+
+  const handleSetPin = (e) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(pinForm.pin)) return toast.error("PIN must be exactly 6 digits");
+    if (pinForm.pin !== pinForm.confirm_pin) return toast.error("PINs do not match");
+    submitLockPin("PUT", { pin: pinForm.pin, password: pinForm.password }, hasLockPin ? "Lock PIN updated" : "Lock PIN set");
+  };
+
+  const handleRemovePin = () => {
+    if (!pinForm.password) return toast.error("Enter your account password to remove the PIN");
+    submitLockPin("DELETE", { password: pinForm.password }, "Lock PIN removed");
   };
 
   const handleProfileChange = (e) => {
@@ -397,6 +436,24 @@ const ProfileSettings = ({ onUserUpdate }) => {
             <div className="form-group"><label>Confirm New Password</label><input type="password" name="confirm_password" value={passwordForm.confirm_password} onChange={handlePasswordChange} required /></div>
           </div>
           <button type="submit" className="btn-primary" disabled={savingPassword}>{savingPassword ? "Updating..." : "Update Password"}</button>
+        </form>
+      </div>
+
+      <div className="table-section">
+        <div className="table-header"><h3>Screen Lock PIN (Ctrl + Q)</h3></div>
+        <p style={{ margin: "0 0 1rem", color: "var(--muted-foreground)", fontSize: "0.875rem" }}>
+          Press Ctrl + Q anywhere to blank the screen until this 6-digit PIN is entered. {hasLockPin ? "A PIN is currently set." : "No PIN set yet."} Your account password is required to {hasLockPin ? "change or remove" : "set"} it.
+        </p>
+        <form onSubmit={handleSetPin}>
+          <div className="form-row">
+            <div className="form-group"><label>{hasLockPin ? "New PIN" : "PIN"} (6 digits)</label><input type="password" inputMode="numeric" maxLength={6} autoComplete="off" value={pinForm.pin} onChange={(e) => setPinForm((p) => ({ ...p, pin: e.target.value.replace(/\D/g, "") }))} required /></div>
+            <div className="form-group"><label>Confirm PIN</label><input type="password" inputMode="numeric" maxLength={6} autoComplete="off" value={pinForm.confirm_pin} onChange={(e) => setPinForm((p) => ({ ...p, confirm_pin: e.target.value.replace(/\D/g, "") }))} required /></div>
+            <div className="form-group"><label>Account Password</label><input type="password" autoComplete="current-password" value={pinForm.password} onChange={(e) => setPinForm((p) => ({ ...p, password: e.target.value }))} required /></div>
+          </div>
+          <div style={{ display: "flex", gap: "0.75rem" }}>
+            <button type="submit" className="btn-primary" disabled={savingPin}>{savingPin ? "Saving..." : hasLockPin ? "Update PIN" : "Set PIN"}</button>
+            {hasLockPin && <button type="button" className="btn-secondary" disabled={savingPin} onClick={handleRemovePin}>Remove PIN</button>}
+          </div>
         </form>
       </div>
 

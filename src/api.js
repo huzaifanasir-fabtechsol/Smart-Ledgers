@@ -1,5 +1,7 @@
 import { API_BASE_URL } from './config';
 
+export const SCREEN_LOCK_KEY = 'screen_locked';
+
 export const apiRequest = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
   
@@ -23,6 +25,7 @@ export const apiRequest = async (endpoint, options = {}) => {
   if (response.status === 401) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem(SCREEN_LOCK_KEY);
     window.location.reload();
   }
 

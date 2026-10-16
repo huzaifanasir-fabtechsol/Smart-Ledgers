@@ -44,6 +44,8 @@ import EmployeeManager from './components/EmployeeManager';
 import SalaryManager from './components/SalaryManager';
 import EmployeeSalaryReport from './components/EmployeeSalaryReport';
 import Login from './components/Login';
+import LockScreen from './components/LockScreen';
+import { apiRequest, SCREEN_LOCK_KEY } from './api';
 import ProfileSettings from './components/ProfileSettings';
 import GoogleTranslateInitializer from './components/GoogleTranslateInitializer';
 import { translations } from './translations';
@@ -56,6 +58,8 @@ function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [locked, setLocked] = useState(() => localStorage.getItem(SCREEN_LOCK_KEY) === '1');
+  const [hasLockPin, setHasLockPin] = useState(false);
   const navRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,6 +74,42 @@ function AppContent() {
     }
   }, []);
 
+  // Whether a lock PIN exists (needed for Ctrl+Q); a locked screen with an expired session falls back to Login.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    apiRequest('/account/profile/')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) setHasLockPin(Boolean(data.has_lock_pin)); })
+      .catch(() => {});
+  }, [isAuthenticated]);
+
+  const lockScreen = () => {
+    localStorage.setItem(SCREEN_LOCK_KEY, '1');
+    setLocked(true);
+  };
+
+  const unlockScreen = () => {
+    localStorage.removeItem(SCREEN_LOCK_KEY);
+    setLocked(false);
+  };
+
+  // Ctrl+Q locks the screen
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    const onKeyDown = (event) => {
+      if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key.toLowerCase() === 'q') {
+        event.preventDefault();
+        if (hasLockPin) {
+          lockScreen();
+        } else {
+          navigate('/settings', { state: { needLockPin: true } });
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isAuthenticated, hasLockPin, navigate]);
+
   // Close sidebar on path change on mobile/tablet
   useEffect(() => {
     if (window.innerWidth <= 1024) {
@@ -83,6 +123,8 @@ function AppContent() {
   }, [location.pathname, sidebarOpen, isAuthenticated]);
 
   const handleLogin = (token, userData) => {
+    localStorage.removeItem(SCREEN_LOCK_KEY);
+    setLocked(false);
     setIsAuthenticated(true);
     setUser(userData);
     navigate('/dashboard');
@@ -91,6 +133,8 @@ function AppContent() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem(SCREEN_LOCK_KEY);
+    setLocked(false);
     setIsAuthenticated(false);
     setUser(null);
     navigate('/login');
@@ -187,6 +231,7 @@ function AppContent() {
 
   return (
     <div className="app-container">
+      {locked && <LockScreen onUnlock={unlockScreen} />}
       <GoogleTranslateInitializer />
       
       {/* Mobile Drawer Backdrop */}
@@ -319,8 +364,8 @@ function AppContent() {
           <Route path="/employees/:id/salary-report" element={<EmployeeSalaryReport />} />
           <Route path="/salaries" element={<SalaryManager />} />
           <Route path="/export" element={<DataExport language={language} />} />
-          <Route path="/settings" element={<ProfileSettings onUserUpdate={handleUserUpdate} />} />
-          <Route path="/profile" element={<ProfileSettings onUserUpdate={handleUserUpdate} />} />
+          <Route path="/settings" element={<ProfileSettings onUserUpdate={handleUserUpdate} onLockPinChange={setHasLockPin} />} />
+          <Route path="/profile" element={<ProfileSettings onUserUpdate={handleUserUpdate} onLockPinChange={setHasLockPin} />} />
         </Routes>
       </main>
     </div>
