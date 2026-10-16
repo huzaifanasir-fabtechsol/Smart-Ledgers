@@ -1,6 +1,7 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { apiRequest, getErrorMessage } from "../api";
+import { FileText } from "lucide-react";
+import { apiRequest, getErrorMessage, exportLetterheadDocxFromPayload, exportLetterheadDocxById } from "../api";
 import paperCss from "./Letterhead.css?inline";
 
 const STORAGE_KEY = "letterhead_settings_v2";
@@ -176,6 +177,7 @@ const LetterheadPrinter = ({ profile }) => {
   const [busy, setBusy] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [exportingDocx, setExportingDocx] = useState(false);
   const [scale, setScale] = useState(0.6);
   const stageRef = useRef(null);
   const paperRef = useRef(null);
@@ -329,6 +331,37 @@ const LetterheadPrinter = ({ profile }) => {
     }
   };
 
+  const handleExportDocx = async () => {
+    if (!form.companyName.trim()) {
+      toast.error("Please enter a company name first");
+      return;
+    }
+    setExportingDocx(true);
+    try {
+      toast.info("Generating editable Word (.docx) letterhead...");
+      const payload = {
+        ...toPayload(form),
+        date: form.date,
+      };
+      await exportLetterheadDocxFromPayload(payload, form.companyName);
+      toast.success("Letterhead Word document (.docx) downloaded successfully");
+    } catch (err) {
+      toast.error(err.message || "Failed to export letterhead document");
+    } finally {
+      setExportingDocx(false);
+    }
+  };
+
+  const handleExportSavedDocx = async (record) => {
+    try {
+      toast.info(`Exporting ${record.name} as Word document...`);
+      await exportLetterheadDocxById(record.id, record.name);
+      toast.success("Letterhead Word document (.docx) downloaded successfully");
+    } catch (err) {
+      toast.error(err.message || "Failed to export letterhead document");
+    }
+  };
+
   const tpl = TEMPLATES[form.template] || TEMPLATES.angles;
   const contact = [
     form.address && ["Address", form.address],
@@ -374,6 +407,9 @@ const LetterheadPrinter = ({ profile }) => {
                     ) : (
                       <div className="lh-saved-actions">
                         <button type="button" className="btn-secondary" onClick={() => loadRecord(r)}>{r.id === activeId ? "Reload" : "Use / Edit"}</button>
+                        <button type="button" className="btn-secondary" title="Export as editable Word document (.docx)" onClick={() => handleExportSavedDocx(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <FileText size={13} style={{ color: '#2563eb' }} /> Docs
+                        </button>
                         <button type="button" className="btn-secondary" style={{ color: "#dc2626", borderColor: "#fca5a5" }} onClick={() => setConfirmDeleteId(r.id)} aria-label={`Delete ${r.name}`}>🗑️</button>
                       </div>
                     )}
@@ -463,7 +499,22 @@ const LetterheadPrinter = ({ profile }) => {
         <div className="lh-preview">
           <div className="lh-preview-bar">
             <strong>Preview</strong>
-            <button type="button" className="btn-primary" onClick={handlePrint}>Print / Save as PDF</button>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={handleExportDocx}
+                disabled={exportingDocx}
+                title="Export as editable Microsoft Word document (.docx)"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
+              >
+                <FileText size={15} style={{ color: '#2563eb' }} />
+                {exportingDocx ? "Exporting..." : "Export as Docs (.docx)"}
+              </button>
+              <button type="button" className="btn-primary" onClick={handlePrint}>
+                Print / Save as PDF
+              </button>
+            </div>
           </div>
           <div className="lh-stage" ref={stageRef}>
             <div style={{ width: PAPER_PX * scale, height: 1123 * scale, overflow: "hidden" }}>

@@ -98,4 +98,37 @@ export const downloadInvoiceTaxExcel = async (params = '') => {
   return downloadFile(`/revenue/orders/export_tax_xlsx/${queryStr}`, filename);
 };
 
+export const exportLetterheadDocxFromPayload = async (payload, companyName = 'Letterhead') => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_BASE_URL}/account/letterheads/export-docx/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Token ${token}` } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to export letterhead as docx');
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const sanitized = (companyName || 'Letterhead').replace(/[^a-zA-Z0-9_-]/g, '_').replace(/^_+|_+$/g, '') || 'Letterhead';
+  a.download = `${sanitized}_Letterhead.docx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportLetterheadDocxById = async (id, companyName = 'Letterhead') => {
+  const sanitized = (companyName || 'Letterhead').replace(/[^a-zA-Z0-9_-]/g, '_').replace(/^_+|_+$/g, '') || 'Letterhead';
+  const filename = `${sanitized}_Letterhead.docx`;
+  return downloadFile(`/account/letterheads/${id}/export-docx/`, filename);
+};
+
 
