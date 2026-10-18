@@ -16,16 +16,16 @@ const TABS = [
 ];
 
 const CATEGORIES = [
-  ['building', '建物 Building'],
-  ['equipment', '工具器具備品 Equipment'],
-  ['vehicle', '車両運搬具 Vehicle'],
+  ['building', 'Building'],
+  ['equipment', 'Tools, furniture & fixtures'],
+  ['vehicle', 'Vehicle'],
   ['other_tangible', 'Other tangible'],
-  ['deferred', '繰延資産 Deferred asset'],
+  ['deferred', 'Deferred asset'],
 ];
 const METHODS = [
-  ['straight_line', '定額法 Straight-line'],
-  ['declining_200', '200%定率法 Declining'],
-  ['lump_sum', '一時償却 Lump sum'],
+  ['straight_line', 'Straight-line'],
+  ['declining_200', '200% declining balance'],
+  ['lump_sum', 'Lump-sum write-off'],
   ['none', 'No depreciation'],
 ];
 const ASSET_KINDS = [['', 'Auto'], ['receivable', 'Receivable'], ['advance', 'Advance paid'], ['loan', 'Loan'],
@@ -34,46 +34,46 @@ const LIABILITY_KINDS = [['', 'Auto'], ['payable', 'Payable'], ['deposit_receive
   ['borrowing', 'Borrowing'], ['tax_payable', 'Taxes payable']];
 
 const OVERRIDE_FIELDS = [
-  ['sales', '売上高 Sales', 'Blank = total of Sale orders in the period'],
-  ['purchases', '商品仕入高 Purchases', 'Blank = total of Purchase orders in the period'],
-  ['cash', '現金及び預金 Cash & deposits', 'Blank = latest bank balance on or before period end'],
+  ['sales', 'Sales', 'Blank = total of Sale orders in the period'],
+  ['purchases', 'Merchandise purchases', 'Blank = total of Purchase orders in the period'],
+  ['cash', 'Cash & deposits', 'Blank = latest bank balance on or before period end'],
 ];
 const AMOUNT_FIELDS = [
-  ['purchase_discounts', '仕入値引高 Purchase discounts'],
-  ['opening_inventory', '期首商品棚卸高 Opening inventory'],
-  ['closing_inventory', '期末商品棚卸高 Closing inventory'],
-  ['income_taxes', '法人税・住民税及び事業税 Corporate taxes'],
-  ['prior_year_taxes', '過年度法人税等 Prior-year taxes'],
-  ['capital', '資本金 Capital'],
-  ['opening_retained_earnings', '期首繰越利益剰余金 Opening retained earnings'],
-  ['dividends', '剰余金の配当 Dividends'],
+  ['purchase_discounts', 'Purchase discounts'],
+  ['opening_inventory', 'Opening inventory'],
+  ['closing_inventory', 'Closing inventory'],
+  ['income_taxes', 'Corporate, inhabitant & enterprise taxes'],
+  ['prior_year_taxes', 'Prior-year taxes'],
+  ['capital', 'Capital'],
+  ['opening_retained_earnings', 'Opening retained earnings'],
+  ['dividends', 'Dividends'],
 ];
 // [key, title, allowExecutive, kind options, extra text fields]
 const LISTS = [
-  ['other_current_assets', 'Other current assets (立替金, 未収還付法人税等, 役員貸付金 …)', true, ASSET_KINDS, ['counterparty', 'address', 'note']],
-  ['investments', 'Investments & other assets (差入保証金 …)', false, ASSET_KINDS, ['counterparty', 'address', 'note']],
-  ['current_liabilities', 'Current liabilities (役員借入金, 未払金, 未払法人税等, 預り金 …)', false, LIABILITY_KINDS, ['counterparty', 'address', 'note']],
+  ['other_current_assets', 'Other current assets (advances paid, tax refunds receivable, loans to executives …)', true, ASSET_KINDS, ['counterparty', 'address', 'note']],
+  ['investments', 'Investments & other assets (security deposits …)', false, ASSET_KINDS, ['counterparty', 'address', 'note']],
+  ['current_liabilities', 'Current liabilities (loans from executives, accounts payable, taxes payable, deposits received …)', false, LIABILITY_KINDS, ['counterparty', 'address', 'note']],
   ['fixed_liabilities', 'Fixed liabilities', false, LIABILITY_KINDS, ['counterparty', 'address', 'note']],
   ['extra_sga', 'Extra SG&A lines not recorded as expenses', false, null, []],
-  ['non_operating_income', 'Non-operating income (受取利息, 雑収入 …)', false, null, ['counterparty', 'note']],
+  ['non_operating_income', 'Non-operating income (interest, miscellaneous …)', false, null, ['counterparty', 'note']],
   ['non_operating_expenses', 'Non-operating expenses', false, null, ['counterparty', 'note']],
-  ['rent_details', 'Rent details for the 地代家賃 schedule (label = usage)', false, null, ['counterparty', 'address', 'note', 'registration']],
+  ['rent_details', 'Rent details for the rent schedule (label = usage)', false, null, ['counterparty', 'address', 'note', 'registration']],
 ];
 const PROFILE_FIELDS = [
-  ['legal_name', 'Legal name (日本語)'], ['legal_name_en', 'Legal name (English)'], ['legal_name_kana', 'Legal name (kana)'],
-  ['representative_name', 'Representative (日本語)'], ['representative_name_en', 'Representative (English)'],
+  ['legal_name', 'Legal name (Japanese)'], ['legal_name_en', 'Legal name (English)'], ['legal_name_kana', 'Legal name (kana)'],
+  ['representative_name', 'Representative (Japanese)'], ['representative_name_en', 'Representative (English)'],
   ['representative_name_kana', 'Representative (kana)'],
   ['corporate_number', 'Corporate number (13 digits)'], ['capital', 'Capital (¥)'],
-  ['address', 'Address (日本語)'], ['address_en', 'Address (English)'], ['phone', 'Phone'],
-  ['tax_office', 'Tax office (税務署)'], ['business_description', 'Business description'],
-  ['accountant_name', 'Tax accountant (税理士) name'], ['accountant_address', 'Tax accountant address'],
+  ['address', 'Address (Japanese)'], ['address_en', 'Address (English)'], ['phone', 'Phone'],
+  ['tax_office', 'Tax office'], ['business_description', 'Business description'],
+  ['accountant_name', 'Tax accountant name'], ['accountant_address', 'Tax accountant address'],
   ['accountant_phone', 'Tax accountant phone'], ['accountant_registration', 'Tax accountant registration no.'],
 ];
 const OFFICE_FIELDS = [
   ['prefecture', 'Prefecture', 'text'], ['prefecture_office', 'Prefectural tax office', 'text'],
-  ['municipality', 'Municipality', 'text'], ['employees', 'Employees', 'number'], ['months', 'Months (均等割)', 'number'],
-  ['pref_levy', 'Prefectural 均等割 / yr', 'number'], ['city_levy', 'Municipal 均等割 / yr', 'number'],
-  ['pref_rate', 'Prefectural 法人税割 %', 'number'], ['city_rate', 'Municipal 法人税割 %', 'number'],
+  ['municipality', 'Municipality', 'text'], ['employees', 'Employees', 'number'], ['months', 'Months (per-capita levy)', 'number'],
+  ['pref_levy', 'Prefectural per-capita levy / yr', 'number'], ['city_levy', 'Municipal per-capita levy / yr', 'number'],
+  ['pref_rate', 'Prefectural corporate-tax rate %', 'number'], ['city_rate', 'Municipal corporate-tax rate %', 'number'],
 ];
 const HOLDER_FIELDS = [
   ['name', 'Name', 'text'], ['address', 'Address', 'text'], ['relationship', 'Relationship', 'text'],
@@ -88,15 +88,15 @@ const CONSUMPTION_FIELDS = [
   ['interim_paid', 'Interim consumption tax paid'], ['interim_paid_local', 'Interim local consumption tax paid'],
 ];
 const CORPORATE_FIELDS = [
-  ['entertainment_expenses', 'Entertainment expenses (blank = from 接待交際費)', true],
+  ['entertainment_expenses', 'Entertainment expenses (blank = from the entertainment expense account)', true],
   ['entertainment_food', 'Of which business meals'], ['withholding_credit', 'Withholding tax credit'],
-  ['interim_paid', 'Interim corporate tax paid'], ['opening_provision', 'Opening provision for taxes (納税充当金)'],
+  ['interim_paid', 'Interim corporate tax paid'], ['opening_provision', 'Opening provision for taxes'],
   ['unpaid_corporate', 'Unpaid corporate tax at year end (blank = calculated)', true],
   ['unpaid_pref', 'Unpaid prefectural tax at year end (blank = calculated)', true],
   ['unpaid_city', 'Unpaid municipal tax at year end (blank = calculated)', true],
 ];
 const PARTS = [
-  ['kessan', 'Financial statements (決算報告書)'],
+  ['kessan', 'Financial statements'],
   ['shohizei', 'Consumption tax'],
   ['hojinzei', 'Corporate tax'],
   ['schedules', 'Account schedules & depreciation'],
@@ -134,7 +134,7 @@ const LineList = ({ title, items, onChange, allowExecutive, kinds, extras = [] }
             <input className="form-input fs-amount" type="number" value={item.amount}
                    onChange={(e) => update(index, { amount: Number(e.target.value) || 0 })} />
             {allowExecutive && (
-              <label className="fs-check" title="Counts toward 業務執行社員等に対する金銭債権 in the notes">
+              <label className="fs-check" title="Counts toward monetary claims on executive members in the notes">
                 <input type="checkbox" checked={!!item.executive}
                        onChange={(e) => update(index, { executive: e.target.checked })} /> Exec.
               </label>
@@ -266,7 +266,7 @@ const FinancialStatements = () => {
   }, 'Fiscal year created');
 
   const deleteYear = () => {
-    if (!year || !window.confirm(`Delete 第${year.term_no}期 and all its inputs and fixed assets?`)) return;
+    if (!year || !window.confirm(`Delete term ${year.term_no} and all its inputs and fixed assets?`)) return;
     run(async () => {
       const res = await apiRequest(`/reports/fiscal-years/${year.id}/`, { method: 'DELETE' });
       if (!res.ok) throw new Error(await getErrorMessage(res));
@@ -319,7 +319,7 @@ const FinancialStatements = () => {
 
   const download = (lang) => run(
     () => downloadFinancialStatementsPdf(year.id, year.term_no, { parts, lang, mode }),
-    lang === 'en' ? 'English PDF downloaded' : '日本語PDFをダウンロードしました',
+    lang === 'en' ? 'English PDF downloaded' : 'Japanese PDF downloaded',
   );
 
   const togglePart = (key) => setParts((current) => (
@@ -337,13 +337,13 @@ const FinancialStatements = () => {
       <ToastContainer position="top-right" autoClose={3000} />
       <PageHeader
         title="Financial Statements & Tax Filing"
-        subtitle="決算報告書, 消費税, 法人税, 地方税 — English and Japanese PDFs, full or simple"
+        subtitle="Financial statements, consumption tax, corporate tax and local taxes. English and Japanese PDFs, full or simple"
         icon={FileText}
       />
 
       <div className="fs-notice">
         Generated PDFs are working copies for review. They are not valid tax filings; submit through e-Tax/eLTAX and
-        have your 税理士 check the figures first. Form line captions are a best-effort reconstruction of the official forms.
+        have your tax accountant check the figures first. Form line captions are a best-effort reconstruction of the official forms.
       </div>
 
       <div className="fs-toolbar">
@@ -359,7 +359,7 @@ const FinancialStatements = () => {
                 aria-label="Fiscal year">
           {years.length === 0 && <option value="">No fiscal year yet</option>}
           {years.map((y) => (
-            <option key={y.id} value={y.id}>第{y.term_no}期 {y.start_date} - {y.end_date}</option>
+            <option key={y.id} value={y.id}>Term {y.term_no}: {y.start_date} - {y.end_date}</option>
           ))}
         </select>
       </div>
@@ -370,7 +370,7 @@ const FinancialStatements = () => {
         <div className="fs-card">
           <h3>New fiscal year</h3>
           <div className="fs-grid">
-            <div className="form-group"><label>Term no. (第◯期)</label>
+            <div className="form-group"><label>Term no.</label>
               <input type="number" min="1" value={newYear.term_no}
                      onChange={(e) => setNewYear({ ...newYear, term_no: e.target.value })} /></div>
             <div className="form-group"><label>Start date</label>
@@ -384,7 +384,7 @@ const FinancialStatements = () => {
             <button className="btn-primary" disabled={busy || !newYear.term_no || !newYear.start_date || !newYear.end_date}
                     onClick={createYear}><Plus size={16} /> Create</button>
             {year && <button className="btn-secondary" disabled={busy} onClick={deleteYear}>
-              <Trash2 size={14} /> Delete 第{year.term_no}期</button>}
+              <Trash2 size={14} /> Delete term {year.term_no}</button>}
           </div>
         </div>
       )}
@@ -402,10 +402,10 @@ const FinancialStatements = () => {
               ))}
             </div>
           </div>
-          <RecordList title="Offices (for local tax allocation 地方税)" rows={profile.offices || []} fields={OFFICE_FIELDS}
+          <RecordList title="Offices (for local tax allocation)" rows={profile.offices || []} fields={OFFICE_FIELDS}
                       blank={{ prefecture: '', prefecture_office: '', municipality: '', employees: 1, months: 12 }}
                       onChange={(rows) => setProfile({ ...profile, offices: rows })} />
-          <RecordList title="Shareholders / members (別表二)" rows={profile.shareholders || []} fields={HOLDER_FIELDS}
+          <RecordList title="Shareholders / members (family-company test)" rows={profile.shareholders || []} fields={HOLDER_FIELDS}
                       blank={{ name: '', address: '', relationship: '', shares: '' }}
                       onChange={(rows) => setProfile({ ...profile, shareholders: rows })} />
           <div className="fs-actions">
@@ -429,7 +429,7 @@ const FinancialStatements = () => {
             <label className="fs-check">
               <input type="checkbox" checked={inputs.include_salaries}
                      onChange={(e) => setInput('include_salaries', e.target.checked)} />
-              Add payroll (gross pay) as 給料手当 — leave off if salaries are already entered as expenses
+              Add payroll (gross pay) as salaries — leave off if salaries are already entered as expenses
             </label>
           </div>
           <div className="fs-card">
@@ -455,7 +455,7 @@ const FinancialStatements = () => {
       {tab === 'tax' && inputs && yearId && (
         <>
           <div className="fs-card">
-            <h3>Consumption tax 消費税 (blank = estimate from your data)</h3>
+            <h3>Consumption tax (blank = estimate from your data)</h3>
             <div className="fs-grid">
               {CONSUMPTION_FIELDS.map(([key, label, nullable]) => (
                 <div className="form-group" key={key}><label>{label}</label>
@@ -464,12 +464,12 @@ const FinancialStatements = () => {
                            nullable ? numberOrNull(e.target.value) : Number(e.target.value) || 0)} /></div>
               ))}
             </div>
-            <div className="form-group"><label>Special circumstances (還付申告 note)</label>
+            <div className="form-group"><label>Special circumstances (refund return note)</label>
               <input value={inputs.tax.consumption.refund_note}
                      onChange={(e) => setTax('consumption', 'refund_note', e.target.value)} /></div>
           </div>
           <div className="fs-card">
-            <h3>Corporate tax 法人税</h3>
+            <h3>Corporate tax</h3>
             <div className="fs-grid">
               {CORPORATE_FIELDS.map(([key, label, nullable]) => (
                 <div className="form-group" key={key}><label>{label}</label>
@@ -479,14 +479,14 @@ const FinancialStatements = () => {
               ))}
             </div>
           </div>
-          <LineList title="Prior-year losses carried forward 繰越欠損金 (label = fiscal year)"
+          <LineList title="Prior-year losses carried forward (label = fiscal year)"
                     items={inputs.tax.corporate.prior_losses} onChange={(items) => setTax('corporate', 'prior_losses', items)} />
-          <LineList title="Other additions to income 加算 (別表四)"
+          <LineList title="Other additions to taxable income"
                     items={inputs.tax.corporate.addbacks} onChange={(items) => setTax('corporate', 'addbacks', items)} />
-          <LineList title="Other deductions from income 減算 (別表四)"
+          <LineList title="Other deductions from taxable income"
                     items={inputs.tax.corporate.deductions} onChange={(items) => setTax('corporate', 'deductions', items)} />
           <div className="fs-card">
-            <h3>Local taxes 地方税</h3>
+            <h3>Local taxes</h3>
             <div className="fs-grid">
               {[['interim_pref', 'Interim prefectural tax paid'], ['interim_city', 'Interim municipal tax paid']].map(([key, label]) => (
                 <div className="form-group" key={key}><label>{label}</label>
@@ -494,7 +494,7 @@ const FinancialStatements = () => {
                          onChange={(e) => setTax('local', key, Number(e.target.value) || 0)} /></div>
               ))}
             </div>
-            <p className="fs-muted">Offices, 均等割 and rates are set on the Company tab.</p>
+            <p className="fs-muted">Offices, per-capita levies and rates are set on the Company tab.</p>
           </div>
           <div className="fs-actions">
             <button className="btn-primary" disabled={busy} onClick={saveInputs}><Save size={16} /> Save inputs</button>
@@ -582,7 +582,7 @@ const FinancialStatements = () => {
                 <Download size={16} /> English PDF
               </button>
               <button className="btn-primary" disabled={busy || parts.length === 0} onClick={() => download('ja')}>
-                <Download size={16} /> 日本語 PDF
+                <Download size={16} /> Japanese PDF
               </button>
             </div>
           </div>
@@ -599,18 +599,18 @@ const FinancialStatements = () => {
                 <table className="fs-summary">
                   <tbody>
                     {[
-                      ['売上高 Sales', preview.pl.sales, preview.sources.sales],
-                      ['売上総利益 Gross profit', preview.pl.gross_profit],
-                      ['営業利益 Operating income', preview.pl.operating_income],
-                      ['当期純利益 Net income', preview.pl.net_income],
-                      ['資産合計 Total assets', preview.bs.assets_total],
-                      ['負債合計 Total liabilities', preview.bs.liabilities_total],
-                      ['純資産合計 Net assets', preview.bs.equity_total],
-                      ['消費税 合計(納付+/還付-) Consumption tax total', preview.consumption.lines['26']],
-                      ['所得金額 Taxable income / loss', preview.corporate.income],
-                      ['法人税額 Corporate tax', preview.corporate.corp_tax],
-                      ['翌期繰越欠損金 Loss carried forward', preview.corporate.carry_total],
-                      ['均等割計 Local per-capita levies', preview.local.levy_total],
+                      ['Sales', preview.pl.sales, preview.sources.sales],
+                      ['Gross profit', preview.pl.gross_profit],
+                      ['Operating income', preview.pl.operating_income],
+                      ['Net income', preview.pl.net_income],
+                      ['Total assets', preview.bs.assets_total],
+                      ['Total liabilities', preview.bs.liabilities_total],
+                      ['Net assets', preview.bs.equity_total],
+                      ['Consumption tax total (payable +, refund -)', preview.consumption.lines['26']],
+                      ['Taxable income / loss', preview.corporate.income],
+                      ['Corporate tax', preview.corporate.corp_tax],
+                      ['Loss carried forward', preview.corporate.carry_total],
+                      ['Local per-capita levies', preview.local.levy_total],
                     ].map(([label, value, source]) => (
                       <tr key={label}>
                         <td>{label}</td><td className="fs-num">{value === null ? '–' : `¥ ${yen(value)}`}</td>
