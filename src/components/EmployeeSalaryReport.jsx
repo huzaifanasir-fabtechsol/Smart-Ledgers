@@ -427,7 +427,7 @@ const EmployeeSalaryReport = () => {
             ) : (
               /* Yearly View (Annual Summary) */
               <div className="report-body">
-                <h3 className="section-subtitle">Annual Salary Breakdown — Year {selectedYear}</h3>
+                <h3 className="salary-report-section-subtitle">Annual Salary Breakdown — Year {selectedYear}</h3>
 
                 {salaries.length === 0 ? (
                   <div className="empty-state-card">
