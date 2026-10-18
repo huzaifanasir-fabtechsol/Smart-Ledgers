@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { apiRequest } from "../api";
-import LetterheadPrinter from "./LetterheadPrinter";
 import "./ProfileSettings.css";
 
 const INITIAL_PROFILE = {
@@ -456,8 +455,6 @@ const ProfileSettings = ({ onUserUpdate, onLockPinChange }) => {
           </div>
         </form>
       </div>
-
-      <LetterheadPrinter profile={profile} />
 
       <ToastContainer position="top-right" autoClose={3000} />
     </div>

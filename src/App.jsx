@@ -22,7 +22,8 @@ import {
   ChevronRight,
   BriefcaseBusiness,
   BadgeDollarSign,
-  Calculator
+  Calculator,
+  FileSignature
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ExpenseManager from './components/ExpenseManager';
@@ -47,6 +48,7 @@ import Login from './components/Login';
 import LockScreen from './components/LockScreen';
 import { apiRequest, SCREEN_LOCK_KEY } from './api';
 import ProfileSettings from './components/ProfileSettings';
+import LetterheadPage from './components/LetterheadPage';
 import GoogleTranslateInitializer from './components/GoogleTranslateInitializer';
 import { translations } from './translations';
 import './notranslate.css';
@@ -202,6 +204,12 @@ function AppContent() {
       items: [
         { path: '/tax-reports', label: 'Tax Reports', icon: Calculator },
         // { path: '/export', label: t.dataExport, icon: Download },
+      ],
+    },
+    {
+      title: 'Letterhead',
+      items: [
+        { path: '/letterhead', label: 'Letterhead', icon: FileSignature },
       ],
     },
     {
@@ -368,6 +376,7 @@ function AppContent() {
           <Route path="/employees/:id/salary-report" element={<EmployeeSalaryReport />} />
           <Route path="/salaries" element={<SalaryManager />} />
           <Route path="/export" element={<DataExport language={language} />} />
+          <Route path="/letterhead" element={<LetterheadPage />} />
           <Route path="/settings" element={<ProfileSettings onUserUpdate={handleUserUpdate} onLockPinChange={setHasLockPin} />} />
           <Route path="/profile" element={<ProfileSettings onUserUpdate={handleUserUpdate} onLockPinChange={setHasLockPin} />} />
         </Routes>
