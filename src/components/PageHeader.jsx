@@ -14,14 +14,16 @@ const PageHeader = ({
         <div className="section-title-row">
           {Icon && (
             <div className="section-icon-box">
-              <Icon size={24} />
+              <Icon size={20} />
             </div>
           )}
-          <div>
-            <h1 className="section-title">{title}</h1>
-            {subtitle && <p className="section-subtitle">{subtitle}</p>}
-          </div>
+          <h1 className="section-title">{title}</h1>
         </div>
+        {subtitle && (
+          <p className={`section-subtitle ${Icon ? 'with-icon' : ''}`}>
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {(actions || children) && (
