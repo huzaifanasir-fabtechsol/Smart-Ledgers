@@ -111,6 +111,44 @@
   text-align: right;
 }
 
+.fs-line-block {
+  margin-bottom: 0.75rem;
+}
+
+.fs-line-extra {
+  margin-top: -0.25rem;
+}
+
+.fs-line-extra .fs-kind {
+  flex: 0 0 10rem;
+}
+
+.fs-record {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.fs-record .fs-grid {
+  flex: 1;
+}
+
+.fs-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 0.5rem;
+}
+
+.fs-options > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 .fs-check {
   display: inline-flex;
   gap: 0.4rem;
