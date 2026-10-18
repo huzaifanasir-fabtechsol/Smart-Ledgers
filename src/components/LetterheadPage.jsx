@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FileSignature } from "lucide-react";
 import { apiRequest, getErrorMessage } from "../api";
 import LetterheadPrinter from "./LetterheadPrinter";
+import PageHeader from "./PageHeader";
 import "./ProfileSettings.css";
 
 const LetterheadPage = () => {
@@ -33,9 +35,13 @@ const LetterheadPage = () => {
 
   return (
     <div className="profile-settings">
-      <div className="page-header">
-        <h2>Letterhead</h2>
-      </div>
+      <PageHeader
+        title="Official Letterhead & Stationery"
+        subtitle="Design, customize, and print high-resolution corporate letterheads for contracts and notices"
+        icon={FileSignature}
+        category="Corporate Identity"
+        companyName={profile?.company_name}
+      />
 
       <LetterheadPrinter profile={profile} />
 

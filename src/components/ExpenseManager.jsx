@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Receipt, Wallet, BadgeDollarSign, Landmark, Plus } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
 import { jsPDF } from 'jspdf';
@@ -10,6 +11,8 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import YearSelector from './YearSelector';
 import Pagination from './Pagination';
 import ExpenseBulkImport from './ExpenseBulkImport';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './ExpenseManager.css';
 
@@ -93,6 +96,8 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [expenses, setExpenses] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingExpenses, setLoadingExpenses] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -307,6 +312,7 @@ const ExpenseManager = ({ language = 'en' }) => {
 
   useEffect(() => {
     fetchExpenses();
+    fetchExpenseStats();
   }, [expensePage, expensePageSize, filterCategory, filterDate, filterDateFrom, filterDateTo, filterMonth, filterYear, filterCash, filterTaxCategory, searchText]);
 
   useEffect(() => {
@@ -397,6 +403,32 @@ const ExpenseManager = ({ language = 'en' }) => {
       setExpenses([]);
     } finally {
       setLoadingExpenses(false);
+    }
+  };
+
+  const fetchExpenseStats = async () => {
+    setLoadingStats(true);
+    try {
+      const params = new URLSearchParams();
+      if (filterCategory) params.append('category', filterCategory);
+      if (filterDate) params.append('date', filterDate);
+      if (filterDateFrom) params.append('date_from', filterDateFrom);
+      if (filterDateTo) params.append('date_to', filterDateTo);
+      if (filterMonth) params.append('month', filterMonth);
+      if (filterYear) params.append('year', filterYear);
+      if (filterCash) params.append('is_cash', filterCash);
+      if (filterTaxCategory) params.append('tax_category', filterTaxCategory);
+      if (searchText) params.append('search', searchText);
+
+      const response = await apiRequest(`/expenses/stats/?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
     }
   };
 
@@ -969,28 +1001,71 @@ const ExpenseManager = ({ language = 'en' }) => {
     <div className="expense-manager">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="page-header">
-        <h2>{t.expenses}</h2>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button className="btn-secondary" onClick={exportToXLSX}>
-            📊 {t.exportXlsx || 'Export XLSX'}
-          </button>
-          <button className="btn-secondary" onClick={exportToPDF}>
-            📄 {t.exportPdf || 'Export PDF'}
-          </button>
-          <ExpenseBulkImport
-            companyAccounts={companyAccounts}
-            onImported={() => {
-              fetchExpenses();
-              fetchCategories();
-              fetchAllCategories();
-            }}
-          />
-          <button className="btn-primary" onClick={openCreateExpenseModal}>
-            {t.addExpense}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t.expenses || "Expense Management"}
+        subtitle="Track corporate expenditures, tax components, cash vs. bank payments, and receipts"
+        icon={Receipt}
+        category="Financial Tracking"
+        actions={
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button className="btn-secondary" onClick={exportToXLSX}>
+              📊 {t.exportXlsx || 'Export XLSX'}
+            </button>
+            <button className="btn-secondary" onClick={exportToPDF}>
+              📄 {t.exportPdf || 'Export PDF'}
+            </button>
+            <ExpenseBulkImport
+              companyAccounts={companyAccounts}
+              onImported={() => {
+                fetchExpenses();
+                fetchExpenseStats();
+                fetchCategories();
+                fetchAllCategories();
+              }}
+            />
+            <button className="btn-primary" onClick={openCreateExpenseModal}>
+              <Plus size={16} /> {t.addExpense}
+            </button>
+          </div>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Expenses',
+            value: stats?.total_expenses ?? expenses.length,
+            icon: Receipt,
+            color: 'blue',
+            subtext: 'Recorded expenditures',
+          },
+          {
+            label: 'Base Amount',
+            value: stats?.total_amount ?? 0,
+            icon: Wallet,
+            color: 'amber',
+            isCurrency: true,
+            subtext: `Tax: ¥${Number(stats?.total_tax || 0).toLocaleString()}`,
+          },
+          {
+            label: 'Grand Total',
+            value: stats?.grand_total ?? 0,
+            icon: BadgeDollarSign,
+            color: 'emerald',
+            isCurrency: true,
+            subtext: 'Net expenditure + tax',
+          },
+          {
+            label: 'Cash vs Bank',
+            value: stats?.cash_total ?? 0,
+            icon: Landmark,
+            color: 'purple',
+            isCurrency: true,
+            subtext: `Bank: ¥${Number(stats?.bank_total || 0).toLocaleString()}`,
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

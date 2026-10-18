@@ -23,7 +23,10 @@ import {
   BriefcaseBusiness,
   BadgeDollarSign,
   Calculator,
-  FileSignature
+  FileSignature,
+  Building2,
+  Calendar,
+  Lock
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ExpenseManager from './components/ExpenseManager';
@@ -50,15 +53,17 @@ import { apiRequest, SCREEN_LOCK_KEY } from './api';
 import ProfileSettings from './components/ProfileSettings';
 import LetterheadPage from './components/LetterheadPage';
 import GoogleTranslateInitializer from './components/GoogleTranslateInitializer';
+import { UserProvider, useUser } from './context/UserContext';
 import { translations } from './translations';
 import './notranslate.css';
 import './google-translate.css';
+import './components/SectionHeader.css';
 import './App.css';
 
 function AppContent() {
   const [language, setLanguage] = useState('en');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
+  const { user, companyName, setUser } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [locked, setLocked] = useState(() => localStorage.getItem(SCREEN_LOCK_KEY) === '1');
   const [hasLockPin, setHasLockPin] = useState(false);
@@ -72,7 +77,11 @@ function AppContent() {
     const savedUser = localStorage.getItem('user');
     if (token && savedUser) {
       setIsAuthenticated(true);
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch {
+        // ignore
+      }
     }
   }, []);
 
@@ -315,9 +324,42 @@ function AppContent() {
 
       <main className="main-content">
         <div className="main-topbar">
-          <button className="menu-toggle-btn" onClick={() => setSidebarOpen(true)}>
-            <Menu size={20} />
-          </button>
+          <div className="topbar-left">
+            <button className="menu-toggle-btn" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} />
+            </button>
+            <div className="topbar-company-chip" title={`Organization: ${companyName || 'Smart Ledgers'}`}>
+              <Building2 size={15} />
+              <span className="chip-name">{companyName || 'Smart Ledgers'}</span>
+              <span className="topbar-company-badge">Active</span>
+            </div>
+          </div>
+
+          <div className="topbar-right">
+            <div className="topbar-date-pill">
+              <Calendar size={14} />
+              <span>
+                {new Date().toLocaleDateString(language === 'ja' ? 'ja-JP' : 'en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </span>
+            </div>
+            {hasLockPin && (
+              <button className="topbar-lock-btn" onClick={lockScreen} title="Lock screen now (Ctrl + Q)">
+                <Lock size={13} />
+                <span>Lock (Ctrl+Q)</span>
+              </button>
+            )}
+            <Link to="/settings" className="topbar-user-pill" title="Profile & Organization Settings">
+              <div className="topbar-avatar">
+                {(companyName || user?.username || user?.email || 'A')[0].toUpperCase()}
+              </div>
+              <span className="topbar-user-name">{user?.username || 'Admin'}</span>
+            </Link>
+          </div>
         </div>
 
         <Routes>
@@ -388,9 +430,11 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/*" element={<AppContent />} />
-      </Routes>
+      <UserProvider>
+        <Routes>
+          <Route path="/*" element={<AppContent />} />
+        </Routes>
+      </UserProvider>
     </BrowserRouter>
   );
 }

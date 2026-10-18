@@ -1,8 +1,11 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Settings } from "lucide-react";
 import { apiRequest } from "../api";
+import { useUser } from "../context/UserContext";
+import PageHeader from "./PageHeader";
 import "./ProfileSettings.css";
 
 const INITIAL_PROFILE = {
@@ -44,6 +47,7 @@ const extractErrorMessage = async (response, fallbackMessage) => {
 
 const ProfileSettings = ({ onUserUpdate, onLockPinChange }) => {
   const location = useLocation();
+  const { refreshUser } = useUser();
   const [hasLockPin, setHasLockPin] = useState(false);
   const [pinForm, setPinForm] = useState({ pin: "", confirm_pin: "", password: "" });
   const [savingPin, setSavingPin] = useState(false);
@@ -168,6 +172,7 @@ const ProfileSettings = ({ onUserUpdate, onLockPinChange }) => {
         localStorage.setItem("user", JSON.stringify(mergedUser));
         if (onUserUpdate) onUserUpdate(mergedUser);
       }
+      refreshUser();
       toast.success("Settings updated successfully");
     } catch (error) {
       toast.error(error.message || "Failed to update settings");
@@ -315,9 +320,13 @@ const ProfileSettings = ({ onUserUpdate, onLockPinChange }) => {
 
   return (
     <div className="profile-settings">
-      <div className="page-header">
-        <h2>Settings</h2>
-      </div>
+      <PageHeader
+        title="Settings & Preferences"
+        subtitle="Configure organization branding, lock PIN, tax rate templates, and account credentials"
+        icon={Settings}
+        category="Administration"
+        companyName={profile.company_name}
+      />
 
       <div className="table-section">
         <div className="table-header">

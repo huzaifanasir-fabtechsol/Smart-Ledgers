@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { Car, Building2, Sparkles, FileText, Plus } from 'lucide-react';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -23,8 +26,32 @@ const CarManager = () => {
   });
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  useEffect(() => { fetchCars(); fetchCategories(); }, [search, currentPage, pageSize]);
+  useEffect(() => { 
+    fetchCars(); 
+    fetchCategories(); 
+  }, [search, currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const res = await apiRequest('/revenue/cars/stats/');
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -120,10 +147,46 @@ const CarManager = () => {
   return (
     <div className="car-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>Car Management</h2>
-        {/* <button className="btn-primary" onClick={() => { setShowModal(true); setEditingCar(null); setFormData({ category: '', description: '', model: '', chassis_number: '', year: new Date().getFullYear() }); }}>Add Car</button> */}
-      </div>
+      <PageHeader
+        title="Vehicle Collection"
+        subtitle="Manage inventory records of vehicles, makers, models, chassis numbers, and order links"
+        icon={Car}
+        category="Inventory & Fleet"
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Vehicles',
+            value: stats?.total_cars ?? totalCount,
+            icon: Car,
+            color: 'blue',
+            subtext: 'Vehicles in collection',
+          },
+          {
+            label: 'Automotive Makers',
+            value: stats?.unique_makers ?? 0,
+            icon: Building2,
+            color: 'emerald',
+            subtext: 'Distinct manufacturers',
+          },
+          {
+            label: 'Unique Models',
+            value: stats?.unique_models ?? 0,
+            icon: Sparkles,
+            color: 'amber',
+            subtext: 'Catalog model variants',
+          },
+          {
+            label: 'Assigned to Orders',
+            value: stats?.ordered_vehicles ?? 0,
+            icon: FileText,
+            color: 'purple',
+            subtext: 'Vehicles linked to invoices',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

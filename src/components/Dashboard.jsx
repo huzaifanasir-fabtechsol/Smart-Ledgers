@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { MoreHorizontal, ArrowUpRight, Eye } from 'lucide-react';
+import { MoreHorizontal, ArrowUpRight, Eye, LayoutDashboard } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
 import { apiRequest } from '../api';
 import { translations } from '../translations';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import YearSelector from './YearSelector';
+import PageHeader from './PageHeader';
 import './Dashboard.css';
 
 const MONTHS = [
@@ -110,47 +111,47 @@ const Dashboard = ({ language = 'en' }) => {
 
   return (
     <div className="dashboard">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h2>Dashboard Overview</h2>
-          <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>
-            {filterYear || filterMonth
-              ? `Filtered: ${filterYear ? `${filterYear}` : ''}${filterYear && filterMonth ? ' · ' : ''}${filterMonth ? (language === 'ja' ? `${filterMonth}月` : (MONTHS.find(m => m.value === filterMonth)?.label || `Month ${filterMonth}`)) : ''}`
-              : 'Showing all-time overview'}
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <YearSelector
-            value={filterYear}
-            onChange={(val) => setFilterYear(val)}
-            placeholder={t.allYears || 'All Years'}
-          />
-          <select
-            value={filterMonth}
-            onChange={(e) => setFilterMonth(e.target.value)}
-            className="filter-select"
-            style={{ minWidth: '130px' }}
-          >
-            <option value="">{t.allMonths || 'All Months'}</option>
-            {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {language === 'ja' ? `${m.value}月` : m.label}
-              </option>
-            ))}
-          </select>
-          {(filterYear || filterMonth) && (
-            <button
-              onClick={() => { setFilterYear(''); setFilterMonth(''); }}
-              className="btn-secondary"
-              style={{ padding: '0.65rem 1rem' }}
+      <PageHeader
+        title="Executive Dashboard"
+        subtitle={
+          filterYear || filterMonth
+            ? `Filtered: ${filterYear ? `${filterYear}` : ''}${filterYear && filterMonth ? ' · ' : ''}${filterMonth ? (language === 'ja' ? `${filterMonth}月` : (MONTHS.find(m => m.value === filterMonth)?.label || `Month ${filterMonth}`)) : ''}`
+            : 'Unified overview of revenue, operations, cash flow, and enterprise performance'
+        }
+        icon={LayoutDashboard}
+        category="Executive Analytics"
+        actions={
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <YearSelector
+              value={filterYear}
+              onChange={(val) => setFilterYear(val)}
+              placeholder={t.allYears || 'All Years'}
+            />
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              className="filter-select"
+              style={{ minWidth: '130px' }}
             >
-              {t.clear || 'Clear'}
-            </button>
-          )}
-        </div>
-      </div>
+              <option value="">{t.allMonths || 'All Months'}</option>
+              {MONTHS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {language === 'ja' ? `${m.value}月` : m.label}
+                </option>
+              ))}
+            </select>
+            {(filterYear || filterMonth) && (
+              <button
+                onClick={() => { setFilterYear(''); setFilterMonth(''); }}
+                className="btn-secondary"
+                style={{ padding: '0.65rem 1rem' }}
+              >
+                {t.clear || 'Clear'}
+              </button>
+            )}
+          </div>
+        }
+      />
       
       {/* Stat Cards Grid */}
       <div className="stats-grid">

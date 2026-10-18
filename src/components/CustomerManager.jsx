@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { Users, UserCheck, FileText, Wallet, Plus } from 'lucide-react';
 import { apiRequest, getErrorMessage } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -18,12 +21,35 @@ const CustomerManager = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [formData, setFormData] = useState({
-    name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: ''
+    name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: ''
   });
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  useEffect(() => { fetchCustomers(); }, [search, currentPage, pageSize]);
+  useEffect(() => { 
+    fetchCustomers(); 
+  }, [search, currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const res = await apiRequest('/revenue/customers/stats/');
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -74,6 +100,7 @@ const CustomerManager = () => {
       setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' });
       setCurrentPage(1);
       fetchCustomers();
+      fetchStats();
     } catch (error) {
       toast.error(error.message || 'Failed to save customer');
     }
@@ -89,6 +116,7 @@ const CustomerManager = () => {
       toast.success('Customer deleted');
       setShowDeleteConfirm(null);
       fetchCustomers();
+      fetchStats();
     } catch (error) {
       toast.error(error.message || 'Failed to delete customer');
     }
@@ -116,10 +144,59 @@ const CustomerManager = () => {
   return (
     <div className="customer-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>Customer Management</h2>
-        <button className="btn-primary" onClick={() => { setShowModal(true); setEditingCustomer(null); setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '' }); }}>Add Customer</button>
-      </div>
+      <PageHeader
+        title="Customer Management"
+        subtitle="Manage client portfolios, contact profiles, banking credentials, and order volumes"
+        icon={Users}
+        category="Sales & CRM"
+        actions={
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setShowModal(true);
+              setEditingCustomer(null);
+              setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' });
+            }}
+          >
+            <Plus size={16} /> Add Customer
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Customers',
+            value: stats?.total_customers ?? totalCount,
+            icon: Users,
+            color: 'blue',
+            subtext: 'Registered client accounts',
+          },
+          {
+            label: 'Active Buyers',
+            value: stats?.active_customers ?? 0,
+            icon: UserCheck,
+            color: 'emerald',
+            subtext: 'Clients with orders',
+          },
+          {
+            label: 'Total Orders',
+            value: stats?.total_orders ?? 0,
+            icon: FileText,
+            color: 'amber',
+            subtext: 'Invoices linked to clients',
+          },
+          {
+            label: 'Customer Volume',
+            value: stats?.total_revenue ?? 0,
+            icon: Wallet,
+            color: 'purple',
+            isCurrency: true,
+            subtext: 'Total invoiced revenue',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

@@ -18,12 +18,17 @@ import {
   RotateCcw,
   Clock,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  BadgeDollarSign,
+  Wallet,
+  Receipt
 } from 'lucide-react';
 import { apiRequest, getErrorMessage, downloadSalaryExcel, downloadSalaryPdf } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
 import PayslipModal from './PayslipModal';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 import './PayslipModal.css';
@@ -31,6 +36,8 @@ import './PayslipModal.css';
 const SalaryManager = () => {
   const [salaries, setSalaries] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -135,6 +142,30 @@ const SalaryManager = () => {
     fetchAllEmployees();
     fetchCompanyProfile();
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [search, filterEmployee, filterMonth, filterStatus]);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (filterEmployee) params.append('employee', filterEmployee);
+      if (filterMonth) params.append('salary_month', filterMonth);
+      if (filterStatus) params.append('status', filterStatus);
+      const res = await apiRequest(`/hr/salaries/stats/?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -596,6 +627,7 @@ const SalaryManager = () => {
       toast.success(editingSalary ? 'Salary record updated' : 'Salary record created');
       setShowModal(false);
       fetchSalaries();
+      fetchStats();
     } catch (err) {
       toast.error(err.message || 'Failed to save salary record');
     } finally {
@@ -613,6 +645,7 @@ const SalaryManager = () => {
       toast.success('Salary record deleted');
       setShowDeleteConfirm(null);
       fetchSalaries();
+      fetchStats();
     } catch (err) {
       toast.error(err.message || 'Failed to delete salary record');
     }
@@ -659,17 +692,54 @@ const SalaryManager = () => {
     <div className="salary-manager">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="page-header">
-        <div>
-          <h2>Salary Management</h2>
-          <p style={{ color: 'var(--ink-2)', fontSize: '0.875rem', marginTop: 2 }}>
-            Manage employee salaries, social insurance, deductions, and payslips
-          </p>
-        </div>
-        <button className="btn-primary" onClick={openCreateModal}>
-          <Plus size={16} /> Add Salary Record
-        </button>
-      </div>
+      <PageHeader
+        title="Salary & Payroll Records"
+        subtitle="Manage Japanese labor standard payrolls, statutory social insurance, withholding tax, and payslips"
+        icon={BadgeDollarSign}
+        category="Human Resources"
+        actions={
+          <button className="btn-primary" onClick={openCreateModal}>
+            <Plus size={16} /> Add Salary Record
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Payroll Records',
+            value: stats?.total_records ?? totalCount,
+            icon: FileText,
+            color: 'blue',
+            subtext: 'Processed pay statements',
+          },
+          {
+            label: 'Total Gross Earnings',
+            value: stats?.total_gross ?? 0,
+            isCurrency: true,
+            icon: BadgeDollarSign,
+            color: 'emerald',
+            subtext: 'Base, allowances & overtime',
+          },
+          {
+            label: 'Statutory Deductions',
+            value: stats?.total_deductions ?? 0,
+            isCurrency: true,
+            icon: Receipt,
+            color: 'rose',
+            subtext: 'Social insurance & income tax',
+          },
+          {
+            label: 'Total Net Disbursed',
+            value: stats?.total_net ?? 0,
+            isCurrency: true,
+            icon: Wallet,
+            color: 'indigo',
+            subtext: 'Take-home paid to employees',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { Landmark, ArrowDownCircle, ArrowUpCircle, Wallet, Plus } from 'lucide-react';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -22,8 +25,29 @@ const CompanyAccountManager = () => {
   });
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => { fetchAccounts(); }, [search, currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const response = await apiRequest('/revenue/company-accounts/stats/');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -71,6 +95,7 @@ const CompanyAccountManager = () => {
       setFormData({ bank_name: '', account_number: '', branch_code: '', account_holder: '', swift_code: '' });
       setCurrentPage(1);
       fetchAccounts();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to save account');
     }
@@ -82,6 +107,7 @@ const CompanyAccountManager = () => {
       toast.success('Account deleted');
       setShowDeleteConfirm(null);
       fetchAccounts();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to delete account');
     }
@@ -109,10 +135,61 @@ const CompanyAccountManager = () => {
   return (
     <div className="company-account-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>Company Bank Accounts</h2>
-        <button className="btn-primary" onClick={() => { setShowModal(true); setEditingAccount(null); setFormData({ bank_name: '', account_number: '', branch_code: '', account_holder: '', swift_code: '' }); }}>Add Account</button>
-      </div>
+      <PageHeader
+        title="Company Bank Accounts"
+        subtitle="Manage corporate banking facilities, IBAN / SWIFT coordinates, and treasury balances"
+        icon={Landmark}
+        category="Treasury & Banking"
+        actions={
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setShowModal(true);
+              setEditingAccount(null);
+              setFormData({ bank_name: '', account_number: '', branch_code: '', account_holder: '', swift_code: '' });
+            }}
+          >
+            <Plus size={16} /> Add Account
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Accounts',
+            value: stats?.total_accounts ?? totalCount,
+            icon: Landmark,
+            color: 'blue',
+            subtext: 'Active corporate bank ledgers',
+          },
+          {
+            label: 'Total Inflow (Deposits)',
+            value: stats?.total_deposits ?? 0,
+            isCurrency: true,
+            icon: ArrowDownCircle,
+            color: 'emerald',
+            subtext: 'Cumulative incoming bank transfers',
+          },
+          {
+            label: 'Total Outflow (Withdrawals)',
+            value: stats?.total_withdrawals ?? 0,
+            isCurrency: true,
+            icon: ArrowUpCircle,
+            color: 'rose',
+            subtext: 'Cumulative outgoing payments',
+          },
+          {
+            label: 'Net Balance',
+            value: stats?.net_balance ?? 0,
+            isCurrency: true,
+            icon: Wallet,
+            color: (stats?.net_balance || 0) >= 0 ? 'amber' : 'rose',
+            subtext: 'Net cash position across accounts',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

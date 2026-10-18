@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Car, Building2, Sparkles, Plus } from 'lucide-react';
 import { translations } from '../translations';
 import { translateText } from '../translator';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import './CarCategoryManager.css';
 
 const CarCategoryManager = ({ language = 'en' }) => {
@@ -26,10 +29,31 @@ const CarCategoryManager = ({ language = 'en' }) => {
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
     fetchCategories();
   }, [currentPage, pageSize, searchText]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const res = await apiRequest('/revenue/categories/stats/');
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const translateData = async () => {
@@ -96,6 +120,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
       toast.success('Category deleted successfully');
       setShowDeleteConfirm(null);
       fetchCategories();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to delete category');
     }
@@ -121,6 +146,7 @@ const CarCategoryManager = ({ language = 'en' }) => {
         toast.success('Category added successfully');
       }
       fetchCategories();
+      fetchStats();
       setCategoryName('');
       setCategoryDescription('');
       setCompanyName('');
@@ -165,10 +191,44 @@ const CarCategoryManager = ({ language = 'en' }) => {
   return (
     <div className="car-category-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>{t.carCategories}</h2>
-        <button className="btn-primary" onClick={handleAdd}>{t.addCarCategory}</button>
-      </div>
+      <PageHeader
+        title={t.carCategories || "Vehicle Categories"}
+        subtitle="Configure vehicle makers, models, catalog descriptions, and vehicle groupings"
+        icon={Car}
+        category="Catalog & Fleet"
+        actions={
+          <button className="btn-primary" onClick={handleAdd}>
+            <Plus size={16} /> {t.addCarCategory || 'Add Category'}
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Categories',
+            value: stats?.total_categories ?? categories.length,
+            icon: Car,
+            color: 'blue',
+            subtext: 'Catalog model entries',
+          },
+          {
+            label: 'Unique Makers',
+            value: stats?.unique_makers ?? 0,
+            icon: Building2,
+            color: 'emerald',
+            subtext: 'Automotive manufacturers',
+          },
+          {
+            label: 'Linked Vehicles',
+            value: stats?.total_cars ?? 0,
+            icon: Sparkles,
+            color: 'amber',
+            subtext: 'Vehicles under these categories',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

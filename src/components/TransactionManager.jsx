@@ -1,20 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ArrowLeftRight, ArrowDownCircle, ArrowUpCircle, Wallet, Plus, UploadCloud } from 'lucide-react';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 
 const TransactionManager = () => {
   const [transactions, setTransactions] = useState([]);
   const [companyAccounts, setCompanyAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
@@ -46,6 +52,28 @@ const TransactionManager = () => {
     fetchTransactions();
     fetchCompanyAccounts();
   }, [currentPage, pageSize, filters]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [filters]);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const params = new URLSearchParams({
+        ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
+      });
+      const response = await apiRequest(`/revenue/transactions/stats/?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -167,6 +195,7 @@ const TransactionManager = () => {
       toast.success(editingTransaction ? 'Transaction updated successfully' : 'Transaction created successfully');
       setShowModal(false);
       fetchTransactions();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to save transaction');
     } finally {
@@ -180,6 +209,7 @@ const TransactionManager = () => {
       toast.success('Transaction deleted successfully');
       setShowDeleteConfirm(null);
       fetchTransactions();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to delete transaction');
     }
@@ -241,6 +271,7 @@ const TransactionManager = () => {
       setBulkFile(null);
       setBulkAccount('');
       fetchTransactions();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to process file. Please try again.');
     } finally {
@@ -264,25 +295,67 @@ const TransactionManager = () => {
     <div className="transaction-manager">
       <ToastContainer position="top-right" autoClose={3000} />
       
-      <div className="page-header">
-        <h2>Transactions</h2>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button 
-            className="btn-secondary" 
-            onClick={() => {
-              setBulkErrors(null);
-              setBulkFile(null);
-              setBulkAccount('');
-              setShowBulkModal(true);
-            }}
-          >
-            📥 Bulk Import XLSX
-          </button>
-          <button className="btn-primary" onClick={openCreateModal}>
-            + Add Transaction
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Banking & Transactions"
+        subtitle="Record deposits, account withdrawals, bank reconciliations, and bulk statements"
+        icon={ArrowLeftRight}
+        category="Treasury & Banking"
+        actions={
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button 
+              className="btn-secondary" 
+              onClick={() => {
+                setBulkErrors(null);
+                setBulkFile(null);
+                setBulkAccount('');
+                setShowBulkModal(true);
+              }}
+            >
+              <UploadCloud size={16} /> Bulk Import XLSX
+            </button>
+            <button className="btn-primary" onClick={openCreateModal}>
+              <Plus size={16} /> Add Transaction
+            </button>
+          </div>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Transactions',
+            value: stats?.total_transactions ?? 0,
+            icon: ArrowLeftRight,
+            color: 'blue',
+            subtext: 'Reconciled banking ledger records',
+          },
+          {
+            label: 'Total Deposits (Inflow)',
+            value: stats?.total_deposits ?? 0,
+            isCurrency: true,
+            icon: ArrowDownCircle,
+            color: 'emerald',
+            subtext: 'Incoming client and invoice payments',
+          },
+          {
+            label: 'Total Withdrawals (Outflow)',
+            value: stats?.total_withdrawals ?? 0,
+            isCurrency: true,
+            icon: ArrowUpCircle,
+            color: 'rose',
+            subtext: 'Outgoing supplier and operational debits',
+          },
+          {
+            label: 'Net Cash Flow',
+            value: stats?.net_cashflow ?? 0,
+            isCurrency: true,
+            icon: Wallet,
+            color: (stats?.net_cashflow || 0) >= 0 ? 'emerald' : 'rose',
+            subtext: 'Net treasury movement in period',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

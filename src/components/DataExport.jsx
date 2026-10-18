@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Download } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
 import '../shared.css';
 import './DataExport.css';
 
@@ -76,11 +78,19 @@ const DataExport = ({ language = 'en' }) => {
 
   return (
     <div className="data-export">
+      <PageHeader
+        title={t.dataExport || "Data Export & Reports"}
+        subtitle="Export cross-module financial records, vehicle auctions, sales ledgers, and expense datasets to Excel"
+        icon={Download}
+        category="Reports & Archive"
+        actions={
+          <button className="btn-primary" onClick={handleExport}>
+            <Download size={16} /> {t.exportData || "Export Data (.xlsx)"}
+          </button>
+        }
+      />
+
       <div className="table-section">
-        <div className="table-header">
-          <h3>{t.dataExport}</h3>
-          <button className="btn-primary" onClick={handleExport}>{t.exportData}</button>
-        </div>
 
         <div className="filters">
           <select value={reportType} onChange={(e) => { setReportType(e.target.value); setCurrentPage(1); }} className="filter-select">

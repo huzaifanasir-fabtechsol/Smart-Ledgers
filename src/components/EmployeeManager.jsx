@@ -2,9 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Users, UserCheck, BriefcaseBusiness, Wallet, Plus } from 'lucide-react';
 import { apiRequest, getErrorMessage } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -24,6 +27,8 @@ const EmployeeManager = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
   const menuRef = useRef(null);
 
   const emptyForm = {
@@ -43,7 +48,26 @@ const EmployeeManager = () => {
 
   useEffect(() => {
     fetchRoles();
-  }, []);
+    fetchStats();
+  }, [search, filterRole]);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (filterRole) params.append('role', filterRole);
+      const res = await apiRequest(`/hr/employees/stats/?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -177,6 +201,7 @@ const EmployeeManager = () => {
       setShowModal(false);
       fetchEmployees();
       fetchRoles();
+      fetchStats();
     } catch (err) {
       toast.error(err.message || 'Failed to save employee');
     } finally {
@@ -195,6 +220,7 @@ const EmployeeManager = () => {
       setShowDeleteConfirm(null);
       fetchEmployees();
       fetchRoles();
+      fetchStats();
     } catch (err) {
       toast.error(err.message || 'Failed to delete employee');
     }
@@ -209,6 +235,7 @@ const EmployeeManager = () => {
       }
       toast.success(`Employee marked as ${emp.status === 'active' ? 'inactive' : 'active'}`);
       fetchEmployees();
+      fetchStats();
     } catch (err) {
       toast.error(err.message || 'Failed to update status');
     }
@@ -254,10 +281,52 @@ const EmployeeManager = () => {
     <div className="employee-manager">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="page-header">
-        <h2>Employees</h2>
-        <button className="btn-primary" onClick={openCreateModal}>+ Add Employee</button>
-      </div>
+      <PageHeader
+        title="Employee Directory"
+        subtitle="Manage workforce profiles, employment contracts, roles, and payroll eligibility"
+        icon={Users}
+        category="Human Resources"
+        actions={
+          <button className="btn-primary" onClick={openCreateModal}>
+            <Plus size={16} /> Add Employee
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Headcount',
+            value: stats?.total_employees ?? totalCount,
+            icon: Users,
+            color: 'blue',
+            subtext: 'Registered team members',
+          },
+          {
+            label: 'Active Staff',
+            value: stats?.active_employees ?? 0,
+            icon: UserCheck,
+            color: 'emerald',
+            subtext: `${stats?.inactive_employees ?? 0} currently inactive`,
+          },
+          {
+            label: 'Departments / Roles',
+            value: stats?.roles_count ?? roles.length,
+            icon: BriefcaseBusiness,
+            color: 'purple',
+            subtext: 'Distinct job assignments',
+          },
+          {
+            label: 'Base Monthly Payroll',
+            value: stats?.monthly_payroll_base ?? 0,
+            isCurrency: true,
+            icon: Wallet,
+            color: 'amber',
+            subtext: 'Cumulative active base salaries',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

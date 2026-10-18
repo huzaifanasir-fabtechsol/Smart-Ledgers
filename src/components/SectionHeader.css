@@ -1,0 +1,410 @@
+/* Section Header & Stats Cards - High Aesthetic UI */
+
+.section-header-banner {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 20px -4px rgba(18, 18, 22, 0.05), 0 2px 6px -1px rgba(18, 18, 22, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.section-header-banner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--lime) 0%, oklch(0.65 0.18 140) 100%);
+  border-radius: 4px 0 0 4px;
+}
+
+.section-header-banner::after {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, oklch(0.93 0.18 125 / 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.section-header-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.section-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.section-category-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: oklch(0.95 0.005 250);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+
+.section-company-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: oklch(0.28 0.12 145);
+  background: oklch(0.95 0.06 135 / 0.7);
+  padding: 0.22rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid oklch(0.88 0.1 135);
+  letter-spacing: 0.01em;
+}
+
+.section-company-chip svg {
+  color: oklch(0.35 0.15 145);
+  flex-shrink: 0;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.section-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--color-ink) 0%, oklch(0.26 0.01 270) 100%);
+  color: var(--color-lime);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px -3px rgba(24, 24, 28, 0.25);
+}
+
+.section-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  line-height: 1.2;
+}
+
+.section-subtitle {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin: 0.25rem 0 0 0;
+  line-height: 1.4;
+}
+
+.section-header-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Stats Cards Grid */
+.stats-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.15rem;
+  margin-bottom: 1.75rem;
+}
+
+.stat-card-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.25rem 1.4rem;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -6px rgba(18, 18, 22, 0.08);
+  border-color: oklch(0.85 0.03 260);
+}
+
+.stat-card-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-card-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+  margin-bottom: 0.35rem;
+}
+
+.stat-card-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  line-height: 1.15;
+}
+
+.stat-card-subtext {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.stat-card-item:hover .stat-icon-wrapper {
+  transform: scale(1.08);
+}
+
+/* Icon Color Variants */
+.stat-icon-blue {
+  background: oklch(0.94 0.05 240);
+  color: oklch(0.45 0.16 250);
+}
+
+.stat-icon-emerald {
+  background: oklch(0.94 0.06 150);
+  color: oklch(0.42 0.16 150);
+}
+
+.stat-icon-amber {
+  background: oklch(0.95 0.08 75);
+  color: oklch(0.48 0.16 75);
+}
+
+.stat-icon-purple {
+  background: oklch(0.94 0.06 300);
+  color: oklch(0.45 0.16 300);
+}
+
+.stat-icon-rose {
+  background: oklch(0.94 0.06 15);
+  color: oklch(0.5 0.18 20);
+}
+
+.stat-icon-lime {
+  background: oklch(0.94 0.1 130);
+  color: oklch(0.3 0.1 130);
+}
+
+/* Stat Shimmer Skeleton */
+.stat-skeleton-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 98px;
+  box-shadow: var(--shadow-card);
+}
+
+.stat-skeleton-line {
+  background: linear-gradient(90deg, oklch(0.94 0.005 250) 25%, oklch(0.9 0.008 250) 50%, oklch(0.94 0.005 250) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Topbar Enhancements */
+.main-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.topbar-company-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  background: oklch(0.96 0.03 130 / 0.5);
+  border: 1px solid oklch(0.88 0.08 130 / 0.6);
+  border-radius: 9999px;
+  color: var(--ink);
+  font-size: 0.825rem;
+  font-weight: 700;
+  max-width: 320px;
+}
+
+.topbar-company-chip .chip-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-company-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: var(--color-lime);
+  color: var(--color-ink);
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-left: auto;
+}
+
+.topbar-date-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  font-weight: 550;
+  padding: 0.35rem 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+}
+
+.topbar-lock-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.topbar-lock-btn:hover {
+  background: var(--secondary);
+  border-color: var(--sidebar-primary);
+  color: var(--ink);
+}
+
+.topbar-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  padding: 0.25rem 0.75rem 0.25rem 0.35rem;
+  border-radius: 9999px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.topbar-user-pill:hover {
+  background: var(--secondary);
+  border-color: oklch(0.8 0.05 260);
+}
+
+.topbar-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--color-lime);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.topbar-user-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .section-header-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.25rem;
+  }
+  .section-header-actions {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  .topbar-date-pill {
+    display: none;
+  }
+}

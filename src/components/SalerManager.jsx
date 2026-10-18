@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { UserSquare2, UserCheck, FileText, Wallet, Plus } from 'lucide-react';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -22,8 +25,31 @@ const SalerManager = () => {
   });
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  useEffect(() => { fetchSalers(); }, [search, currentPage, pageSize]);
+  useEffect(() => { 
+    fetchSalers(); 
+  }, [search, currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const res = await apiRequest('/revenue/salers/stats/');
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -71,6 +97,7 @@ const SalerManager = () => {
       setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' });
       setCurrentPage(1);
       fetchSalers();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to save saler');
     }
@@ -82,6 +109,7 @@ const SalerManager = () => {
       toast.success('Saler deleted');
       setShowDeleteConfirm(null);
       fetchSalers();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to delete saler');
     }
@@ -109,10 +137,59 @@ const SalerManager = () => {
   return (
     <div className="saler-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>Saler Management</h2>
-        <button className="btn-primary" onClick={() => { setShowModal(true); setEditingSaler(null); setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' }); }}>Add Saler</button>
-      </div>
+      <PageHeader
+        title="Saler Management"
+        subtitle="Track registered sellers, auction vendors, payment credentials, and supply order volume"
+        icon={UserSquare2}
+        category="Sales & Supply"
+        actions={
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setShowModal(true);
+              setEditingSaler(null);
+              setFormData({ name: '', email: '', address: '', phone: '', account_number: '', branch_code: '', bank_name: '', swift_code: '' });
+            }}
+          >
+            <Plus size={16} /> Add Saler
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Salers',
+            value: stats?.total_salers ?? totalCount,
+            icon: UserSquare2,
+            color: 'blue',
+            subtext: 'Registered vendors & sellers',
+          },
+          {
+            label: 'Active Salers',
+            value: stats?.active_salers ?? 0,
+            icon: UserCheck,
+            color: 'emerald',
+            subtext: 'Sellers with transactions',
+          },
+          {
+            label: 'Handled Orders',
+            value: stats?.total_orders ?? 0,
+            icon: FileText,
+            color: 'amber',
+            subtext: 'Orders processed by salers',
+          },
+          {
+            label: 'Sales Volume',
+            value: stats?.total_sales ?? 0,
+            icon: Wallet,
+            color: 'purple',
+            isCurrency: true,
+            subtext: 'Total handled order volume',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

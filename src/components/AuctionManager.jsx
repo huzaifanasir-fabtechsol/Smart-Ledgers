@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { Gavel, CheckCircle2, FileText, Wallet, Plus } from 'lucide-react';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -20,8 +23,31 @@ const AuctionManager = () => {
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  useEffect(() => { fetchAuctions(); }, [search, currentPage, pageSize]);
+  useEffect(() => { 
+    fetchAuctions(); 
+  }, [search, currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const res = await apiRequest('/revenue/auctions/stats/');
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -69,6 +95,7 @@ const AuctionManager = () => {
       setFormData({ name: '', description: '' });
       setCurrentPage(1);
       fetchAuctions();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to save auction');
     }
@@ -80,6 +107,7 @@ const AuctionManager = () => {
       toast.success('Auction deleted');
       setShowDeleteConfirm(null);
       fetchAuctions();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to delete auction');
     }
@@ -107,10 +135,59 @@ const AuctionManager = () => {
   return (
     <div className="auction-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>Auction Management</h2>
-        <button className="btn-primary" onClick={() => { setShowModal(true); setEditingAuction(null); setFormData({ name: '', description: '' }); }}>Add Auction</button>
-      </div>
+      <PageHeader
+        title="Auction Management"
+        subtitle="Manage partner auction houses, bidding venues, fee structures, and order records"
+        icon={Gavel}
+        category="Vehicle Sourcing"
+        actions={
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setShowModal(true);
+              setEditingAuction(null);
+              setFormData({ name: '', description: '' });
+            }}
+          >
+            <Plus size={16} /> Add Auction
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Auction Houses',
+            value: stats?.total_auctions ?? totalCount,
+            icon: Gavel,
+            color: 'blue',
+            subtext: 'Registered auction partners',
+          },
+          {
+            label: 'Active Venues',
+            value: stats?.active_auctions ?? 0,
+            icon: CheckCircle2,
+            color: 'emerald',
+            subtext: 'Venues with orders',
+          },
+          {
+            label: 'Auction Orders',
+            value: stats?.total_orders ?? 0,
+            icon: FileText,
+            color: 'amber',
+            subtext: 'Total orders from auctions',
+          },
+          {
+            label: 'Bidding Volume',
+            value: stats?.total_volume ?? 0,
+            icon: Wallet,
+            color: 'purple',
+            isCurrency: true,
+            subtext: 'Gross auction transactions',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

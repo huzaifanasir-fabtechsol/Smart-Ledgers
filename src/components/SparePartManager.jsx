@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { Store, Receipt, Wallet, Plus } from 'lucide-react';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -22,8 +25,31 @@ const SparePartManager = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  useEffect(() => { fetchSpareParts(); }, [search, currentPage, pageSize]);
+  useEffect(() => { 
+    fetchSpareParts(); 
+  }, [search, currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const res = await apiRequest('/spare-parts/stats/');
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -88,6 +114,7 @@ const SparePartManager = () => {
       setFormData(INITIAL_FORM);
       setCurrentPage(1);
       fetchSpareParts();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to save shop');
     }
@@ -99,6 +126,7 @@ const SparePartManager = () => {
       toast.success('Shop deleted');
       setShowDeleteConfirm(null);
       fetchSpareParts();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to delete shop');
     }
@@ -119,10 +147,45 @@ const SparePartManager = () => {
   return (
     <div className="spare-part-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>Shops Management</h2>
-        <button className="btn-primary" onClick={openCreate}>Add Shop</button>
-      </div>
+      <PageHeader
+        title="Shops & Vendors"
+        subtitle="Manage spare parts suppliers, repair shops, and parts procurement vendors"
+        icon={Store}
+        category="Expense Vendors"
+        actions={
+          <button className="btn-primary" onClick={openCreate}>
+            <Plus size={16} /> Add Shop
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Shops',
+            value: stats?.total_shops ?? totalCount,
+            icon: Store,
+            color: 'blue',
+            subtext: 'Registered vendors & suppliers',
+          },
+          {
+            label: 'Purchases Recorded',
+            value: stats?.total_purchases ?? 0,
+            icon: Receipt,
+            color: 'purple',
+            subtext: 'Parts invoices logged',
+          },
+          {
+            label: 'Total Parts Spend',
+            value: stats?.total_spent ?? 0,
+            isCurrency: true,
+            icon: Wallet,
+            color: 'emerald',
+            subtext: 'Cumulative procurement value',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

@@ -21,6 +21,7 @@ import {
 import { apiRequest, getErrorMessage, downloadExpenseTaxExcel, downloadInvoiceTaxExcel } from '../api';
 import Pagination from './Pagination';
 import YearSelector from './YearSelector';
+import PageHeader from './PageHeader';
 import './TaxReports.css';
 
 // 14 Fee and Tax fields for Invoices
@@ -562,44 +563,41 @@ const TaxReports = () => {
       )}
 
       {reportType && (<>
-      {/* Main Top Header */}
-      <div className="tax-reports-header">
-        <div className="tax-header-left">
-          <h1>
-            <Calculator size={28} style={{ color: reportType === 'invoice' ? '#0284c7' : '#2563eb' }} />
-            {reportType === 'invoice' ? 'Invoice Tax Reports' : 'Expense Tax Reports'}
-          </h1>
-          <p className="tax-header-subtitle">
-            {reportType === 'invoice'
-              ? 'Auditing transaction fee items, breakdown taxes, and customer invoice settlements.'
-              : 'Auditing pre-tax expenditures, tax-inclusive & exclusive amounts, and paid consumption tax.'}
-          </p>
-        </div>
+      <PageHeader
+        title={reportType === 'invoice' ? 'Invoice Tax Reports' : 'Expense Tax Reports'}
+        subtitle={
+          reportType === 'invoice'
+            ? 'Auditing transaction fee items, breakdown taxes, and customer invoice settlements'
+            : 'Auditing pre-tax expenditures, tax-inclusive & exclusive amounts, and paid consumption tax'
+        }
+        icon={Calculator}
+        category="Statutory Tax & Compliance"
+        actions={
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn-report-type-switch"
+              onClick={() => setShowTypeModal(true)}
+              title="Switch between Expense and Invoice Tax Reports"
+            >
+              <Layers size={16} style={{ color: reportType === 'invoice' ? '#0284c7' : '#2563eb' }} />
+              <span>Report: {reportType === 'invoice' ? 'Invoice Tax' : 'Expense Tax'}</span>
+              <ChevronDown size={14} />
+            </button>
 
-        <div className="tax-header-actions">
-          <button
-            type="button"
-            className="btn-report-type-switch"
-            onClick={() => setShowTypeModal(true)}
-            title="Switch between Expense and Invoice Tax Reports"
-          >
-            <Layers size={16} style={{ color: reportType === 'invoice' ? '#0284c7' : '#2563eb' }} />
-            <span>Report: {reportType === 'invoice' ? 'Invoice Tax' : 'Expense Tax'}</span>
-            <ChevronDown size={14} />
-          </button>
-
-          <button
-            type="button"
-            className="btn-export-excel"
-            onClick={reportType === 'invoice' ? handleExportInvoiceExcel : handleExportExpenseExcel}
-            disabled={exporting}
-            title="Export filtered records to Excel with bottom totals"
-          >
-            <FileSpreadsheet size={16} />
-            <span>{exporting ? 'Exporting...' : 'Export to Excel (.xlsx)'}</span>
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              className="btn-export-excel"
+              onClick={reportType === 'invoice' ? handleExportInvoiceExcel : handleExportExpenseExcel}
+              disabled={exporting}
+              title="Export filtered records to Excel with bottom totals"
+            >
+              <FileSpreadsheet size={16} />
+              <span>{exporting ? 'Exporting...' : 'Export to Excel (.xlsx)'}</span>
+            </button>
+          </div>
+        }
+      />
 
       {/* =============================================================
           VIEW 1: INVOICE TAX REPORT

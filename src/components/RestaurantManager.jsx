@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { UtensilsCrossed, Receipt, Wallet, Plus } from 'lucide-react';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -20,8 +23,31 @@ const RestaurantManager = () => {
   const [formData, setFormData] = useState({ name: '', location: '', description: '' });
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  useEffect(() => { fetchRestaurants(); }, [search, currentPage, pageSize]);
+  useEffect(() => { 
+    fetchRestaurants(); 
+  }, [search, currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const res = await apiRequest('/restaurants/stats/');
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -69,6 +95,7 @@ const RestaurantManager = () => {
       setFormData({ name: '', location: '', description: '' });
       setCurrentPage(1);
       fetchRestaurants();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to save restaurant');
     }
@@ -80,6 +107,7 @@ const RestaurantManager = () => {
       toast.success('Restaurant deleted');
       setShowDeleteConfirm(null);
       fetchRestaurants();
+      fetchStats();
     } catch (error) {
       toast.error('Failed to delete restaurant');
     }
@@ -107,10 +135,52 @@ const RestaurantManager = () => {
   return (
     <div className="restaurant-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>Restaurant Management</h2>
-        <button className="btn-primary" onClick={() => { setShowModal(true); setEditingRestaurant(null); setFormData({ name: '', location: '', description: '' }); }}>Add Restaurant</button>
-      </div>
+      <PageHeader
+        title="Restaurant Management"
+        subtitle="Maintain restaurant partners and dining establishments for hospitality and meal expenditures"
+        icon={UtensilsCrossed}
+        category="Expense Vendors"
+        actions={
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setShowModal(true);
+              setEditingRestaurant(null);
+              setFormData({ name: '', location: '', description: '' });
+            }}
+          >
+            <Plus size={16} /> Add Restaurant
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Restaurants',
+            value: stats?.total_restaurants ?? totalCount,
+            icon: UtensilsCrossed,
+            color: 'blue',
+            subtext: 'Registered dining establishments',
+          },
+          {
+            label: 'Expense Visits',
+            value: stats?.total_visits ?? 0,
+            icon: Receipt,
+            color: 'amber',
+            subtext: 'Recorded dining receipts',
+          },
+          {
+            label: 'Total Spent',
+            value: stats?.total_spent ?? 0,
+            icon: Wallet,
+            color: 'emerald',
+            isCurrency: true,
+            subtext: 'Total meal & dining expenses',
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">

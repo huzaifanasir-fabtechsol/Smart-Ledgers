@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FileText, Wallet, CheckCircle2, Clock, Plus } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import Pagination from './Pagination';
+import PageHeader from './PageHeader';
+import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -25,6 +28,8 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [selectedViewOrder, setSelectedViewOrder] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
   
   const [filters, setFilters] = useState({
     payment_status: '',
@@ -38,6 +43,28 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
   useEffect(() => {
     fetchOrders();
   }, [currentPage, pageSize, filters]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [filters]);
+
+  const fetchStats = async () => {
+    setLoadingStats(true);
+    try {
+      const params = new URLSearchParams({
+        ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
+      });
+      const response = await apiRequest(`/revenue/orders/stats/?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -216,10 +243,52 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
   return (
     <div className="order-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>{t.orders}</h2>
-        <button className="btn-primary" onClick={onAddOrder}>{t.addOrder}</button>
-      </div>
+      <PageHeader
+        title={t.orders || "Orders & Invoices"}
+        subtitle="Manage customer orders, invoices, payment statuses, and vehicle assignments"
+        icon={FileText}
+        category="Sales & Billing"
+        actions={
+          <button className="btn-primary" onClick={onAddOrder}>
+            <Plus size={16} /> {t.addOrder || 'Create Invoice'}
+          </button>
+        }
+      />
+
+      <StatCards
+        loading={loadingStats}
+        items={[
+          {
+            label: 'Total Orders',
+            value: stats?.total_orders ?? 0,
+            icon: FileText,
+            color: 'blue',
+            subtext: `${stats?.total_vehicles || 0} vehicles invoiced`,
+          },
+          {
+            label: 'Total Revenue',
+            value: stats?.total_revenue ?? 0,
+            icon: Wallet,
+            color: 'emerald',
+            isCurrency: true,
+            subtext: 'Gross invoice volume',
+          },
+          {
+            label: 'Completed Sales',
+            value: stats?.completed_orders ?? 0,
+            icon: CheckCircle2,
+            color: 'purple',
+            subtext: `¥${Number(stats?.completed_amount || 0).toLocaleString()} collected`,
+          },
+          {
+            label: 'Pending Balance',
+            value: stats?.pending_orders ?? 0,
+            icon: Clock,
+            color: 'amber',
+            subtext: `¥${Number(stats?.pending_amount || 0).toLocaleString()} awaiting payment`,
+          },
+        ]}
+      />
 
       <div className="table-section">
         <div className="filters">
