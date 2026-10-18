@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { MoreHorizontal, ArrowUpRight, Eye, LayoutDashboard } from 'lucide-react';
+import { ArrowUpRight, Eye, LayoutDashboard } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
 import { apiRequest } from '../api';
 import { translations } from '../translations';
@@ -33,7 +33,15 @@ const Dashboard = ({ language = 'en' }) => {
     pending_amount: 0,
     total_expense: 0,
     total_purchase: 0,
+    expense_tax: 0,
+    expense_total_with_tax: 0,
+    expense_count: 0,
+    invoice_total: 0,
+    invoice_tax: 0,
+    invoice_count: 0,
+    net_profit: 0,
     latest_orders: [],
+    latest_expenses: [],
     monthly_chart: [],
     has_chart_data: false
   });
@@ -89,7 +97,7 @@ const Dashboard = ({ language = 'en' }) => {
       }))
     : seedRevExp.map((item) => ({ ...item, p: Math.max(0, item.rev - item.exp) }));
 
-  const netProfit = (dashboardData.approved_amount || 0) - (dashboardData.total_expense || 0);
+  const netProfit = dashboardData.net_profit || 0;
 
   const formatAmount = (val) => {
     if (val === null || val === undefined) return '0';
@@ -100,7 +108,7 @@ const Dashboard = ({ language = 'en' }) => {
     const formatted = `¥${formatAmount(val)}`;
     const isCompact = formatted.length >= 12;
     return (
-      <div 
+      <div
         className={`amount ${isCompact ? 'amount-compact' : ''}`}
         title={formatted}
       >
@@ -108,6 +116,17 @@ const Dashboard = ({ language = 'en' }) => {
       </div>
     );
   };
+
+  const statCards = [
+    { title: 'Approved Amount', accent: 'lime', value: dashboardData.approved_amount, note: 'Completed invoices, excl. purchases' },
+    { title: 'Pending Amount', accent: 'violet', value: dashboardData.pending_amount, note: 'Pending invoices, excl. purchases' },
+    { title: 'Total Invoices', accent: 'white', value: dashboardData.invoice_total, note: `${dashboardData.invoice_count} invoices, all types` },
+    { title: 'Tax on Invoices', accent: 'white', value: dashboardData.invoice_tax, note: 'Sum of all invoice tax fields' },
+    { title: 'Total Expense (excl. tax)', accent: 'ink', value: dashboardData.total_expense, note: `${dashboardData.expense_count} expenses` },
+    { title: 'Tax Paid on Expenses', accent: 'white', value: dashboardData.expense_tax, note: 'Consumption tax on expenses' },
+    { title: 'Total Expense (incl. tax)', accent: 'white', value: dashboardData.expense_total_with_tax, note: 'Expense + tax paid' },
+    { title: 'Total Purchase', accent: 'ink', value: dashboardData.total_purchase, note: 'Purchase invoices, excl. failed' },
+  ];
 
   return (
     <div className="dashboard">
@@ -155,45 +174,17 @@ const Dashboard = ({ language = 'en' }) => {
       
       {/* Stat Cards Grid */}
       <div className="stats-grid">
-        <div className="stat-card accent-lime">
-          <div className="stat-card-header">
-            <h3>Approved Amount</h3>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><MoreHorizontal size={16} /></button>
+        {statCards.map((card) => (
+          <div key={card.title} className={`stat-card accent-${card.accent}`}>
+            <div className="stat-card-header">
+              <h3 title={card.title}>{card.title}</h3>
+            </div>
+            <div className="stat-card-body">
+              {renderAmount(card.value)}
+            </div>
+            <div className="stat-card-note">{card.note}</div>
           </div>
-          <div className="stat-card-body">
-            {renderAmount(dashboardData.approved_amount)}
-          </div>
-        </div>
-
-        <div className="stat-card accent-violet">
-          <div className="stat-card-header">
-            <h3>Pending Amount</h3>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><MoreHorizontal size={16} /></button>
-          </div>
-          <div className="stat-card-body">
-            {renderAmount(dashboardData.pending_amount)}
-          </div>
-        </div>
-
-        <div className="stat-card accent-white">
-          <div className="stat-card-header">
-            <h3>Total Expense</h3>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><MoreHorizontal size={16} /></button>
-          </div>
-          <div className="stat-card-body">
-            {renderAmount(dashboardData.total_expense)}
-          </div>
-        </div>
-
-        <div className="stat-card accent-ink">
-          <div className="stat-card-header">
-            <h3>Total Purchase</h3>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><MoreHorizontal size={16} /></button>
-          </div>
-          <div className="stat-card-body">
-            {renderAmount(dashboardData.total_purchase)}
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Recharts Charts Grid */}
@@ -204,7 +195,7 @@ const Dashboard = ({ language = 'en' }) => {
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Revenue vs Expenses</h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', margin: '0.25rem 0 0 0' }}>
-                {filterYear ? `${filterYear}` : 'Yearly overview'} · in ¥100,000
+                {filterYear ? `${filterYear}` : 'Yearly overview'} · in ¥100,000 · expenses excl. tax, incl. purchases
               </p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
@@ -241,7 +232,7 @@ const Dashboard = ({ language = 'en' }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', margin: 0 }}>Net Profit</h3>
-              <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', margin: '0.25rem 0 0 0' }}>Approved Revenue - Expenses</p>
+              <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', margin: '0.25rem 0 0 0' }}>Approved Revenue - Purchases - Expenses (excl. tax)</p>
             </div>
             <span style={{ fontSize: '0.75rem', background: 'var(--color-lime)', color: 'var(--color-ink)', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
               {netProfit >= 0 ? '+Active' : '-Deficit'}
@@ -324,6 +315,55 @@ const Dashboard = ({ language = 'en' }) => {
                         <Eye size={15} />
                       </button>
                     </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Latest Expenses Table */}
+      <div className="table-section" style={{ marginTop: '2rem' }}>
+        <div className="table-header">
+          <h3>Latest Expenses</h3>
+          <button
+            onClick={() => navigate('/expenses')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted-foreground)' }}
+          >
+            View all <ArrowUpRight size={14} />
+          </button>
+        </div>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Payment</th>
+                <th style={{ textAlign: 'right' }}>Amount (excl. tax)</th>
+                <th style={{ textAlign: 'right' }}>Tax</th>
+                <th style={{ textAlign: 'right' }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!dashboardData.latest_expenses || dashboardData.latest_expenses.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted-foreground)' }}>
+                    No expenses found for the selected period
+                  </td>
+                </tr>
+              ) : (
+                dashboardData.latest_expenses.map((expense) => (
+                  <tr key={expense.id}>
+                    <td>{expense.date}</td>
+                    <td style={{ fontWeight: 600 }}>{expense.title}</td>
+                    <td>{expense.category_name || '-'}</td>
+                    <td>{expense.is_cash ? 'Cash' : 'Bank'}</td>
+                    <td className="amount-cell" style={{ textAlign: 'right' }}>¥{formatAmount(expense.amount)}</td>
+                    <td className="amount-cell" style={{ textAlign: 'right' }}>{expense.tax_amount > 0 ? `¥${formatAmount(expense.tax_amount)}` : '-'}</td>
+                    <td className="amount-cell" style={{ textAlign: 'right', fontWeight: 700 }}>¥{formatAmount(expense.total_amount)}</td>
                   </tr>
                 ))
               )}

@@ -116,6 +116,25 @@
   font-size: clamp(1.05rem, 1.35vw, 1.45rem);
 }
 
+.stat-card-note {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-card.accent-white .stat-card-note {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.stat-card.accent-ink .stat-card-note {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
 @media (max-width: 1350px) {
   .stats-grid {
     gap: 1rem;

@@ -1,0 +1,158 @@
+.fs-page {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fs-notice {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--destructive);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.fs-warning {
+  padding: 0.65rem 1rem;
+  margin: 0.75rem 0;
+  border-radius: 10px;
+  border: 1px solid var(--destructive);
+  color: var(--destructive);
+  font-size: 0.8125rem;
+}
+
+.fs-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fs-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.fs-tab {
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fs-tab.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.fs-year-select {
+  width: auto;
+  min-width: 16rem;
+}
+
+.fs-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.fs-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.fs-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.fs-grid .form-group {
+  margin-bottom: 0.5rem;
+}
+
+.fs-asset-form {
+  margin-top: 1rem;
+  align-items: center;
+}
+
+.fs-line {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.fs-line .form-input {
+  flex: 1;
+}
+
+.fs-line .fs-amount {
+  flex: 0 0 11rem;
+  text-align: right;
+}
+
+.fs-check {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.fs-check input {
+  width: auto;
+}
+
+.fs-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.fs-muted {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.fs-summary {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.fs-summary td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.fs-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .fs-page { padding: 1rem; }
+  .fs-line { flex-wrap: wrap; }
+  .fs-line .fs-amount { flex: 1 1 8rem; }
+}

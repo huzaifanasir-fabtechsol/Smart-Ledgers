@@ -31,6 +31,7 @@ import {
 import Dashboard from './components/Dashboard';
 import ExpenseManager from './components/ExpenseManager';
 import TaxReports from './components/TaxReports';
+import FinancialStatements from './components/FinancialStatements';
 import DataExport from './components/DataExport';
 import RevenueManager from './components/RevenueManager';
 import CarCategoryManager from './components/CarCategoryManager';
@@ -212,6 +213,7 @@ function AppContent() {
       title: 'Reports',
       items: [
         { path: '/tax-reports', label: 'Tax Reports', icon: Calculator },
+        { path: '/financial-statements', label: 'Financial Statements', icon: FileText },
         // { path: '/export', label: t.dataExport, icon: Download },
       ],
     },
@@ -367,6 +369,7 @@ function AppContent() {
           <Route path="/dashboard" element={<Dashboard language={language} />} />
           <Route path="/expenses" element={<ExpenseManager language={language} />} />
           <Route path="/tax-reports" element={<TaxReports language={language} />} />
+          <Route path="/financial-statements" element={<FinancialStatements />} />
           <Route path="/revenue" element={<RevenueManager language={language} />} />
           <Route
             path="/inovice"

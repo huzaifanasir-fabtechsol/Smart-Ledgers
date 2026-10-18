@@ -89,6 +89,11 @@ export const downloadSalaryPdf = async (salaryId, employeeName = 'Employee', sal
   return downloadFile(`/hr/salaries/${salaryId}/export-pdf/`, filename);
 };
 
+export const downloadFinancialStatementsPdf = async (fiscalYearId, termNo, parts = ['kessan']) => {
+  const filename = `Financial_Statements_Term${termNo}.pdf`;
+  return downloadFile(`/reports/fiscal-years/${fiscalYearId}/pdf/?parts=${parts.join(',')}`, filename);
+};
+
 export const downloadExpenseTaxExcel = async (params = '') => {
   const queryStr = params ? (params.startsWith('?') ? params : `?${params}`) : '';
   const filename = `Expense_Tax_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
