@@ -1054,12 +1054,28 @@ textarea.form-input {
   }
 }
 
-/* ─── HR Module Wrappers ─────────────────────────────────────────── */
+/* ─── Module Wrappers (100% width aligned with topbar) ───────────── */
 .employee-manager,
-.salary-manager {
+.salary-manager,
+.order-manager,
+.dashboard,
+.expense-manager,
+.data-export,
+.car-category-manager,
+.customer-manager,
+.saler-manager,
+.auction-manager,
+.car-manager,
+.restaurant-manager,
+.spare-part-manager,
+.company-account-manager,
+.transaction-manager,
+.revenue-manager,
+.profile-settings {
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 /* ─── Generic Form Input (used by HR modals) ─────────────────────── */

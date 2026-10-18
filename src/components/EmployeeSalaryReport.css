@@ -2,9 +2,9 @@
 
 .employee-salary-report-page {
   width: 100%;
-  max-width: 1350px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 /* Control Bar (Top) */
