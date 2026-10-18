@@ -34,9 +34,9 @@ const LIABILITY_KINDS = [['', 'Auto'], ['payable', 'Payable'], ['deposit_receive
   ['borrowing', 'Borrowing'], ['tax_payable', 'Taxes payable']];
 
 const OVERRIDE_FIELDS = [
-  ['sales', 'Sales', 'Blank = total of Sale orders in the period'],
-  ['purchases', 'Merchandise purchases', 'Blank = total of Purchase orders in the period'],
-  ['cash', 'Cash & deposits', 'Blank = latest bank balance on or before period end'],
+  ['sales', 'Sales'],
+  ['purchases', 'Merchandise purchases'],
+  ['cash', 'Cash & deposits'],
 ];
 const AMOUNT_FIELDS = [
   ['purchase_discounts', 'Purchase discounts'],
@@ -88,12 +88,12 @@ const CONSUMPTION_FIELDS = [
   ['interim_paid', 'Interim consumption tax paid'], ['interim_paid_local', 'Interim local consumption tax paid'],
 ];
 const CORPORATE_FIELDS = [
-  ['entertainment_expenses', 'Entertainment expenses (blank = from the entertainment expense account)', true],
+  ['entertainment_expenses', 'Entertainment expenses', true],
   ['entertainment_food', 'Of which business meals'], ['withholding_credit', 'Withholding tax credit'],
   ['interim_paid', 'Interim corporate tax paid'], ['opening_provision', 'Opening provision for taxes'],
-  ['unpaid_corporate', 'Unpaid corporate tax at year end (blank = calculated)', true],
-  ['unpaid_pref', 'Unpaid prefectural tax at year end (blank = calculated)', true],
-  ['unpaid_city', 'Unpaid municipal tax at year end (blank = calculated)', true],
+  ['unpaid_corporate', 'Unpaid corporate tax at year end', true],
+  ['unpaid_pref', 'Unpaid prefectural tax at year end', true],
+  ['unpaid_city', 'Unpaid municipal tax at year end', true],
 ];
 const PARTS = [
   ['kessan', 'Financial statements'],
@@ -191,6 +191,55 @@ const RecordList = ({ title, rows, fields, onChange, blank }) => (
   </div>
 );
 
+// A figure that is calculated automatically but can be overridden. ``value`` is the saved override
+// (null = auto); the field shows the calculated value until the user types something else.
+const AutoField = ({ label, value, auto, onChange }) => {
+  const overridden = value !== null && value !== undefined;
+  const hasAuto = auto !== null && auto !== undefined;
+  return (
+    <div className="form-group">
+      <label>{label}</label>
+      <input type="number" className={overridden ? '' : 'fs-auto-input'} placeholder="Auto"
+             value={overridden ? value : (hasAuto ? auto : '')}
+             onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} />
+      <div className="fs-meta">
+        {overridden ? (
+          <button type="button" className="fs-link" onClick={() => onChange(null)}>
+            Overridden - reset to auto{hasAuto ? ` (¥${yen(auto)})` : ''}
+          </button>
+        ) : <span className="fs-badge">Auto-calculated</span>}
+      </div>
+    </div>
+  );
+};
+
+const PlainField = ({ label, value, onChange }) => (
+  <div className="form-group">
+    <label>{label}</label>
+    <input type="number" value={value ?? 0} onChange={(e) => onChange(Number(e.target.value) || 0)} />
+    <div className="fs-meta" />
+  </div>
+);
+
+// Lists what each auto figure is made of so it can be checked against your records.
+const AutoDetails = ({ fields, details, prefix = '' }) => {
+  const rows = fields.filter(([key]) => details?.[prefix + key]?.length);
+  if (rows.length === 0) return null;
+  return (
+    <details className="fs-details">
+      <summary>How the auto values are calculated</summary>
+      {rows.map(([key, label]) => (
+        <div className="fs-detail" key={key}>
+          <strong>{label}</strong>
+          {details[prefix + key].map(([name, amount]) => (
+            <div className="fs-detail-line" key={name}><span>{name}</span><span>¥ {yen(amount)}</span></div>
+          ))}
+        </div>
+      ))}
+    </details>
+  );
+};
+
 const toNumbers = (rows, fields) => rows.map((row) => {
   const out = { ...row };
   fields.filter(([, , type]) => type === 'number').forEach(([key]) => {
@@ -210,6 +259,7 @@ const FinancialStatements = () => {
   const [assets, setAssets] = useState([]);
   const [assetForm, setAssetForm] = useState(EMPTY_ASSET);
   const [preview, setPreview] = useState(null);
+  const [auto, setAuto] = useState(null);
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState('full');
   const [parts, setParts] = useState(PARTS.map(([key]) => key));
@@ -241,8 +291,23 @@ const FinancialStatements = () => {
     });
   }, [run, loadYears]);
 
+  const loadAuto = useCallback(async () => {
+    if (!yearId) return;
+    try {
+      setAuto(await readJson(await apiRequest(`/reports/fiscal-years/${yearId}/auto-values/`)));
+    } catch (error) {
+      toast.error(error.message || 'Could not calculate the automatic values');
+    }
+  }, [yearId]);
+
+  // Auto values depend on saved data, so refresh them whenever one of the tabs that shows them opens.
+  useEffect(() => {
+    if (tab === 'inputs' || tab === 'tax') loadAuto();
+  }, [tab, loadAuto]);
+
   useEffect(() => {
     setPreview(null);
+    setAuto(null);
     if (!yearId) { setInputs(null); setAssets([]); return; }
     run(async () => {
       const [inputRes, assetRes] = await Promise.all([
@@ -292,6 +357,7 @@ const FinancialStatements = () => {
       method: 'PUT', body: JSON.stringify({ data: inputs }),
     }));
     setInputs(saved.data);
+    await loadAuto();
   }, 'Inputs saved');
 
   const addAsset = () => run(async () => {
@@ -330,7 +396,6 @@ const FinancialStatements = () => {
     ...current, tax: { ...current.tax, [group]: { ...current.tax[group], [key]: value } },
   }));
   const needsYear = !yearId && !['year', 'company'].includes(tab);
-  const numberOrNull = (value) => (value === '' ? null : Number(value));
 
   return (
     <div className="fs-page">
@@ -417,15 +482,18 @@ const FinancialStatements = () => {
       {tab === 'inputs' && inputs && yearId && (
         <>
           <div className="fs-card">
-            <h3>Figures derived from your data (leave blank to auto-calculate)</h3>
+            <h3>Figures derived from your data</h3>
+            <p className="fs-muted">
+              Each field shows the calculated value. Type a different number to override it, or reset to go back to
+              auto. Auto values refresh when you save.
+            </p>
             <div className="fs-grid">
-              {OVERRIDE_FIELDS.map(([key, label, hint]) => (
-                <div className="form-group" key={key}><label>{label}</label>
-                  <input type="number" value={inputs[key] ?? ''} placeholder="Auto"
-                         onChange={(e) => setInput(key, numberOrNull(e.target.value))} />
-                  <small className="fs-muted">{hint}</small></div>
+              {OVERRIDE_FIELDS.map(([key, label]) => (
+                <AutoField key={key} label={label} value={inputs[key]} auto={auto?.[key]}
+                           onChange={(value) => setInput(key, value)} />
               ))}
             </div>
+            <AutoDetails fields={OVERRIDE_FIELDS} details={auto?.details} />
             <label className="fs-check">
               <input type="checkbox" checked={inputs.include_salaries}
                      onChange={(e) => setInput('include_salaries', e.target.checked)} />
@@ -455,15 +523,22 @@ const FinancialStatements = () => {
       {tab === 'tax' && inputs && yearId && (
         <>
           <div className="fs-card">
-            <h3>Consumption tax (blank = estimate from your data)</h3>
+            <h3>Consumption tax</h3>
+            <p className="fs-muted">
+              Fields marked auto are estimated from your sales, purchases, expenses and fixed assets. Type a number to
+              override (for example with the figures from your tax software).
+            </p>
             <div className="fs-grid">
-              {CONSUMPTION_FIELDS.map(([key, label, nullable]) => (
-                <div className="form-group" key={key}><label>{label}</label>
-                  <input type="number" value={inputs.tax.consumption[key] ?? ''} placeholder={nullable ? 'Auto' : '0'}
-                         onChange={(e) => setTax('consumption', key,
-                           nullable ? numberOrNull(e.target.value) : Number(e.target.value) || 0)} /></div>
-              ))}
+              {CONSUMPTION_FIELDS.map(([key, label, nullable]) => (nullable ? (
+                <AutoField key={key} label={label} value={inputs.tax.consumption[key]} auto={auto?.consumption?.[key]}
+                           onChange={(value) => setTax('consumption', key, value)} />
+              ) : (
+                <PlainField key={key} label={label} value={inputs.tax.consumption[key]}
+                            onChange={(value) => setTax('consumption', key, value)} />
+              )))}
             </div>
+            <AutoDetails fields={CONSUMPTION_FIELDS.filter(([, , nullable]) => nullable)} details={auto?.details}
+                         prefix="consumption." />
             <div className="form-group"><label>Special circumstances (refund return note)</label>
               <input value={inputs.tax.consumption.refund_note}
                      onChange={(e) => setTax('consumption', 'refund_note', e.target.value)} /></div>
@@ -471,13 +546,16 @@ const FinancialStatements = () => {
           <div className="fs-card">
             <h3>Corporate tax</h3>
             <div className="fs-grid">
-              {CORPORATE_FIELDS.map(([key, label, nullable]) => (
-                <div className="form-group" key={key}><label>{label}</label>
-                  <input type="number" value={inputs.tax.corporate[key] ?? ''} placeholder={nullable ? 'Auto' : '0'}
-                         onChange={(e) => setTax('corporate', key,
-                           nullable ? numberOrNull(e.target.value) : Number(e.target.value) || 0)} /></div>
-              ))}
+              {CORPORATE_FIELDS.map(([key, label, nullable]) => (nullable ? (
+                <AutoField key={key} label={label} value={inputs.tax.corporate[key]} auto={auto?.corporate?.[key]}
+                           onChange={(value) => setTax('corporate', key, value)} />
+              ) : (
+                <PlainField key={key} label={label} value={inputs.tax.corporate[key]}
+                            onChange={(value) => setTax('corporate', key, value)} />
+              )))}
             </div>
+            <AutoDetails fields={CORPORATE_FIELDS.filter(([, , nullable]) => nullable)} details={auto?.details}
+                         prefix="corporate." />
           </div>
           <LineList title="Prior-year losses carried forward (label = fiscal year)"
                     items={inputs.tax.corporate.prior_losses} onChange={(items) => setTax('corporate', 'prior_losses', items)} />
