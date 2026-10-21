@@ -330,6 +330,15 @@ const FinancialStatements = () => {
     await loadYears(created.id);
   }, 'Fiscal year created');
 
+  const startNextTerm = () => {
+    if (!year || !window.confirm(`Create term ${year.term_no + 1} from the closing balances of term ${year.term_no}?`)) return;
+    run(async () => {
+      const created = await readJson(await apiRequest(`/reports/fiscal-years/${year.id}/roll-forward/`, { method: 'POST' }));
+      await loadYears(created.id);
+      setTab('inputs');
+    }, 'Next term created with balances carried forward');
+  };
+
   const deleteYear = () => {
     if (!year || !window.confirm(`Delete term ${year.term_no} and all its inputs and fixed assets?`)) return;
     run(async () => {
@@ -448,9 +457,19 @@ const FinancialStatements = () => {
           <div className="fs-actions">
             <button className="btn-primary" disabled={busy || !newYear.term_no || !newYear.start_date || !newYear.end_date}
                     onClick={createYear}><Plus size={16} /> Create</button>
+            {year && <button className="btn-secondary" disabled={busy} onClick={startNextTerm}
+                             title="Creates the next term with this term's closing balances, fixed assets and losses carried forward">
+              <Plus size={14} /> Start term {year.term_no + 1} (carry balances forward)</button>}
             {year && <button className="btn-secondary" disabled={busy} onClick={deleteYear}>
               <Trash2 size={14} /> Delete term {year.term_no}</button>}
           </div>
+          {year && (
+            <p className="fs-muted">
+              Starting the next term copies capital, retained earnings, inventory, balance-sheet items, fixed assets
+              and loss carry-forwards. Afterwards remove anything that was settled (for example last year&apos;s taxes
+              payable) and enter the bank and inventory balances.
+            </p>
+          )}
         </div>
       )}
 
