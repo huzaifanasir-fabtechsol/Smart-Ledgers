@@ -560,6 +560,42 @@ const FinancialStatements = () => {
                          onChange={(e) => setInput(key, Number(e.target.value) || 0)} /></div>
               ))}
             </div>
+            <div className="fs-accounts">
+              <strong>Cars bought but not recorded as sold (reference for closing inventory)</strong>
+              {(auto?.unsold_cars || []).length === 0 ? (
+                <p className="fs-muted">
+                  None found. Cars are often entered only on the sale invoice, so this list can be incomplete. Count
+                  your physical stock and enter the total cost as the closing inventory.
+                </p>
+              ) : (
+                <>
+                  <p className="fs-muted">
+                    Taken from purchase orders with no sale by the period end. It is only as complete as your orders,
+                    so compare it with the cars you actually hold before using it.
+                  </p>
+                  <div className="table-container">
+                    <table>
+                      <thead><tr><th>Car</th><th>Chassis</th><th>Bought</th><th>Cost excl. tax</th><th>Invoice total</th></tr></thead>
+                      <tbody>
+                        {auto.unsold_cars.map((car) => (
+                          <tr key={car.id}>
+                            <td>{car.name}</td><td>{car.chassis}</td><td>{car.bought_on}</td>
+                            <td>{yen(car.cost_excl_tax)}</td><td>{yen(car.invoice_total)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="fs-actions">
+                    <button type="button" className="btn-secondary btn-small"
+                            onClick={() => setInput('closing_inventory',
+                              auto.unsold_cars.reduce((sum, car) => sum + car.cost_excl_tax, 0))}>
+                      Use ¥{yen(auto.unsold_cars.reduce((sum, car) => sum + car.cost_excl_tax, 0))} as closing inventory
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           {LISTS.map(([key, title, allowExecutive, kinds, extras]) => (
             <LineList key={key} title={title} items={inputs[key]} allowExecutive={allowExecutive} kinds={kinds}
