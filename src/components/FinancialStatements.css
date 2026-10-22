@@ -287,3 +287,46 @@
   flex-direction: column;
   gap: 0.4rem;
 }
+
+/* Readiness checklist */
+.fs-checklist {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fs-check-item {
+  display: grid;
+  grid-template-columns: 5rem 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.fs-check-item.todo {
+  border-color: var(--destructive);
+}
+
+.fs-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.fs-check-item.todo .fs-status {
+  color: var(--destructive);
+  border-color: var(--destructive);
+}
+
+@media (max-width: 640px) {
+  .fs-check-item { grid-template-columns: 1fr; }
+}

@@ -104,6 +104,8 @@ const PARTS = [
   ['other', 'Business overview, payments, next year'],
 ];
 
+const STATUS_LABELS = { ok: 'Done', todo: 'To do', check: 'Check' };
+
 const yen = (n) => (n === null || n === undefined ? '' : Number(n).toLocaleString('ja-JP'));
 const EMPTY_ASSET = {
   name: '', category: 'equipment', acquired_on: '', cost: '', method: 'declining_200',
@@ -388,9 +390,14 @@ const FinancialStatements = () => {
     setAssets((list) => list.filter((a) => a.id !== id));
   });
 
-  const loadPreview = () => run(async () => {
+  const loadPreview = useCallback(() => run(async () => {
     setPreview(await readJson(await apiRequest(`/reports/fiscal-years/${yearId}/preview/`)));
-  });
+  }), [run, yearId]);
+
+  // Opening the Preview tab calculates it, so the checklist is always current with the saved inputs.
+  useEffect(() => {
+    if (tab === 'preview' && yearId) loadPreview();
+  }, [tab, yearId, loadPreview]);
 
   const download = (lang) => run(
     () => downloadFinancialStatementsPdf(year.id, year.term_no, { parts, lang, mode }),
@@ -678,6 +685,37 @@ const FinancialStatements = () => {
 
       {tab === 'preview' && yearId && (
         <>
+          {preview?.readiness && (
+            <div className="fs-card">
+              <div className="fs-card-head">
+                <h3>Readiness checklist</h3>
+                <span className="fs-muted">
+                  {preview.readiness.filter((i) => i.status === 'todo').length} to do,{' '}
+                  {preview.readiness.filter((i) => i.status === 'check').length} to check
+                </span>
+              </div>
+              <p className="fs-muted">
+                Fix the items marked To do, then confirm the ones marked Check against your records. Save your
+                changes, then reopen this tab to refresh.
+              </p>
+              <ul className="fs-checklist">
+                {preview.readiness.map((item) => (
+                  <li key={item.key} className={`fs-check-item ${item.status}`}>
+                    <span className="fs-status">{STATUS_LABELS[item.status]}</span>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <div className="fs-muted">{item.detail}</div>
+                    </div>
+                    {item.status !== 'ok' && (
+                      <button type="button" className="btn-secondary btn-small" onClick={() => setTab(item.tab)}>
+                        Open
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="fs-card">
             <div className="fs-card-head">
               <h3>Download PDF</h3>
