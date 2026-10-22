@@ -280,3 +280,10 @@
   padding: 0.1rem 0;
   border-bottom: 1px dashed var(--border);
 }
+
+.fs-accounts {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}

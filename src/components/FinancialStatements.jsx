@@ -404,6 +404,15 @@ const FinancialStatements = () => {
   const setTax = (group, key, value) => setInputs((current) => ({
     ...current, tax: { ...current.tax, [group]: { ...current.tax[group], [key]: value } },
   }));
+  const allAccountIds = (auto?.accounts || []).map((a) => a.id);
+  const selectedAccountIds = inputs?.cash_accounts ?? allAccountIds;
+  const toggleAccount = (id) => {
+    const next = selectedAccountIds.includes(id)
+      ? selectedAccountIds.filter((x) => x !== id)
+      : [...selectedAccountIds, id];
+    // every account ticked = "all accounts" (null), so accounts added later are included automatically
+    setInput('cash_accounts', next.length === allAccountIds.length ? null : next);
+  };
   const needsYear = !yearId && !['year', 'company'].includes(tab);
 
   return (
@@ -513,6 +522,22 @@ const FinancialStatements = () => {
               ))}
             </div>
             <AutoDetails fields={OVERRIDE_FIELDS} details={auto?.details} />
+            {auto?.accounts?.length > 0 && (
+              <div className="fs-accounts">
+                <strong>Bank accounts counted in cash &amp; deposits</strong>
+                <p className="fs-muted">
+                  Tick only the accounts that are on the company&apos;s books (for example, leave out personal or
+                  card accounts). Balances are as of the period end. The cash figure updates after you save.
+                </p>
+                {auto.accounts.map((account) => (
+                  <label className="fs-check" key={account.id}>
+                    <input type="checkbox" checked={selectedAccountIds.includes(account.id)}
+                           onChange={() => toggleAccount(account.id)} />
+                    {account.label} - ¥{yen(account.balance)} ({account.transactions} transactions)
+                  </label>
+                ))}
+              </div>
+            )}
             <label className="fs-check">
               <input type="checkbox" checked={inputs.include_salaries}
                      onChange={(e) => setInput('include_salaries', e.target.checked)} />
