@@ -455,6 +455,10 @@
   font-weight: 800;
 }
 
+.tax-data-table td.amount.total.negative {
+  color: #b91c1c;
+}
+
 /* Total Summary Row */
 .tax-data-table tr.tax-table-total-row {
   background: #f8fafc;

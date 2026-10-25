@@ -174,7 +174,7 @@ function AppContent() {
       title: 'Sales',
       items: [
         { path: '/inovice', label: t.orders, icon: FileText },
-        { path: '/customers', label: 'Customers & Salers', icon: Users },
+        { path: '/customers', label: 'Customers', icon: Users },
         { path: '/auctions', label: 'Auctions', icon: Gavel },
       ],
     },

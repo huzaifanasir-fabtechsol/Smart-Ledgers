@@ -14,6 +14,8 @@ import PageHeader from './PageHeader';
 import { INVOICE_CHECKLIST_FIELDS } from './taxReportFields';
 
 const formatNum = (val) => Number(val || 0).toLocaleString();
+// Sign before the yen mark, so a deduction reads -¥12,100 rather than ¥-12,100.
+const formatYen = (val) => `${Number(val) < 0 ? '-' : ''}¥${formatNum(Math.abs(Number(val || 0)))}`;
 
 const sanitizeCategoryName = (name) => {
   if (!name) return '-';
@@ -105,7 +107,12 @@ const ExpenseDetail = ({ expense }) => {
           </DetailField>
           {expense.restaurant_name && <DetailField label="Restaurant">{expense.restaurant_name}</DetailField>}
           {expense.spare_part_name && <DetailField label="Spare Part">{expense.spare_part_name}</DetailField>}
-          {expense.transaction && <DetailField label="Linked Transaction">#{expense.transaction}</DetailField>}
+          {expense.transaction && (
+            <DetailField label="Linked Transaction">
+              #{expense.transaction.id ?? expense.transaction}
+              {expense.transaction.description ? ` ${expense.transaction.description}` : ''}
+            </DetailField>
+          )}
         </div>
         {expense.description && (
           <div className="tax-detail-notes">
@@ -216,7 +223,7 @@ const InvoiceDetail = ({ order, selectedChecklist }) => {
             <span className="tax-stat-label">Order Total Amount</span>
             <div className="tax-stat-icon"><Receipt size={18} /></div>
           </div>
-          <div className="tax-stat-value" style={{ color: '#047857' }}>¥{formatNum(order.total_amount)}</div>
+          <div className="tax-stat-value" style={{ color: Number(order.total_amount) < 0 ? '#b91c1c' : '#047857' }}>{formatYen(order.total_amount)}</div>
           <div className="tax-stat-subtext"><span>All items, fees and taxes</span></div>
         </div>
       </div>
@@ -287,7 +294,7 @@ const InvoiceDetail = ({ order, selectedChecklist }) => {
                     <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{item.chassis_number || '-'}</td>
                     <td style={{ textAlign: 'center' }}>{item.year || '-'}</td>
                     <td>{item.venue || '-'}</td>
-                    <td className="amount total">¥{formatNum(item.subtotal)}</td>
+                    <td className={`amount total ${Number(item.subtotal) < 0 ? 'negative' : ''}`}>{formatYen(item.subtotal)}</td>
                   </tr>
                 ))
               )}
