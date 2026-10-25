@@ -72,6 +72,7 @@ const PROFILE_FIELDS = [
 const OFFICE_FIELDS = [
   ['prefecture', 'Prefecture', 'text'], ['prefecture_office', 'Prefectural tax office', 'text'],
   ['municipality', 'Municipality', 'text'], ['employees', 'Employees', 'number'], ['months', 'Months (per-capita levy)', 'number'],
+  ['pref_months', 'Months (prefectural levy, if different)', 'number'],
   ['pref_levy', 'Prefectural per-capita levy / yr', 'number'], ['city_levy', 'Municipal per-capita levy / yr', 'number'],
   ['pref_rate', 'Prefectural corporate-tax rate %', 'number'], ['city_rate', 'Municipal corporate-tax rate %', 'number'],
 ];
@@ -84,13 +85,22 @@ const CONSUMPTION_FIELDS = [
   ['nontaxable_sales', 'Non-taxable sales', true],
   ['purchase_incl_10', 'Taxable purchases 10% (tax incl.)', true], ['purchase_incl_8', 'Taxable purchases 8% reduced (tax incl.)', true],
   ['purchase_returns_10', 'Purchase returns 10%'], ['purchase_returns_8', 'Purchase returns 8%'],
-  ['transitional_incl_10', '80% transitional purchases 10% (tax incl.)'], ['transitional_incl_8', '80% transitional purchases 8% (tax incl.)'],
+  ['transitional_incl_10', '80% transitional purchases 10% (tax incl., to 30 Sep 2026)'],
+  ['transitional_incl_8', '80% transitional purchases 8% (tax incl., to 30 Sep 2026)'],
+  ['transitional50_incl_10', '50% transitional purchases 10% (tax incl., from 1 Oct 2026)'],
+  ['transitional50_incl_8', '50% transitional purchases 8% (tax incl., from 1 Oct 2026)'],
   ['interim_paid', 'Interim consumption tax paid'], ['interim_paid_local', 'Interim local consumption tax paid'],
 ];
 const CORPORATE_FIELDS = [
   ['entertainment_expenses', 'Entertainment expenses', true],
   ['entertainment_food', 'Of which business meals'], ['withholding_credit', 'Withholding tax credit'],
   ['interim_paid', 'Interim corporate tax paid'], ['opening_provision', 'Opening provision for taxes'],
+  ['opening_unpaid_corporate', 'Corporate tax unpaid at start of year'],
+  ['opening_unpaid_pref', 'Prefectural tax unpaid at start of year'],
+  ['opening_unpaid_city', 'Municipal tax unpaid at start of year'],
+  ['paid_corporate', 'Corporate tax paid during the year (for earlier years)'],
+  ['paid_pref', 'Prefectural tax paid during the year (for earlier years)'],
+  ['paid_city', 'Municipal tax paid during the year (for earlier years)'],
   ['unpaid_corporate', 'Unpaid corporate tax at year end', true],
   ['unpaid_pref', 'Unpaid prefectural tax at year end', true],
   ['unpaid_city', 'Unpaid municipal tax at year end', true],
@@ -365,7 +375,7 @@ const FinancialStatements = () => {
 
   const saveInputs = () => run(async () => {
     const saved = await readJson(await apiRequest(`/reports/fiscal-years/${yearId}/inputs/`, {
-      method: 'PUT', body: JSON.stringify({ data: inputs }),
+      method: 'PUT', body: JSON.stringify({ data: { ...inputs, offices: toNumbers(inputs.offices || [], OFFICE_FIELDS) } }),
     }));
     setInputs(saved.data);
     await loadAuto();
@@ -546,11 +556,39 @@ const FinancialStatements = () => {
               </div>
             )}
             <label className="fs-check">
+              <input type="checkbox" checked={inputs.app_expenses}
+                     onChange={(e) => setInput('app_expenses', e.target.checked)} />
+              Use the expenses recorded in this app — turn off for a closed year whose expenses come only from the
+              accountant's lines below
+            </label>
+            <label className="fs-check">
               <input type="checkbox" checked={inputs.include_salaries}
                      onChange={(e) => setInput('include_salaries', e.target.checked)} />
               Add payroll (gross pay) as salaries — leave off if salaries are already entered as expenses
             </label>
           </div>
+          {inputs.app_expenses && (auto?.categories || []).length > 0 && (
+            <div className="fs-card">
+              <h3>Expense accounts</h3>
+              <p className="fs-muted">
+                Each expense category is reported under the account named here. The suggested account is shown in grey;
+                type another to change it. Categories given the same account are added together. Review these with your
+                tax accountant.
+              </p>
+              {auto.categories.map((row) => (
+                <div className="fs-line" key={row.name || '(none)'}>
+                  <span style={{ flex: '1 1 14rem' }}>{row.name || '(no category)'} - ¥{yen(row.amount)} ({row.count})</span>
+                  <input className="form-input" placeholder={row.account}
+                         value={inputs.category_accounts?.[row.name] ?? ''}
+                         onChange={(e) => {
+                           const next = { ...(inputs.category_accounts || {}) };
+                           if (e.target.value) next[row.name] = e.target.value; else delete next[row.name];
+                           setInput('category_accounts', next);
+                         }} />
+                </div>
+              ))}
+            </div>
+          )}
           <div className="fs-card">
             <h3>Amounts</h3>
             <div className="fs-grid">
@@ -659,8 +697,13 @@ const FinancialStatements = () => {
                          onChange={(e) => setTax('local', key, Number(e.target.value) || 0)} /></div>
               ))}
             </div>
-            <p className="fs-muted">Offices, per-capita levies and rates are set on the Company tab.</p>
+            <p className="fs-muted">The company's offices, per-capita levies and rates are set on the Company tab.
+              Add offices below only when this year differs (an office opened, closed or moved).</p>
           </div>
+          <RecordList title="Offices for this year only (leave empty to use the company's offices)"
+                      rows={inputs.offices || []} fields={OFFICE_FIELDS}
+                      blank={{ prefecture: '', prefecture_office: '', municipality: '', employees: 1, months: 12 }}
+                      onChange={(rows) => setInput('offices', rows)} />
           <div className="fs-actions">
             <button className="btn-primary" disabled={busy} onClick={saveInputs}><Save size={16} /> Save inputs</button>
           </div>
