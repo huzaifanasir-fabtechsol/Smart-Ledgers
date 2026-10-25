@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { FileSignature } from "lucide-react";
 import { apiRequest, getErrorMessage } from "../api";
 import LetterheadPrinter from "./LetterheadPrinter";
+import LetterheadRecords from "./LetterheadRecords";
 import PageHeader from "./PageHeader";
 import "./ProfileSettings.css";
 
@@ -44,6 +45,8 @@ const LetterheadPage = () => {
       />
 
       <LetterheadPrinter profile={profile} />
+
+      <LetterheadRecords />
 
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
