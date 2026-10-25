@@ -5,7 +5,6 @@ import {
   Receipt,
   FileText,
   Users,
-  UserSquare2,
   Gavel,
   Car,
   Wallet,
@@ -37,8 +36,7 @@ import RevenueManager from './components/RevenueManager';
 import CarCategoryManager from './components/CarCategoryManager';
 import OrderManager from './components/OrderManager';
 import AddOrder from './components/AddOrder';
-import CustomerManager from './components/CustomerManager';
-import SalerManager from './components/SalerManager';
+import ContactsManager from './components/ContactsManager';
 import CompanyAccountManager from './components/CompanyAccountManager';
 import AuctionManager from './components/AuctionManager';
 import CarManager from './components/CarManager';
@@ -175,8 +173,7 @@ function AppContent() {
       title: 'Sales',
       items: [
         { path: '/inovice', label: t.orders, icon: FileText },
-        { path: '/customers', label: 'Customers', icon: Users },
-        { path: '/salers', label: 'Salers', icon: UserSquare2 },
+        { path: '/customers', label: 'Customers & Salers', icon: Users },
         { path: '/auctions', label: 'Auctions', icon: Gavel },
       ],
     },
@@ -239,6 +236,9 @@ function AppContent() {
       location.pathname.startsWith('/invoice') ||
       location.pathname.startsWith('/orders')
     )) {
+      return true;
+    }
+    if (path === '/customers' && location.pathname === '/salers') {
       return true;
     }
     if (path === '/employees' && location.pathname.startsWith('/employees')) {
@@ -409,8 +409,8 @@ function AppContent() {
           <Route path="/invoice/add" element={<Navigate to="/inovice/add" replace />} />
           <Route path="/invoice/edit" element={<Navigate to="/inovice/edit" replace />} />
           <Route path="/categories" element={<CarCategoryManager language={language} />} />
-          <Route path="/customers" element={<CustomerManager />} />
-          <Route path="/salers" element={<SalerManager />} />
+          <Route path="/customers" element={<ContactsManager />} />
+          <Route path="/salers" element={<ContactsManager />} />
           <Route path="/cars" element={<CarManager />} />
           <Route path="/auctions" element={<AuctionManager />} />
           <Route path="/transactions" element={<TransactionManager />} />
