@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate, useLocation, useMatch } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
@@ -22,30 +23,23 @@ import { apiRequest, getErrorMessage, downloadExpenseTaxExcel, downloadInvoiceTa
 import Pagination from './Pagination';
 import YearSelector from './YearSelector';
 import PageHeader from './PageHeader';
+import TaxReportDetail from './TaxReportDetail';
+import { INVOICE_CHECKLIST_FIELDS } from './taxReportFields';
 import './TaxReports.css';
 
-// 14 Fee and Tax fields for Invoices
-const INVOICE_CHECKLIST_FIELDS = [
-  { key: 'vehicle_price', label: 'Vehicle Price', type: 'price' },
-  { key: 'vehicle_price_tax', label: 'Vehicle Price Tax', type: 'tax' },
-  { key: 'recycle_fee', label: 'Recycle Fee', type: 'fee' },
-  { key: 'listing_fee', label: 'Listing Fee', type: 'fee' },
-  { key: 'listing_fee_tax', label: 'Listing Fee Tax', type: 'tax' },
-  { key: 'successful_bid', label: 'Successful Bid', type: 'price' },
-  { key: 'successful_bid_tax', label: 'Successful Bid Tax', type: 'tax' },
-  { key: 'commission_fee', label: 'Commission Fee', type: 'fee' },
-  { key: 'commission_fee_tax', label: 'Commission Fee Tax', type: 'tax' },
-  { key: 'transport_fee', label: 'Transport Fee', type: 'fee' },
-  { key: 'transport_fee_tax', label: 'Transport Fee Tax', type: 'tax' },
-  { key: 'registration_fee', label: 'Registration Fee', type: 'fee' },
-  { key: 'registration_fee_tax', label: 'Registration Fee Tax', type: 'tax' },
-  { key: 'canceling_fee', label: 'Canceling Fee', type: 'fee' },
-];
-
 const TaxReports = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Detail pages live under /tax-reports/:kind/:id so the list state below stays mounted
+  const detailMatch = useMatch('/tax-reports/:kind/:id');
+  const detailKind = ['expense', 'invoice'].includes(detailMatch?.params.kind) ? detailMatch.params.kind : null;
+  const detailId = detailKind ? detailMatch.params.id : null;
+  const listScrollY = useRef(0);
+
   // Modal for Report Type Selection: Expense or Invoice
-  const [showTypeModal, setShowTypeModal] = useState(true);
-  const [reportType, setReportType] = useState(null); // null until chosen, then 'expense' or 'invoice'
+  const [showTypeModal, setShowTypeModal] = useState(!detailKind);
+  // null until chosen, then 'expense' or 'invoice'
+  const [reportType, setReportType] = useState(detailKind);
 
   // Common UI State
   const [exporting, setExporting] = useState(false);
@@ -345,10 +339,11 @@ const TaxReports = () => {
     invoicePaymentMethod,
   ]);
 
-  // Keep the page in range when filters change the row count
+  // Keep the page in range when filters or the checklist change the row count
   useEffect(() => {
     setInvoiceCurrentPage(1);
   }, [
+    selectedChecklist,
     invoiceYear,
     invoiceMonth,
     invoiceDateFrom,
@@ -416,54 +411,72 @@ const TaxReports = () => {
   };
 
   /* -------------------------------------------------------------
-     FLATTEN INVOICE ORDERS FOR TABLE (1 row per order item)
-     If an order has 3 items, all 3 are shown in the table.
+     INVOICE ROWS FOR TABLE (1 row per order)
+     Each fee / tax column is the total across the order's items.
+     Orders whose selected checklist amounts are all 0 are hidden.
   ------------------------------------------------------------- */
-  const flattenedInvoiceItems = useMemo(() => {
-    const list = [];
-    invoiceOrders.forEach((order) => {
+  const invoiceRows = useMemo(() => {
+    const rows = invoiceOrders.map((order) => {
       const od = order.other_details || {};
       const isCash = !order.company_account && (od.payment_method?.toLowerCase() !== 'bank');
-      const paymentMethod = isCash ? 'Cash' : 'Bank';
-      const items = Array.isArray(order.items) && order.items.length > 0 ? order.items : [null];
-
-      items.forEach((item, itemIdx) => {
-        let vehicleText = '-';
-        if (item) {
-          const parts = [];
-          if (item.car_company || item.car_model) {
-            parts.push(`${item.car_company || ''} ${item.car_model || ''}`.trim());
-          }
-          if (item.chassis_number) {
-            parts.push(item.chassis_number);
-          }
-          if (parts.length > 0) {
-            vehicleText = parts.join(' - ');
-          } else if (item.venue) {
-            vehicleText = item.venue;
-          } else if (item.notes) {
-            vehicleText = item.notes;
-          }
-        }
-
-        list.push({
-          uniqueKey: item ? `${order.id}-${item.id || itemIdx}` : `${order.id}-empty-${itemIdx}`,
-          orderId: order.id,
-          orderNumber: order.order_number,
-          transactionDate: order.transaction_date,
-          transactionType: order.transaction_type,
-          transactionCategory: order.transaction_catagory,
-          paymentStatus: order.payment_status,
-          paymentMethod,
-          item,
-          vehicleText,
-          itemIndexInOrder: itemIdx + 1,
-          totalItemsInOrder: items.length,
-        });
+      const items = Array.isArray(order.items) ? order.items : [];
+      const totals = {};
+      INVOICE_CHECKLIST_FIELDS.forEach(({ key }) => {
+        totals[key] = items.reduce((sum, item) => sum + Number(item[key] || 0), 0);
       });
+
+      return {
+        order,
+        orderId: order.id,
+        orderNumber: order.order_number,
+        transactionDate: order.transaction_date,
+        transactionType: order.transaction_type,
+        transactionCategory: order.transaction_catagory,
+        paymentStatus: order.payment_status,
+        paymentMethod: isCash ? 'Cash' : 'Bank',
+        itemCount: items.length,
+        totals,
+      };
     });
-    return list;
-  }, [invoiceOrders]);
+    if (selectedChecklist.length === 0) return rows;
+    return rows.filter((row) => selectedChecklist.some((key) => row.totals[key] !== 0));
+  }, [invoiceOrders, selectedChecklist]);
+
+  const invoiceRowItemCount = useMemo(
+    () => invoiceRows.reduce((sum, row) => sum + row.itemCount, 0),
+    [invoiceRows]
+  );
+
+  /* -------------------------------------------------------------
+     DETAIL PAGE NAVIGATION
+  ------------------------------------------------------------- */
+  const openDetail = (kind, record) => {
+    listScrollY.current = window.scrollY;
+    navigate(`/tax-reports/${kind}/${record.id}`, { state: { record } });
+  };
+
+  const handleBackFromDetail = () => {
+    // 'default' means the detail page was opened directly (no list page in history)
+    if (location.key !== 'default') navigate(-1);
+    else navigate('/tax-reports');
+  };
+
+  useEffect(() => {
+    if (detailKind) {
+      window.scrollTo(0, 0);
+    } else if (listScrollY.current) {
+      const y = listScrollY.current;
+      listScrollY.current = 0;
+      requestAnimationFrame(() => window.scrollTo(0, y));
+    }
+  }, [detailKind, detailId]);
+
+  const handleRowKeyDown = (e, kind, record) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openDetail(kind, record);
+    }
+  };
 
   /* -------------------------------------------------------------
      HELPERS & FORMATTERS
@@ -482,12 +495,28 @@ const TaxReports = () => {
   };
 
   const expenseTotalPages = Math.ceil(expenseTotalCount / expensePageSize) || 1;
-  const invoiceTotalRows = flattenedInvoiceItems.length;
+  const invoiceTotalRows = invoiceRows.length;
   const invoiceTotalPages = Math.ceil(invoiceTotalRows / invoicePageSize) || 1;
-  const pagedInvoiceItems = flattenedInvoiceItems.slice(
+  const pagedInvoiceRows = invoiceRows.slice(
     (invoiceCurrentPage - 1) * invoicePageSize,
     invoiceCurrentPage * invoicePageSize
   );
+
+  if (detailKind) {
+    return (
+      <div className="tax-reports-container">
+        <ToastContainer position="top-right" autoClose={3000} />
+        <TaxReportDetail
+          key={`${detailKind}-${detailId}`}
+          kind={detailKind}
+          id={detailId}
+          initialRecord={location.state?.record || null}
+          selectedChecklist={selectedChecklist}
+          onBack={handleBackFromDetail}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="tax-reports-container">
@@ -859,7 +888,7 @@ const TaxReports = () => {
                     <div className="tax-stat-value">¥{formatNum(amount)}</div>
                     <div className="tax-stat-subtext">
                       <span>{fieldDef.type.toUpperCase()} Item</span>
-                      <span>{invoiceStats.total_orders || 0} orders / {invoiceStats.total_items || 0} items</span>
+                      <span>{invoiceTotalRows} orders / {invoiceRowItemCount} items</span>
                     </div>
                   </div>
                 );
@@ -898,6 +927,7 @@ const TaxReports = () => {
                     <th style={{ width: 45, textAlign: 'center' }}>#</th>
                     <th style={{ width: 105 }}>Date</th>
                     <th style={{ width: 120 }}>Order #</th>
+                    <th style={{ textAlign: 'center', width: 80 }}>Total Items</th>
                     <th style={{ textAlign: 'center', width: 95 }}>Type</th>
                     <th style={{ textAlign: 'center', width: 95 }}>Category</th>
                     <th style={{ textAlign: 'center', width: 110 }}>Payment Status</th>
@@ -917,34 +947,44 @@ const TaxReports = () => {
                   {invoiceLoading ? (
                     <tr>
                       <td
-                        colSpan={7 + Math.max(selectedChecklist.length, 1)}
+                        colSpan={8 + Math.max(selectedChecklist.length, 1)}
                         style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}
                       >
                         Loading invoice tax records...
                       </td>
                     </tr>
-                  ) : flattenedInvoiceItems.length === 0 ? (
+                  ) : invoiceRows.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7 + Math.max(selectedChecklist.length, 1)}
+                        colSpan={8 + Math.max(selectedChecklist.length, 1)}
                         style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}
                       >
-                        No invoice records found matching the specified filters.
+                        {invoiceOrders.length === 0
+                          ? 'No invoice records found matching the specified filters.'
+                          : 'No orders have amounts for the selected checklist items.'}
                       </td>
                     </tr>
                   ) : (
-                    pagedInvoiceItems.map((row, idx) => {
+                    pagedInvoiceRows.map((row, idx) => {
                       const tType = (row.transactionType || '').toLowerCase();
                       const tCat = (row.transactionCategory || '').toLowerCase();
                       const pStatus = (row.paymentStatus || '').toLowerCase();
 
                       return (
-                        <tr key={row.uniqueKey}>
+                        <tr
+                          key={row.orderId}
+                          className="tax-row-clickable"
+                          tabIndex={0}
+                          title="View invoice details"
+                          onClick={() => openDetail('invoice', row.order)}
+                          onKeyDown={(e) => handleRowKeyDown(e, 'invoice', row.order)}
+                        >
                           <td style={{ textAlign: 'center', color: '#94a3b8' }}>
                             {(invoiceCurrentPage - 1) * invoicePageSize + idx + 1}
                           </td>
                           <td style={{ fontWeight: 600 }}>{row.transactionDate}</td>
                           <td style={{ fontWeight: 700, color: '#0f172a' }}>{row.orderNumber}</td>
+                          <td style={{ textAlign: 'center', fontWeight: 700 }}>{row.itemCount}</td>
                           <td style={{ textAlign: 'center' }}>
                             <span className={`invoice-tag type-${tType || 'default'}`}>
                               {(row.transactionType || '-').toUpperCase()}
@@ -967,11 +1007,10 @@ const TaxReports = () => {
                           </td>
                           {/* Dynamic Values for Selected Checklist Items */}
                           {selectedChecklist.map((fieldKey) => {
-                            const val = row.item ? Number(row.item[fieldKey] || 0) : 0;
                             const isTax = fieldKey.includes('tax');
                             return (
                               <td key={fieldKey} className={`amount ${isTax ? 'tax' : ''}`}>
-                                ¥{formatNum(val)}
+                                ¥{formatNum(row.totals[fieldKey])}
                               </td>
                             );
                           })}
@@ -981,11 +1020,13 @@ const TaxReports = () => {
                   )}
 
                   {/* Summary Totals Row */}
-                  {!invoiceLoading && flattenedInvoiceItems.length > 0 && selectedChecklist.length > 0 && (
+                  {!invoiceLoading && invoiceRows.length > 0 && selectedChecklist.length > 0 && (
                     <tr className="tax-table-total-row">
-                      <td colSpan={7} style={{ textAlign: 'right', fontWeight: 800 }}>
-                        Filtered Total – all pages ({invoiceStats.total_orders || 0} orders / {invoiceStats.total_items || 0} items):
+                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 800 }}>
+                        Filtered Total – all pages ({invoiceTotalRows} orders):
                       </td>
+                      <td style={{ textAlign: 'center', fontWeight: 800 }}>{invoiceRowItemCount}</td>
+                      <td colSpan={4}></td>
                       {selectedChecklist.map((fieldKey) => {
                         const totalVal = Number(invoiceStats[fieldKey] || 0);
                         const isTax = fieldKey.includes('tax');
@@ -1349,7 +1390,14 @@ const TaxReports = () => {
                       const taxCat = exp.tax_category || 'exclusive';
 
                       return (
-                        <tr key={exp.id}>
+                        <tr
+                          key={exp.id}
+                          className="tax-row-clickable"
+                          tabIndex={0}
+                          title="View expense details"
+                          onClick={() => openDetail('expense', exp)}
+                          onKeyDown={(e) => handleRowKeyDown(e, 'expense', exp)}
+                        >
                           <td style={{ textAlign: 'center', color: '#94a3b8' }}>
                             {(expenseCurrentPage - 1) * expensePageSize + idx + 1}
                           </td>

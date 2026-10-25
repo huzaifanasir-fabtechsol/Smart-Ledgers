@@ -368,7 +368,7 @@ function AppContent() {
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard language={language} />} />
           <Route path="/expenses" element={<ExpenseManager language={language} />} />
-          <Route path="/tax-reports" element={<TaxReports language={language} />} />
+          <Route path="/tax-reports/*" element={<TaxReports language={language} />} />
           <Route path="/financial-statements" element={<FinancialStatements />} />
           <Route path="/revenue" element={<RevenueManager language={language} />} />
           <Route
