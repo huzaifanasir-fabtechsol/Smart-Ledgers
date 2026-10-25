@@ -9,6 +9,8 @@ import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
+const EMPTY_FORM = { name: '', auction_type: '', description: '' };
+
 const AuctionManager = () => {
   const [auctions, setAuctions] = useState([]);
   const [search, setSearch] = useState('');
@@ -20,7 +22,9 @@ const AuctionManager = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [filterType, setFilterType] = useState('');
+  const [auctionTypes, setAuctionTypes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [stats, setStats] = useState(null);
@@ -28,11 +32,24 @@ const AuctionManager = () => {
 
   useEffect(() => { 
     fetchAuctions(); 
-  }, [search, currentPage, pageSize]);
+  }, [search, filterType, currentPage, pageSize]);
 
   useEffect(() => {
     fetchStats();
+    fetchAuctionTypes();
   }, []);
+
+  const fetchAuctionTypes = async () => {
+    try {
+      const res = await apiRequest('/revenue/auctions/types/');
+      if (res.ok) {
+        const data = await res.json();
+        setAuctionTypes(Array.isArray(data) ? data : []);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const fetchStats = async () => {
     setLoadingStats(true);
@@ -69,7 +86,9 @@ const AuctionManager = () => {
   const fetchAuctions = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest(`/revenue/auctions/?search=${search}&page=${currentPage}&page_size=${pageSize}&pageSize=${pageSize}`);
+      const params = new URLSearchParams({ search, page: currentPage, page_size: pageSize, pageSize });
+      if (filterType) params.append('auction_type', filterType);
+      const response = await apiRequest(`/revenue/auctions/?${params}`);
       const data = await response.json();
       setAuctions(data.results || data);
       setTotalCount(data.count || 0);
@@ -92,10 +111,11 @@ const AuctionManager = () => {
       }
       setShowModal(false);
       setEditingAuction(null);
-      setFormData({ name: '', description: '' });
+      setFormData(EMPTY_FORM);
       setCurrentPage(1);
       fetchAuctions();
       fetchStats();
+      fetchAuctionTypes();
     } catch (error) {
       toast.error('Failed to save auction');
     }
@@ -108,6 +128,7 @@ const AuctionManager = () => {
       setShowDeleteConfirm(null);
       fetchAuctions();
       fetchStats();
+      fetchAuctionTypes();
     } catch (error) {
       toast.error('Failed to delete auction');
     }
@@ -115,7 +136,7 @@ const AuctionManager = () => {
 
   const openEdit = (auction) => {
     setEditingAuction(auction);
-    setFormData(auction);
+    setFormData({ name: auction.name, auction_type: auction.auction_type || '', description: auction.description || '' });
     setShowModal(true);
     setOpenMenuId(null);
   };
@@ -146,7 +167,7 @@ const AuctionManager = () => {
             onClick={() => {
               setShowModal(true);
               setEditingAuction(null);
-              setFormData({ name: '', description: '' });
+              setFormData(EMPTY_FORM);
             }}
           >
             <Plus size={16} /> Add Auction
@@ -192,6 +213,12 @@ const AuctionManager = () => {
       <div className="table-section">
         <div className="filters">
           <input type="text" placeholder="Search auctions..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="filter-input" />
+          <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }} className="filter-select">
+            <option value="">All Auction Types</option>
+            {auctionTypes.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
         </div>
 
         <div className="table-container">
@@ -200,6 +227,7 @@ const AuctionManager = () => {
               <tr>
                 <th>Sr</th>
                 <th>Name</th>
+                <th>Auction Type</th>
                 <th>Description</th>
                 <th style={{width: '60px'}}>Actions</th>
               </tr>
@@ -207,7 +235,7 @@ const AuctionManager = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="4">
+                  <td colSpan="5">
                     <div className="table-loader-container">
                       <div className="spinner"></div>
                       <span>Loading auctions...</span>
@@ -216,7 +244,7 @@ const AuctionManager = () => {
                 </tr>
               ) : auctions.length === 0 ? (
                 <tr>
-                  <td colSpan="4" style={{ textAlign: 'center' }}>
+                  <td colSpan="5" style={{ textAlign: 'center' }}>
                     No auctions found
                   </td>
                 </tr>
@@ -225,6 +253,13 @@ const AuctionManager = () => {
                   <tr key={a.id}>
                     <td>{(currentPage - 1) * pageSize + index + 1}</td>
                     <td>{a.name}</td>
+                    <td>
+                      {a.auction_type ? (
+                        <span className="badge badge-role">{a.auction_type}</span>
+                      ) : (
+                        <span style={{ color: 'var(--muted-foreground)' }}>-</span>
+                      )}
+                    </td>
                     <td>{a.description}</td>
                     <td>
                       <button className={`btn-menu ${openMenuId === a.id ? 'active' : ''}`} onClick={(e) => handleMenuClick(e, a.id)}>⋮</button>
@@ -275,6 +310,23 @@ const AuctionManager = () => {
               <div className="form-group">
                 <label>Name</label>
                 <input type="text" className="form-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label>Auction Type</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  list="auction-type-options"
+                  placeholder="e.g. USS, Online, Tender"
+                  maxLength={100}
+                  value={formData.auction_type}
+                  onChange={(e) => setFormData({...formData, auction_type: e.target.value})}
+                />
+                <datalist id="auction-type-options">
+                  {auctionTypes.map((type) => (
+                    <option key={type} value={type} />
+                  ))}
+                </datalist>
               </div>
               <div className="form-group">
                 <label>Description</label>

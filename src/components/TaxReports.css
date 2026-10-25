@@ -1140,3 +1140,53 @@
 .tax-breakdown-table tr.is-selected td:first-child {
   box-shadow: inset 3px 0 0 #0284c7;
 }
+
+/* =============================================================
+   DUPLICATE EXPENSES PAGE
+============================================================= */
+.tax-duplicates-filter-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.84rem;
+  color: #334155;
+}
+
+.tax-duplicates-filter-note svg {
+  color: #2563eb;
+}
+
+.tax-duplicates-filter-note .btn-filter-reset {
+  margin-left: auto;
+}
+
+.tax-duplicates-summary {
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.btn-duplicate-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 7px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-duplicate-delete:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.btn-duplicate-delete:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

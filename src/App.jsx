@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ExpenseManager from './components/ExpenseManager';
+import ExpenseDuplicates from './components/ExpenseDuplicates';
 import TaxReports from './components/TaxReports';
 import FinancialStatements from './components/FinancialStatements';
 import DataExport from './components/DataExport';
@@ -228,6 +229,9 @@ function AppContent() {
   ];
 
   const isActive = (path) => {
+    if (path === '/expenses' && location.pathname.startsWith('/expenses')) {
+      return true;
+    }
     if (path === '/tax-reports' && location.pathname.startsWith('/tax-reports')) {
       return true;
     }
@@ -368,6 +372,7 @@ function AppContent() {
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard language={language} />} />
           <Route path="/expenses" element={<ExpenseManager language={language} />} />
+          <Route path="/expenses/duplicates" element={<ExpenseDuplicates />} />
           <Route path="/tax-reports/*" element={<TaxReports language={language} />} />
           <Route path="/financial-statements" element={<FinancialStatements />} />
           <Route path="/revenue" element={<RevenueManager language={language} />} />

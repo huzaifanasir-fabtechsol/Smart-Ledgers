@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Receipt, Wallet, BadgeDollarSign, Landmark, Plus } from 'lucide-react';
+import { Receipt, Wallet, BadgeDollarSign, Landmark, Plus, Copy } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
 import { jsPDF } from 'jspdf';
@@ -90,6 +91,7 @@ const useDebounce = (value, delay) => {
 
 const ExpenseManager = ({ language = 'en' }) => {
   const t = translations[language];
+  const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
@@ -406,19 +408,24 @@ const ExpenseManager = ({ language = 'en' }) => {
     }
   };
 
+  const buildStatsParams = () => {
+    const params = new URLSearchParams();
+    if (filterCategory) params.append('category', filterCategory);
+    if (filterDate) params.append('date', filterDate);
+    if (filterDateFrom) params.append('date_from', filterDateFrom);
+    if (filterDateTo) params.append('date_to', filterDateTo);
+    if (filterMonth) params.append('month', filterMonth);
+    if (filterYear) params.append('year', filterYear);
+    if (filterCash) params.append('is_cash', filterCash);
+    if (filterTaxCategory) params.append('tax_category', filterTaxCategory);
+    if (searchText) params.append('search', searchText);
+    return params;
+  };
+
   const fetchExpenseStats = async () => {
     setLoadingStats(true);
     try {
-      const params = new URLSearchParams();
-      if (filterCategory) params.append('category', filterCategory);
-      if (filterDate) params.append('date', filterDate);
-      if (filterDateFrom) params.append('date_from', filterDateFrom);
-      if (filterDateTo) params.append('date_to', filterDateTo);
-      if (filterMonth) params.append('month', filterMonth);
-      if (filterYear) params.append('year', filterYear);
-      if (filterCash) params.append('is_cash', filterCash);
-      if (filterTaxCategory) params.append('tax_category', filterTaxCategory);
-      if (searchText) params.append('search', searchText);
+      const params = buildStatsParams();
 
       const response = await apiRequest(`/expenses/stats/?${params}`);
       if (response.ok) {
@@ -1063,6 +1070,19 @@ const ExpenseManager = ({ language = 'en' }) => {
             color: 'purple',
             isCurrency: true,
             subtext: `Bank: ¥${Number(stats?.bank_total || 0).toLocaleString()}`,
+          },
+          {
+            label: 'Duplicate Expenses',
+            value: stats?.duplicate_count ?? 0,
+            icon: Copy,
+            color: 'rose',
+            subtext: stats?.duplicate_count
+              ? `${stats.duplicate_group_count} groups · click to review`
+              : 'No identical expenses',
+            onClick: () => {
+              const params = buildStatsParams().toString();
+              navigate(`/expenses/duplicates${params ? `?${params}` : ''}`);
+            },
           },
         ]}
       />

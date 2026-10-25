@@ -186,6 +186,15 @@
   transition: transform 0.2s ease;
 }
 
+.stat-card-item.clickable {
+  cursor: pointer;
+}
+
+.stat-card-item.clickable:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .stat-card-item:hover .stat-icon-wrapper {
   transform: scale(1.08);
 }

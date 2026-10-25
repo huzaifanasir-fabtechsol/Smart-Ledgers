@@ -41,8 +41,21 @@ const StatCards = ({ items = [], loading = false }) => {
       {items.map((stat, idx) => {
         const Icon = stat.icon;
         const colorClass = stat.color ? `stat-icon-${stat.color}` : 'stat-icon-blue';
+        const clickProps = stat.onClick
+          ? {
+              role: 'button',
+              tabIndex: 0,
+              onClick: stat.onClick,
+              onKeyDown: (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  stat.onClick();
+                }
+              },
+            }
+          : {};
         return (
-          <div key={idx} className="stat-card-item">
+          <div key={idx} className={`stat-card-item ${stat.onClick ? 'clickable' : ''}`} {...clickProps}>
             <div className="stat-card-content">
               <span className="stat-card-label">{stat.label}</span>
               <span className="stat-card-value">
