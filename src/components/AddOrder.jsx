@@ -30,6 +30,8 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactionSearch, setTransactionSearch] = useState('');
   const [transactionDate, setTransactionDate] = useState('');
+  // Set once the user changes the invoice date; then that day's transactions are listed automatically
+  const [txAutoSearch, setTxAutoSearch] = useState(false);
   const [auctions, setAuctions] = useState([]);
   const [cars, setCars] = useState([]);
   const [filteredCars, setFilteredCars] = useState([]);
@@ -503,13 +505,14 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
     }
   }, [editingOrder, loadOrderData]);
 
-  const fetchTransactions = async (accountId) => {
-    if (!accountId) return;
+  const fetchTransactions = async (accountId, { search = transactionSearch, date = transactionDate } = {}) => {
+    if (!accountId && !date) return;
     setLoadingTransactions(true);
     try {
-      const params = new URLSearchParams({ account_id: accountId });
-      if (transactionSearch) params.append('search', transactionSearch);
-      if (transactionDate) params.append('date', transactionDate);
+      const params = new URLSearchParams();
+      if (accountId) params.append('account_id', accountId);
+      if (search) params.append('search', search);
+      if (date) params.append('date', date);
       
       const response = await apiRequest(`/expenses/available_transactions/?${params}`);
       if (!response.ok) throw new Error('Failed to load transactions');
@@ -729,7 +732,16 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
             <label>{t.date}</label>
             <DateInput 
               value={formData.transaction_date} 
-              onChange={(e) => setFormData({...formData, transaction_date: e.target.value})} 
+              onChange={(e) => {
+                const nextDate = e.target.value;
+                if (nextDate === formData.transaction_date) return;
+                setFormData({...formData, transaction_date: nextDate});
+                if (nextDate && !selectedTransaction) {
+                  setTxAutoSearch(true);
+                  setTransactionDate(nextDate);
+                  fetchTransactions(formData.company_account_id, { search: '', date: nextDate });
+                }
+              }} 
               readOnly={selectedTransaction && selectedTransaction.id}
               style={selectedTransaction && selectedTransaction.id ? {backgroundColor: '#f3f4f6', cursor: 'not-allowed'} : {}}
             />
@@ -756,8 +768,12 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
               if (accountId) {
                 fetchTransactions(accountId);
               } else {
-                setTransactions([]);
                 setSelectedTransaction(null);
+                if (txAutoSearch) {
+                  fetchTransactions(null);
+                } else {
+                  setTransactions([]);
+                }
               }
             }}
           >
@@ -796,7 +812,7 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
           </div>
         )}
 
-        {formData.company_account_id && !selectedTransaction && (
+        {(formData.company_account_id || txAutoSearch) && !selectedTransaction && (
           <div style={{marginBottom: '1.5rem'}}>
             <h4 style={{marginBottom: '1rem', fontSize: '0.95rem', fontWeight: '700'}}>Select Transaction (Optional)</h4>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
@@ -865,6 +881,9 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                     key={t.id}
                     onClick={() => {
                       setSelectedTransaction(t);
+                      if (!formData.company_account_id) {
+                        setFormData(prev => ({ ...prev, company_account_id: t.company_account }));
+                      }
                       const totalAmount = formData.items.reduce((sum, item) => sum + getItemTotal(item), 0);
                       if (totalAmount === 0) {
                         setFormData(prev => ({ ...prev, transaction_date: t.date }));
@@ -888,6 +907,9 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
                   >
                     <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--foreground)', marginBottom: '0.35rem' }}>
                       📅 {t.date}
+                      {!formData.company_account_id && t.company_account_name && (
+                        <span style={{ marginLeft: '0.6rem', fontWeight: 500, fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>🏦 {t.company_account_name}</span>
+                      )}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.4rem' }}>
                       <div style={{ padding: '0.3rem 0.5rem', borderRadius: '6px', background: Number(t.deposit) > 0 ? '#ecfdf5' : 'var(--secondary)', border: Number(t.deposit) > 0 ? '1px solid #a7f3d0' : '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -121,6 +121,10 @@ const ExpenseManager = ({ language = 'en' }) => {
   const [txTypeFilter, setTxTypeFilter] = useState('all');
   const [companyAccounts, setCompanyAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
+  // Set once the user edits the expense date/amount; then matching transactions are looked up automatically
+  const [txAutoSearch, setTxAutoSearch] = useState(false);
+  const txRequestRef = useRef(0);
+  const [txMatchedAmounts, setTxMatchedAmounts] = useState([]);
 
   const displayedTransactions = useMemo(() => {
     if (txTypeFilter === 'withdraw') {
@@ -509,25 +513,52 @@ const ExpenseManager = ({ language = 'en' }) => {
     return Boolean(category?.name && category.name.trim().toUpperCase() === 'SPARE PARTS');
   };
 
-  const fetchTransactions = async (accountId) => {
-    if (!accountId) return;
+  const fetchTransactions = async (accountId, { search = transactionSearch, date = transactionDate, amounts = [] } = {}) => {
+    if (!accountId && !date) return;
+    const requestId = ++txRequestRef.current;
     setLoadingTransactions(true);
     try {
-      const params = new URLSearchParams({ account_id: accountId });
-      if (transactionSearch) params.append('search', transactionSearch);
-      if (transactionDate) params.append('date', transactionDate);
+      const params = new URLSearchParams();
+      if (accountId) params.append('account_id', accountId);
+      if (search) params.append('search', search);
+      if (date) params.append('date', date);
+      amounts.forEach((amount) => params.append('amount', amount));
 
       const response = await apiRequest(`/expenses/available_transactions/?${params}`);
       if (!response.ok) throw new Error('Failed to load transactions');
       const data = await response.json();
+      if (requestId !== txRequestRef.current) return;
       setTransactions(Array.isArray(data) ? data : []);
+      setTxMatchedAmounts(amounts);
     } catch (error) {
+      if (requestId !== txRequestRef.current) return;
       toast.error(error.message || 'Failed to load transactions');
       setTransactions([]);
+      setTxMatchedAmounts([]);
     } finally {
-      setLoadingTransactions(false);
+      if (requestId === txRequestRef.current) setLoadingTransactions(false);
     }
   };
+
+  // Amounts a bank transaction could show for this expense: the entered amount and, with exclusive tax, the total
+  const autoMatchAmounts = useMemo(() => {
+    const entered = parseFloat(expenseForm.amount);
+    if (isNaN(entered) || entered <= 0) return [];
+    const total = taxSettlement?.totalAmount;
+    return total && total !== entered ? [entered, total] : [entered];
+  }, [expenseForm.amount, taxSettlement?.totalAmount]);
+  const autoMatchKey = autoMatchAmounts.join(',');
+
+  useEffect(() => {
+    if (!showExpenseModal || !txAutoSearch || selectedTransaction?.id || !expenseForm.date) return undefined;
+    const timer = setTimeout(() => {
+      setTransactionDate(expenseForm.date);
+      fetchTransactions(selectedAccount, { search: '', date: expenseForm.date, amounts: autoMatchAmounts });
+    }, 400);
+    return () => clearTimeout(timer);
+    // fetchTransactions is recreated every render; the inputs that matter are listed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showExpenseModal, txAutoSearch, selectedTransaction, selectedAccount, expenseForm.date, autoMatchKey]);
 
   const openCreateCategoryModal = () => {
     setEditingCategory(null);
@@ -560,6 +591,10 @@ const ExpenseManager = ({ language = 'en' }) => {
     setSelectedRestaurant(null);
     setSelectedSparePart(null);
     setTransactions([]);
+    setTransactionSearch('');
+    setTransactionDate('');
+    setTxAutoSearch(false);
+    setTxMatchedAmounts([]);
     setTxTypeFilter('all');
     setShowExpenseModal(true);
   };
@@ -608,6 +643,8 @@ const ExpenseManager = ({ language = 'en' }) => {
       tax_percent_used: expense.tax_percent_used != null ? String(expense.tax_percent_used) : '',
     });
     setTxTypeFilter('all');
+    setTxAutoSearch(false);
+    setTxMatchedAmounts([]);
     if (expense.transaction) {
       setSelectedTransaction(expense.transaction);
       setSelectedAccount(expense.transaction.company_account);
@@ -1560,7 +1597,10 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <input
                     type="number"
                     value={expenseForm.amount}
-                    onChange={(e) => setExpenseForm((prev) => ({ ...prev, amount: e.target.value }))}
+                    onChange={(e) => {
+                      setExpenseForm((prev) => ({ ...prev, amount: e.target.value }));
+                      setTxAutoSearch(true);
+                    }}
                     placeholder={t.amountPlaceholder}
                     step="0.01"
                     min="0"
@@ -1591,7 +1631,10 @@ const ExpenseManager = ({ language = 'en' }) => {
                   <label>{t.date}</label>
                   <DateInput
                     value={expenseForm.date}
-                    onChange={(e) => setExpenseForm((prev) => ({ ...prev, date: e.target.value }))}
+                    onChange={(e) => {
+                      setExpenseForm((prev) => ({ ...prev, date: e.target.value }));
+                      setTxAutoSearch(true);
+                    }}
                     required
                     readOnly={selectedTransaction && selectedTransaction.id}
                     style={selectedTransaction && selectedTransaction.id ? { backgroundColor: '#f3f4f6', cursor: 'not-allowed' } : {}}
@@ -2084,7 +2127,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                   </select>
                 </div>
 
-                {selectedAccount && (
+                {(selectedAccount || (txAutoSearch && expenseForm.date)) && (
                   <>
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
                       <div style={{ flex: '1 1 200px', minWidth: '160px', position: 'relative' }}>
@@ -2217,6 +2260,12 @@ const ExpenseManager = ({ language = 'en' }) => {
                       </span>
                     </div>
 
+                    {txMatchedAmounts.length > 0 && (
+                      <div style={{ fontSize: '0.75rem', marginBottom: '0.5rem', color: 'var(--muted-foreground)' }}>
+                        🔎 Showing transactions on <strong>{transactionDate}</strong> for {txMatchedAmounts.map((a) => `¥${Number(a).toLocaleString()}`).join(' or ')}. Press Search to see every transaction on this date.
+                      </div>
+                    )}
+
                     {loadingTransactions ? (
                       <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Loading transactions...</div>
                     ) : (
@@ -2231,6 +2280,7 @@ const ExpenseManager = ({ language = 'en' }) => {
                               key={t.id}
                               onClick={() => {
                                 setSelectedTransaction(t);
+                                if (!selectedAccount) setSelectedAccount(t.company_account);
                                 const chosenAmount = hasWithdraw ? t.withdraw : (hasDeposit ? t.deposit : (t.withdraw || t.deposit || ''));
                                 setExpenseForm(prev => ({ ...prev, amount: chosenAmount, date: t.date }));
                               }}
@@ -2258,6 +2308,9 @@ const ExpenseManager = ({ language = 'en' }) => {
                             >
                               <div style={{ fontSize: '0.85rem', fontWeight: 600, color: isSelected ? 'currentColor' : 'var(--foreground)', marginBottom: '0.35rem' }}>
                                 📅 {t.date}
+                                {!selectedAccount && t.company_account_name && (
+                                  <span style={{ marginLeft: '0.6rem', fontWeight: 500, fontSize: '0.75rem', color: isSelected ? 'currentColor' : 'var(--muted-foreground)' }}>🏦 {t.company_account_name}</span>
+                                )}
                               </div>
 
                               {/* Both Deposit & Withdraw amounts */}
