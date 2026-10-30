@@ -131,9 +131,12 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 0.75rem;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  /* Lets .stat-card-value scale with the card's own width */
+  container-type: inline-size;
 }
 
 .stat-card-item:hover {
@@ -145,6 +148,7 @@
 .stat-card-content {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -158,7 +162,10 @@
 }
 
 .stat-card-value {
-  font-size: 1.65rem;
+  /* Shrinks so long amounts like ¥14,415,811.18 stay clear of the icon */
+  font-size: clamp(1.1rem, calc(11cqi - 0.6rem), 1.65rem);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
   font-weight: 800;
   color: var(--ink);
   letter-spacing: -0.03em;

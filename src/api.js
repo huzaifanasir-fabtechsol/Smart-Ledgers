@@ -98,6 +98,14 @@ export const downloadFinancialStatementsPdf = async (
   return downloadFile(`/reports/fiscal-years/${fiscalYearId}/pdf/?${query}`, filename);
 };
 
+export const downloadFinancialStatementsXlsx = async (
+  fiscalYearId, termNo, { parts = ['kessan'], lang = 'en', mode = 'full' } = {},
+) => {
+  const filename = `Financial_Statements_Term${termNo}_${lang}_${mode}.xlsx`;
+  const query = `parts=${parts.join(',')}&lang=${lang}&mode=${mode}`;
+  return downloadFile(`/reports/fiscal-years/${fiscalYearId}/xlsx/?${query}`, filename);
+};
+
 export const downloadExpenseTaxExcel = async (params = '') => {
   const queryStr = params ? (params.startsWith('?') ? params : `?${params}`) : '';
   const filename = `Expense_Tax_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;

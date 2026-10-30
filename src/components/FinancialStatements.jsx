@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FileText, Plus, Trash2, Download, RefreshCw, Save } from 'lucide-react';
-import { apiRequest, getErrorMessage, downloadFinancialStatementsPdf } from '../api';
+import { FileText, FileSpreadsheet, Plus, Trash2, Download, RefreshCw, Save } from 'lucide-react';
+import { apiRequest, getErrorMessage, downloadFinancialStatementsPdf, downloadFinancialStatementsXlsx } from '../api';
 import PageHeader from './PageHeader';
 import './FinancialStatements.css';
 
@@ -409,9 +409,10 @@ const FinancialStatements = () => {
     if (tab === 'preview' && yearId) loadPreview();
   }, [tab, yearId, loadPreview]);
 
-  const download = (lang) => run(
-    () => downloadFinancialStatementsPdf(year.id, year.term_no, { parts, lang, mode }),
-    lang === 'en' ? 'English PDF downloaded' : 'Japanese PDF downloaded',
+  const download = (lang, format = 'pdf') => run(
+    () => (format === 'xlsx' ? downloadFinancialStatementsXlsx : downloadFinancialStatementsPdf)(
+      year.id, year.term_no, { parts, lang, mode }),
+    `${lang === 'en' ? 'English' : 'Japanese'} ${format === 'xlsx' ? 'Excel' : 'PDF'} downloaded`,
   );
 
   const togglePart = (key) => setParts((current) => (
@@ -797,9 +798,9 @@ const FinancialStatements = () => {
           )}
           <div className="fs-card">
             <div className="fs-card-head">
-              <h3>Download PDF</h3>
+              <h3>Download PDF / Excel</h3>
             </div>
-            <p className="fs-muted">Each language is a separate file. Save your inputs first — unsaved changes are not included.</p>
+            <p className="fs-muted">Each language is a separate file. Excel has one sheet per form with amounts as numbers. Save your inputs first — unsaved changes are not included.</p>
             <div className="fs-options">
               <div>
                 <strong>Style</strong>
@@ -822,6 +823,12 @@ const FinancialStatements = () => {
               </button>
               <button className="btn-primary" disabled={busy || parts.length === 0} onClick={() => download('ja')}>
                 <Download size={16} /> Japanese PDF
+              </button>
+              <button className="btn-secondary" disabled={busy || parts.length === 0} onClick={() => download('en', 'xlsx')}>
+                <FileSpreadsheet size={16} /> English Excel
+              </button>
+              <button className="btn-secondary" disabled={busy || parts.length === 0} onClick={() => download('ja', 'xlsx')}>
+                <FileSpreadsheet size={16} /> Japanese Excel
               </button>
             </div>
           </div>
