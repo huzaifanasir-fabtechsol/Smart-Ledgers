@@ -7,7 +7,7 @@ const SEEN_JOB_KEY = 'expenseImportSeenJobId';
 const POLL_INTERVAL_MS = 1500;
 
 const COLUMNS = [
-  'Date', 'Transaction ID', 'Withdraw Amount', 'Deposit Amount', 'Description',
+  'Date', 'Transaction ID', 'Withdraw Amount', 'Deposit Amount', 'Balance', 'Description',
   'Notes', 'Title', 'Category', 'Tax Way', 'Tax Rate',
 ];
 
@@ -409,6 +409,7 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
         <div style={{ marginBottom: '0.5rem' }}>{COLUMNS.join(' · ')}</div>
         <ul style={{ margin: '0 0 0.5rem', paddingLeft: '1.1rem' }}>
           <li>Each row needs either a Withdraw Amount or a Deposit Amount, not both.</li>
+          <li>Balance is the account balance after the row, as shown on the bank statement. It is saved as-is.</li>
           <li>Withdraw rows create a transaction and an expense. Tax Way is Inclusive or Exclusive.</li>
           <li>Deposit rows create a transaction only; Title, Category and tax columns may be left blank.</li>
           <li>The whole file is checked first. If any row is wrong, nothing is imported.</li>

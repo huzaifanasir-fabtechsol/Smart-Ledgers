@@ -43,6 +43,7 @@ const TransactionManager = () => {
     transaction_id: '',
     withdraw: '',
     deposit: '',
+    balance: '',
     description: '',
     notes: '',
     company_account: ''
@@ -140,6 +141,7 @@ const TransactionManager = () => {
       transaction_id: '',
       withdraw: '',
       deposit: '',
+      balance: '',
       description: '',
       notes: '',
       company_account: ''
@@ -154,6 +156,7 @@ const TransactionManager = () => {
       transaction_id: transaction.transaction_id || '',
       withdraw: transaction.withdraw || '',
       deposit: transaction.deposit || '',
+      balance: transaction.balance ?? '',
       description: transaction.description || '',
       notes: transaction.notes || '',
       company_account: transaction.company_account || ''
@@ -173,6 +176,10 @@ const TransactionManager = () => {
       toast.error('Company account is required');
       return;
     }
+    if (formData.balance === '' || formData.balance === null) {
+      toast.error('Balance is required');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -186,7 +193,8 @@ const TransactionManager = () => {
         body: JSON.stringify({
           ...formData,
           withdraw: formData.withdraw ? parseFloat(formData.withdraw) : 0,
-          deposit: formData.deposit ? parseFloat(formData.deposit) : 0
+          deposit: formData.deposit ? parseFloat(formData.deposit) : 0,
+          balance: parseFloat(formData.balance)
         })
       });
 
@@ -216,9 +224,9 @@ const TransactionManager = () => {
   };
 
   const handleDownloadSampleTemplate = () => {
-    const csvContent = "date,transection id,withdraw amount,depostie amount,description,notes\n" +
-      "2026-08-01,TXN-1001,500.00,0.00,Office Supplies,Purchased printer paper & ink\n" +
-      "2026-08-02,TXN-1002,0.00,1500.00,Client Payment,Services rendered for July";
+    const csvContent = "date,transection id,withdraw amount,depostie amount,balance,description,notes\n" +
+      "2026-08-01,TXN-1001,500.00,0.00,9500.00,Office Supplies,Purchased printer paper & ink\n" +
+      "2026-08-02,TXN-1002,0.00,1500.00,11000.00,Client Payment,Services rendered for July";
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -551,6 +559,19 @@ const TransactionManager = () => {
               </div>
 
               <div className="form-group">
+                <label>Balance <span style={{ color: 'red' }}>*</span></label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="form-input"
+                  value={formData.balance}
+                  onChange={(e) => setFormData({...formData, balance: e.target.value})}
+                  placeholder="Account balance after this transaction"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
                 <label>Description</label>
                 <input
                   type="text"
@@ -602,6 +623,7 @@ const TransactionManager = () => {
                   <span>🔢 <b>transection id</b></span>
                   <span>💸 <b>withdraw amount</b></span>
                   <span>💰 <b>depostie amount</b></span>
+                  <span>🏦 <b>balance</b> (Required)</span>
                   <span>📝 <b>description</b> (Required)</span>
                   <span>📌 <b>notes</b></span>
                 </div>
