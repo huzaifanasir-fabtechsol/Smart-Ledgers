@@ -133,24 +133,36 @@
 
 .receipt-items table {
   width: 100%;
-  margin: 25px 0;
-  border-collapse: collapse;
+  margin: 20px 0;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .receipt-items th {
   text-align: left;
-  padding: 12px 8px;
-  border-bottom: 2px solid var(--ink);
-  font-size: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--muted-foreground);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  background: var(--secondary);
+}
+
+.receipt-items th:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.receipt-items th:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .receipt-items td {
-  padding: 12px 8px;
-  font-size: 13px;
+  padding: 12px;
+  font-size: 13.5px;
   color: var(--foreground);
   border-bottom: 1px solid var(--border);
 }

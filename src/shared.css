@@ -85,85 +85,107 @@
   box-shadow: 0 0 0 4px oklch(0.93 0.18 125 / 0.25);
 }
 
-/* Table Styles - Enhanced with Column Borders & Premium Layout */
+/* Table Styles - Modern High-End SaaS UI (Stripe / Linear / Mercury aesthetic) */
 .table-container {
   overflow-x: auto;
-  border-radius: 18px;
+  border-radius: 20px;
   border: 1px solid var(--border);
   min-height: 320px;
   background: var(--card);
-  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 12px -2px rgba(18, 18, 22, 0.04), 0 8px 24px -4px rgba(18, 18, 22, 0.03);
   position: relative;
   scrollbar-width: thin;
 }
 
-table {
+table,
+.data-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  font-family: var(--font-sans);
 }
 
 thead {
-  background: var(--table-header-bg, linear-gradient(135deg, var(--color-ink) 0%, oklch(0.26 0.01 270) 100%));
+  background: var(--table-header-bg, oklch(0.975 0.003 250));
   position: sticky;
   top: 0;
   z-index: 2;
+  box-shadow: 0 1px 0 var(--border);
 }
 
 th {
-  padding: 1rem 1.25rem;
+  padding: 0.95rem 1.25rem;
   text-align: left;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.74rem;
+  color: var(--table-header-color, oklch(0.40 0.015 260));
+  font-size: 0.73rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  border-right: 1px solid var(--table-header-border, rgba(255, 255, 255, 0.14));
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+  border-right: none !important;
+  border-left: none !important;
   white-space: nowrap;
   background: inherit;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease;
+  user-select: none;
 }
 
 th:last-child {
-  border-right: none;
+  border-right: none !important;
 }
 
 thead tr:first-child th:first-child {
-  border-top-left-radius: 16px;
+  border-top-left-radius: 19px;
 }
 
 thead tr:first-child th:last-child {
-  border-top-right-radius: 16px;
+  border-top-right-radius: 19px;
+}
+
+/* Optional Dark Header Modifier */
+table.table-dark thead,
+thead.table-header-dark {
+  background: linear-gradient(135deg, var(--color-ink) 0%, oklch(0.24 0.01 270) 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+table.table-dark th,
+thead.table-header-dark th {
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: none !important;
 }
 
 /* First Column (Serial Number / Index) */
 th:first-child,
 td:first-child {
   text-align: center;
-  width: 70px;
-  min-width: 58px;
+  width: 68px;
+  min-width: 54px;
 }
 
 td:first-child {
   font-weight: 600;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
 }
 
 td {
-  padding: 0.95rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  border-right: 1px solid var(--table-border, oklch(0.90 0.006 250));
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--table-border-subtle, oklch(0.94 0.004 250));
+  border-right: none !important;
+  border-left: none !important;
   color: var(--foreground);
   font-size: 0.875rem;
+  line-height: 1.45;
   vertical-align: middle;
-  background-color: transparent;
-  transition: background 0.15s ease;
+  background-color: var(--card);
+  transition: background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 td:last-child {
-  border-right: none;
+  border-right: none !important;
 }
 
 td[colspan] {
@@ -171,34 +193,27 @@ td[colspan] {
 }
 
 tbody tr {
-  transition: background 0.18s ease;
-}
-
-/* Zebra striping applied per-cell to cooperate with separate borders */
-tbody tr:nth-child(even) td {
-  background: var(--table-row-zebra, oklch(0.988 0.002 250));
-}
-
-tbody tr:nth-child(odd) td {
+  transition: background-color 0.18s ease;
   background: var(--card);
 }
 
+/* Smooth row hover with subtle brand glow - NO harsh alternating xlsx zebra */
 tbody tr:hover td {
-  background: var(--table-row-hover, oklch(0.965 0.015 130 / 0.55)) !important;
+  background: var(--table-row-hover, oklch(0.972 0.012 130 / 0.5)) !important;
   cursor: default;
 }
 
-/* Highlighted rows */
+/* Highlighted rows - modern warm gold glow instead of raw excel yellow */
 tbody tr.row-highlighted td {
-  background: #fffbe6;
+  background: oklch(0.985 0.025 85 / 0.7) !important;
 }
 
 tbody tr.row-highlighted td:first-child {
-  box-shadow: inset 3px 0 0 #f5b301;
+  box-shadow: inset 4px 0 0 oklch(0.78 0.16 80);
 }
 
 tbody tr.row-highlighted:hover td {
-  background: #fff3c4 !important;
+  background: oklch(0.975 0.035 85 / 0.88) !important;
 }
 
 tbody tr:last-child td {
@@ -206,11 +221,11 @@ tbody tr:last-child td {
 }
 
 tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 16px;
+  border-bottom-left-radius: 19px;
 }
 
 tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 16px;
+  border-bottom-right-radius: 19px;
 }
 
 .amount-cell {
@@ -218,12 +233,15 @@ tbody tr:last-child td:last-child {
   color: var(--ink);
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  font-size: 0.925rem;
 }
 
 /* Clickable rows */
-tbody tr[style*="cursor: pointer"]:hover td {
-  background: oklch(0.95 0.018 130 / 0.6) !important;
+tbody tr[style*="cursor: pointer"]:hover td,
+tbody tr.table-row-hover:hover td {
+  background: oklch(0.965 0.02 130 / 0.6) !important;
+  cursor: pointer;
 }
 
 /* Buttons */

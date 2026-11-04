@@ -236,47 +236,71 @@
   color: var(--ink);
 }
 
-/* Tables */
+/* Tables - Modern SaaS Breakdown (No XLSX Cell Borders) */
 .report-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   margin-bottom: 2rem;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+
+.report-table thead {
+  background: var(--secondary);
 }
 
 .report-table th {
   background: var(--secondary);
-  padding: 0.85rem 1rem;
-  font-size: 0.75rem;
+  padding: 0.95rem 1.15rem;
+  font-size: 0.73rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.055em;
   color: var(--muted-foreground);
   border-bottom: 1px solid var(--border);
-  border-right: 1px solid var(--border);
+  border-right: none !important;
+  border-left: none !important;
+  white-space: nowrap;
 }
 
 .report-table th:last-child {
-  border-right: none;
+  border-right: none !important;
 }
 
 .report-table td {
-  padding: 1rem;
+  padding: 1rem 1.15rem;
   font-size: 0.875rem;
-  border-bottom: 1px solid var(--border);
-  border-right: 1px solid var(--border);
+  color: var(--foreground);
+  border-bottom: 1px solid var(--table-border-subtle, oklch(0.94 0.004 250));
+  border-right: none !important;
+  border-left: none !important;
+  background-color: var(--card);
+  transition: background-color 0.18s ease;
 }
 
 .report-table td:last-child {
-  border-right: none;
+  border-right: none !important;
+}
+
+.report-table tbody tr:hover td {
+  background-color: var(--table-row-hover, oklch(0.972 0.012 130 / 0.5)) !important;
+}
+
+.report-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .summary-row td {
-  background: var(--secondary);
-  font-weight: 700;
+  background: var(--secondary) !important;
+  font-weight: 800;
   border-top: 2px solid var(--border);
+  border-bottom: none;
+  font-size: 0.925rem;
+  color: var(--ink);
 }
 
 .grand-net {
