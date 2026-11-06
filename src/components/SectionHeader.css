@@ -112,6 +112,25 @@
   flex-shrink: 0;
 }
 
+/* Uniform header buttons across every section: same height for all,
+   same width for the main "Add ..." button. */
+.section-header-actions .btn-primary,
+.section-header-actions .btn-secondary {
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.section-header-actions .btn-primary {
+  min-width: 200px;
+}
+
 /* Stats Cards Grid */
 .stats-cards-grid {
   display: grid;
