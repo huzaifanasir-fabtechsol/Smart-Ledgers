@@ -11,6 +11,7 @@ import {
   Receipt,
   Layers,
   ArrowRight,
+  ArrowLeft,
   TrendingDown,
   Percent,
   CheckCircle2,
@@ -489,6 +490,27 @@ const TaxReports = () => {
     return clean || name;
   };
 
+  // Leave the type picker: back to the open report, or back to the previous page
+  // when no report has been chosen yet.
+  const handleCloseTypeModal = () => {
+    if (reportType) {
+      setShowTypeModal(false);
+    } else if (location.key !== 'default') {
+      navigate(-1);
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  useEffect(() => {
+    if (!showTypeModal) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') handleCloseTypeModal();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  });
+
   const handleSelectReport = (type) => {
     setReportType(type);
     setShowTypeModal(false);
@@ -534,9 +556,8 @@ const TaxReports = () => {
               <button
                 type="button"
                 className="tax-type-modal-close"
-                onClick={() => reportType && setShowTypeModal(false)}
-                title="Close"
-                style={reportType ? undefined : { display: 'none' }}
+                onClick={handleCloseTypeModal}
+                title={reportType ? 'Close' : 'Go back'}
               >
                 ×
               </button>
@@ -586,6 +607,13 @@ const TaxReports = () => {
                   </span>
                 </div>
               </div>
+            </div>
+
+            <div className="tax-type-modal-footer">
+              <button type="button" className="tax-type-modal-back" onClick={handleCloseTypeModal}>
+                <ArrowLeft size={16} />
+                {reportType ? 'Back to report' : 'Go back'}
+              </button>
             </div>
           </div>
         </div>
