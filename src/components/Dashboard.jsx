@@ -110,26 +110,45 @@ const Dashboard = ({ language = 'en' }) => {
     return <div className="loader">Loading...</div>;
   }
 
-  // Seed or dynamic chart data matching design system
-  const seedRevExp = [
-    { m: 'Jan', rev: 42, exp: 28 }, { m: 'Feb', rev: 51, exp: 32 },
-    { m: 'Mar', rev: 48, exp: 35 }, { m: 'Apr', rev: 62, exp: 38 },
-    { m: 'May', rev: 71, exp: 41 }, { m: 'Jun', rev: 65, exp: 44 },
-    { m: 'Jul', rev: 82, exp: 47 }, { m: 'Aug', rev: 78, exp: 49 },
-    { m: 'Sep', rev: 91, exp: 52 }, { m: 'Oct', rev: 88, exp: 55 },
-    { m: 'Nov', rev: 96, exp: 58 }, { m: 'Dec', rev: 104, exp: 61 },
+  const emptyMonthly = [
+    { m: 'Jan', month: 1, rev: 0, exp: 0, profit: 0 },
+    { m: 'Feb', month: 2, rev: 0, exp: 0, profit: 0 },
+    { m: 'Mar', month: 3, rev: 0, exp: 0, profit: 0 },
+    { m: 'Apr', month: 4, rev: 0, exp: 0, profit: 0 },
+    { m: 'May', month: 5, rev: 0, exp: 0, profit: 0 },
+    { m: 'Jun', month: 6, rev: 0, exp: 0, profit: 0 },
+    { m: 'Jul', month: 7, rev: 0, exp: 0, profit: 0 },
+    { m: 'Aug', month: 8, rev: 0, exp: 0, profit: 0 },
+    { m: 'Sep', month: 9, rev: 0, exp: 0, profit: 0 },
+    { m: 'Oct', month: 10, rev: 0, exp: 0, profit: 0 },
+    { m: 'Nov', month: 11, rev: 0, exp: 0, profit: 0 },
+    { m: 'Dec', month: 12, rev: 0, exp: 0, profit: 0 },
   ];
 
-  const chartData = dashboardData.has_chart_data && dashboardData.monthly_chart?.length
-    ? dashboardData.monthly_chart.map((item) => ({
-        m: item.m,
-        month: item.month,
-        rev: Number((item.rev / 100000).toFixed(1)),
-        exp: Number((item.exp / 100000).toFixed(1)),
-        p: Number((Math.max(0, item.profit) / 100000).toFixed(1)),
-        rawProfit: item.profit
-      }))
-    : seedRevExp.map((item) => ({ ...item, p: Math.max(0, item.rev - item.exp) }));
+  const hasChartData = Boolean(
+    dashboardData.has_chart_data ||
+    dashboardData.monthly_chart?.some(item => (Number(item.rev) || 0) > 0 || (Number(item.exp) || 0) > 0)
+  );
+
+  const sourceMonthly = dashboardData.monthly_chart?.length
+    ? dashboardData.monthly_chart
+    : emptyMonthly;
+
+  const chartData = sourceMonthly.map((item) => {
+    const rawRev = Number(item.rev || 0);
+    const rawExp = Number(item.exp || 0);
+    const rawProfit = item.profit !== undefined ? Number(item.profit) : (rawRev - rawExp);
+    return {
+      m: item.m,
+      month: item.month,
+      rev: Number((rawRev / 100000).toFixed(1)),
+      exp: Number((rawExp / 100000).toFixed(1)),
+      p: Number((rawProfit / 100000).toFixed(1)),
+      rawProfit,
+      rawRev,
+      rawExp
+    };
+  });
 
   const netProfit = dashboardData.net_profit || 0;
 
@@ -328,26 +347,40 @@ const Dashboard = ({ language = 'en' }) => {
             </div>
           </div>
           <div style={{ height: '240px', width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 8, left: -22, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-lime)" stopOpacity={0.6}/>
-                    <stop offset="100%" stopColor="var(--color-lime)" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="gExp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-violet-soft)" stopOpacity={0.5}/>
-                    <stop offset="100%" stopColor="var(--color-violet-soft)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 6" vertical={false}/>
-                <XAxis dataKey="m" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}/>
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}/>
-                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', boxShadow: 'var(--shadow-lift)' }}/>
-                <Area type="monotone" dataKey="rev" name="Revenue" stroke="var(--color-lime)" strokeWidth={2} fill="url(#gRev)"/>
-                <Area type="monotone" dataKey="exp" name="Expenses" stroke="var(--color-violet-soft)" strokeWidth={2} fill="url(#gExp)"/>
-              </AreaChart>
-            </ResponsiveContainer>
+            {!hasChartData ? (
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted-foreground)', gap: '0.5rem', background: 'var(--surface-subtle, rgba(0,0,0,0.02))', borderRadius: '12px' }}>
+                <TrendingUp size={30} style={{ opacity: 0.25 }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>No transaction data for this period</span>
+                <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>Add invoices or expenses to see revenue & expense trends</span>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 8, left: -22, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-lime)" stopOpacity={0.6}/>
+                      <stop offset="100%" stopColor="var(--color-lime)" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="gExp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-violet-soft)" stopOpacity={0.5}/>
+                      <stop offset="100%" stopColor="var(--color-violet-soft)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="3 6" vertical={false}/>
+                  <XAxis dataKey="m" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}/>
+                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}/>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', boxShadow: 'var(--shadow-lift)' }}
+                    formatter={(val, name, item) => {
+                      const raw = name === 'Revenue' ? item?.payload?.rawRev : item?.payload?.rawExp;
+                      return [`¥${Number(raw ?? (val * 100000)).toLocaleString()}`, name];
+                    }}
+                  />
+                  <Area type="monotone" dataKey="rev" name="Revenue" stroke="var(--color-lime)" strokeWidth={2} fill="url(#gRev)"/>
+                  <Area type="monotone" dataKey="exp" name="Expenses" stroke="var(--color-violet-soft)" strokeWidth={2} fill="url(#gExp)"/>
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -366,21 +399,38 @@ const Dashboard = ({ language = 'en' }) => {
             ¥{netProfit.toLocaleString()}
           </div>
           <div style={{ height: '160px', width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 0, right: 0, left: -32, bottom: 0 }}>
-                <XAxis dataKey="m" stroke="rgba(255, 255, 255, 0.4)" fontSize={10} tickLine={false} axisLine={false}/>
-                <YAxis hide/>
-                <Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} contentStyle={{ borderRadius: 12, border: 'none', background: 'white', color: 'var(--color-ink)' }}/>
-                <Bar dataKey="p" radius={[6, 6, 0, 0]}>
-                  {chartData.map((entry, index) => {
-                    const isSelected = filterMonth ? entry.month === Number(filterMonth) : index === chartData.length - 1;
-                    return (
-                      <Cell key={index} fill={isSelected ? 'var(--color-lime)' : 'var(--color-violet-soft)'}/>
-                    );
-                  })}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {!hasChartData ? (
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.45)', gap: '0.5rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '12px' }}>
+                <Coins size={26} style={{ opacity: 0.25 }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>No profit activity recorded</span>
+                <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>Net profit breakdown will appear as transactions are completed</span>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                  <XAxis dataKey="m" stroke="rgba(255, 255, 255, 0.4)" fontSize={10} tickLine={false} axisLine={false}/>
+                  <YAxis hide/>
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} 
+                    contentStyle={{ borderRadius: 12, border: 'none', background: 'white', color: 'var(--color-ink)' }}
+                    formatter={(value, name, item) => [`¥${Number(item?.payload?.rawProfit || 0).toLocaleString()}`, 'Net Profit']}
+                    labelFormatter={(label) => `${label}`}
+                  />
+                  <Bar dataKey="p" radius={[4, 4, 0, 0]}>
+                    {chartData.map((entry, index) => {
+                      const isSelected = filterMonth ? entry.month === Number(filterMonth) : index === chartData.length - 1;
+                      const isDeficit = entry.rawProfit < 0;
+                      return (
+                        <Cell 
+                          key={index} 
+                          fill={isDeficit ? '#f43f5e' : (isSelected ? 'var(--color-lime)' : 'var(--color-violet-soft)')}
+                        />
+                      );
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
