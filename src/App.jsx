@@ -66,10 +66,19 @@ import './App.css';
 function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
-  const { user, companyName, setUser } = useUser();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [locked, setLocked] = useState(() => localStorage.getItem(SCREEN_LOCK_KEY) === '1');
-  const [hasLockPin, setHasLockPin] = useState(false);
+  const {
+    user,
+    companyName,
+    setUser,
+    sidebarOpen,
+    setSidebarOpen,
+    locked,
+    setLocked,
+    hasLockPin,
+    setHasLockPin,
+    lockScreen,
+    unlockScreen,
+  } = useUser();
   const navRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -97,15 +106,7 @@ function AppContent() {
       .catch(() => {});
   }, [isAuthenticated]);
 
-  const lockScreen = () => {
-    localStorage.setItem(SCREEN_LOCK_KEY, '1');
-    setLocked(true);
-  };
-
-  const unlockScreen = () => {
-    localStorage.removeItem(SCREEN_LOCK_KEY);
-    setLocked(false);
-  };
+// lockScreen & unlockScreen provided by UserContext
 
   // Ctrl+Q locks the screen
   useEffect(() => {
@@ -326,45 +327,6 @@ function AppContent() {
       </aside>
 
       <main className="main-content">
-        <div className="main-topbar">
-          <div className="topbar-left">
-            <button className="menu-toggle-btn" onClick={() => setSidebarOpen(true)}>
-              <Menu size={20} />
-            </button>
-            <div className="topbar-company-chip" title={`Organization: ${companyName || 'Smart Ledgers'}`}>
-              <Building2 size={15} />
-              <span className="chip-name">{companyName || 'Smart Ledgers'}</span>
-              <span className="topbar-company-badge">Active</span>
-            </div>
-          </div>
-
-          <div className="topbar-right">
-            <div className="topbar-date-pill">
-              <Calendar size={14} />
-              <span>
-                {new Date().toLocaleDateString(language === 'ja' ? 'ja-JP' : 'en-US', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </span>
-            </div>
-            {hasLockPin && (
-              <button className="topbar-lock-btn" onClick={lockScreen} title="Lock screen now (Ctrl + Q)">
-                <Lock size={13} />
-                <span>Lock (Ctrl+Q)</span>
-              </button>
-            )}
-            <Link to="/settings" className="topbar-user-pill" title="Profile & Organization Settings">
-              <div className="topbar-avatar">
-                {(companyName || user?.username || user?.email || 'A')[0].toUpperCase()}
-              </div>
-              <span className="topbar-user-name">{user?.username || 'Admin'}</span>
-            </Link>
-          </div>
-        </div>
-
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard language={language} />} />

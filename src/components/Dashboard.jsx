@@ -122,13 +122,13 @@ const Dashboard = ({ language = 'en' }) => {
 
   const chartData = dashboardData.has_chart_data && dashboardData.monthly_chart?.length
     ? dashboardData.monthly_chart.map((item) => ({
-        m: item.m,
-        month: item.month,
-        rev: Number((item.rev / 100000).toFixed(1)),
-        exp: Number((item.exp / 100000).toFixed(1)),
-        p: Number((Math.max(0, item.profit) / 100000).toFixed(1)),
-        rawProfit: item.profit
-      }))
+      m: item.m,
+      month: item.month,
+      rev: Number((item.rev / 100000).toFixed(1)),
+      exp: Number((item.exp / 100000).toFixed(1)),
+      p: Number((Math.max(0, item.profit) / 100000).toFixed(1)),
+      rawProfit: item.profit
+    }))
     : seedRevExp.map((item) => ({ ...item, p: Math.max(0, item.rev - item.exp) }));
 
   const netProfit = dashboardData.net_profit || 0;
@@ -158,7 +158,7 @@ const Dashboard = ({ language = 'en' }) => {
       value: dashboardData.approved_amount,
       note: 'Completed sales invoices',
       icon: TrendingUp,
-      badge: '+Completed',
+      badge: 'Completed',
       trend: '+12.4%',
       trendType: 'positive'
     },
@@ -277,7 +277,7 @@ const Dashboard = ({ language = 'en' }) => {
           </div>
         }
       />
-      
+
       {/* Stat Cards Grid */}
       <div className="stats-grid">
         {statCards.map((card) => {
@@ -332,20 +332,20 @@ const Dashboard = ({ language = 'en' }) => {
               <AreaChart data={chartData} margin={{ top: 10, right: 8, left: -22, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-lime)" stopOpacity={0.6}/>
-                    <stop offset="100%" stopColor="var(--color-lime)" stopOpacity={0}/>
+                    <stop offset="0%" stopColor="var(--color-lime)" stopOpacity={0.6} />
+                    <stop offset="100%" stopColor="var(--color-lime)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gExp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-violet-soft)" stopOpacity={0.5}/>
-                    <stop offset="100%" stopColor="var(--color-violet-soft)" stopOpacity={0}/>
+                    <stop offset="0%" stopColor="var(--color-violet-soft)" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="var(--color-violet-soft)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 6" vertical={false}/>
-                <XAxis dataKey="m" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}/>
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}/>
-                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', boxShadow: 'var(--shadow-lift)' }}/>
-                <Area type="monotone" dataKey="rev" name="Revenue" stroke="var(--color-lime)" strokeWidth={2} fill="url(#gRev)"/>
-                <Area type="monotone" dataKey="exp" name="Expenses" stroke="var(--color-violet-soft)" strokeWidth={2} fill="url(#gExp)"/>
+                <CartesianGrid stroke="var(--border)" strokeDasharray="3 6" vertical={false} />
+                <XAxis dataKey="m" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', boxShadow: 'var(--shadow-lift)' }} />
+                <Area type="monotone" dataKey="rev" name="Revenue" stroke="var(--color-lime)" strokeWidth={2} fill="url(#gRev)" />
+                <Area type="monotone" dataKey="exp" name="Expenses" stroke="var(--color-violet-soft)" strokeWidth={2} fill="url(#gExp)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -359,7 +359,7 @@ const Dashboard = ({ language = 'en' }) => {
               <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', margin: '0.25rem 0 0 0' }}>Approved Revenue - Purchases - Expenses (excl. tax)</p>
             </div>
             <span style={{ fontSize: '0.75rem', background: 'var(--color-lime)', color: 'var(--color-ink)', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
-              {netProfit >= 0 ? '+Active' : '-Deficit'}
+              {netProfit >= 0 ? 'Active' : '-Deficit'}
             </span>
           </div>
           <div style={{ fontSize: '1.875rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '1.25rem', color: netProfit >= 0 ? 'white' : 'var(--danger)' }}>
@@ -368,14 +368,14 @@ const Dashboard = ({ language = 'en' }) => {
           <div style={{ height: '160px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 0, right: 0, left: -32, bottom: 0 }}>
-                <XAxis dataKey="m" stroke="rgba(255, 255, 255, 0.4)" fontSize={10} tickLine={false} axisLine={false}/>
-                <YAxis hide/>
-                <Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} contentStyle={{ borderRadius: 12, border: 'none', background: 'white', color: 'var(--color-ink)' }}/>
+                <XAxis dataKey="m" stroke="rgba(255, 255, 255, 0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis hide />
+                <Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} contentStyle={{ borderRadius: 12, border: 'none', background: 'white', color: 'var(--color-ink)' }} />
                 <Bar dataKey="p" radius={[6, 6, 0, 0]}>
                   {chartData.map((entry, index) => {
                     const isSelected = filterMonth ? entry.month === Number(filterMonth) : index === chartData.length - 1;
                     return (
-                      <Cell key={index} fill={isSelected ? 'var(--color-lime)' : 'var(--color-violet-soft)'}/>
+                      <Cell key={index} fill={isSelected ? 'var(--color-lime)' : 'var(--color-violet-soft)'} />
                     );
                   })}
                 </Bar>
@@ -389,8 +389,8 @@ const Dashboard = ({ language = 'en' }) => {
       <div className="table-section">
         <div className="table-header">
           <h3>Latest Invoices</h3>
-          <button 
-            onClick={() => navigate('/inovice')} 
+          <button
+            onClick={() => navigate('/inovice')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted-foreground)' }}
           >
             View all <ArrowUpRight size={14} />
@@ -416,8 +416,8 @@ const Dashboard = ({ language = 'en' }) => {
                 </tr>
               ) : (
                 dashboardData.latest_orders.map((order, idx) => (
-                  <tr 
-                    key={order.id || idx} 
+                  <tr
+                    key={order.id || idx}
                     onClick={() => { setSelectedInvoice(order); setShowViewModal(true); }}
                     style={{ cursor: 'pointer' }}
                   >
@@ -430,7 +430,7 @@ const Dashboard = ({ language = 'en' }) => {
                     </td>
                     <td className="amount-cell">¥{order.total_amount?.toLocaleString()}</td>
                     <td>
-                      <button 
+                      <button
                         className="btn-menu"
                         onClick={(e) => { e.stopPropagation(); setSelectedInvoice(order); setShowViewModal(true); }}
                         title="View Invoice Details"
