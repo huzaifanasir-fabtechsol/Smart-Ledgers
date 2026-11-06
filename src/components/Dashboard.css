@@ -7,6 +7,7 @@
   box-sizing: border-box;
 }
 
+/* Stat Cards - Colorful Finance & Accounting Aesthetics */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -14,93 +15,102 @@
   margin-bottom: 2rem;
 }
 
-/* Stat card backgrounds */
 .stat-card {
   padding: 1.25rem 1.35rem;
   border-radius: 20px;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 4px 20px -4px rgba(18, 18, 22, 0.05), 0 2px 6px -1px rgba(18, 18, 22, 0.02);
   border: 1px solid var(--border);
-  transition: all 0.25s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 120px;
+  min-height: 142px;
   min-width: 0;
   overflow: hidden;
+  position: relative;
+  background: var(--card);
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lift);
-}
-
-.stat-card.accent-lime {
-  background: var(--color-lime);
-  color: var(--color-ink);
-  border-color: var(--color-lime);
-}
-
-.stat-card.accent-violet {
-  background: var(--color-violet-soft);
-  color: var(--color-ink);
-  border-color: var(--color-violet-soft);
-}
-
-.stat-card.accent-ink {
-  background: var(--color-ink);
-  color: white;
-  border-color: var(--color-ink);
-}
-
-/* Force ink card children to stay white despite global h3/button overrides */
-.stat-card.accent-ink h3,
-.stat-card.accent-ink .stat-card-header button,
-.stat-card.accent-ink .stat-card-header button svg {
-  color: rgba(255, 255, 255, 0.9) !important;
-  opacity: 1;
-}
-
-.stat-card.accent-white {
-  background: var(--card);
-  color: var(--foreground);
-  border-color: var(--border);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px -8px rgba(18, 18, 22, 0.12);
 }
 
 .stat-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.stat-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
 .stat-card h3 {
-  font-size: 0.8125rem;
+  font-size: 0.76rem;
   margin: 0;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.85;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.stat-card.accent-white h3 {
-  color: var(--muted-foreground);
-  opacity: 1;
+.stat-card-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  width: fit-content;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.stat-card-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover .stat-card-icon-box {
+  transform: scale(1.08);
 }
 
 .stat-card-body {
   display: flex;
   align-items: baseline;
   justify-content: flex-start;
-  margin-top: 1rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0.35rem;
   width: 100%;
   min-width: 0;
-  flex: 1;
 }
 
 .stat-card .amount {
-  font-size: clamp(1.2rem, 1.6vw, 1.75rem);
+  font-size: clamp(1.2rem, 1.55vw, 1.7rem);
   font-weight: 800;
   font-family: var(--font-display);
   letter-spacing: -0.025em;
@@ -110,29 +120,210 @@
   text-overflow: ellipsis;
   max-width: 100%;
   font-variant-numeric: tabular-nums;
+  color: var(--ink);
 }
 
 .stat-card .amount.amount-compact {
-  font-size: clamp(1.05rem, 1.35vw, 1.45rem);
+  font-size: clamp(1.05rem, 1.3vw, 1.4rem);
+}
+
+.stat-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
 }
 
 .stat-card-note {
-  margin-top: 0.5rem;
   font-size: 0.7rem;
-  font-weight: 600;
-  opacity: 0.7;
+  font-weight: 500;
+  color: var(--muted-foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.stat-card.accent-white .stat-card-note {
-  color: var(--muted-foreground);
-  opacity: 1;
+.stat-trend-chip {
+  font-size: 0.67rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.stat-card.accent-ink .stat-card-note {
-  color: rgba(255, 255, 255, 0.7) !important;
+.stat-trend-chip.positive {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.stat-trend-chip.warning {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.stat-trend-chip.neutral {
+  color: #475569;
+  background: rgba(148, 163, 184, 0.15);
+}
+
+/* ================= Colorful Finance Themes ================= */
+
+/* 1. Emerald (Approved Sales Revenue / Growth) */
+.stat-card.accent-emerald {
+  background: linear-gradient(145deg, #ffffff 0%, #ecfdf5 100%);
+  border-color: rgba(16, 185, 129, 0.3);
+  border-top: 3.5px solid #10b981;
+}
+.stat-card.accent-emerald .stat-card-icon-box {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+.stat-card.accent-emerald .stat-card-badge {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+
+/* 2. Amber (Pending Receivables / Action Needed) */
+.stat-card.accent-amber {
+  background: linear-gradient(145deg, #ffffff 0%, #fffbeb 100%);
+  border-color: rgba(245, 158, 11, 0.3);
+  border-top: 3.5px solid #f59e0b;
+}
+.stat-card.accent-amber .stat-card-icon-box {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+.stat-card.accent-amber .stat-card-badge {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+/* 3. Blue (Total Invoices / Ledger Records) */
+.stat-card.accent-blue {
+  background: linear-gradient(145deg, #ffffff 0%, #eff6ff 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+  border-top: 3.5px solid #3b82f6;
+}
+.stat-card.accent-blue .stat-card-icon-box {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+.stat-card.accent-blue .stat-card-badge {
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+}
+
+/* 4. Violet (Tax on Invoices / Compliance) */
+.stat-card.accent-violet {
+  background: linear-gradient(145deg, #ffffff 0%, #f5f3ff 100%);
+  border-color: rgba(139, 92, 246, 0.3);
+  border-top: 3.5px solid #8b5cf6;
+}
+.stat-card.accent-violet .stat-card-icon-box {
+  background: rgba(139, 92, 246, 0.15);
+  color: #7c3aed;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+.stat-card.accent-violet .stat-card-badge {
+  background: rgba(139, 92, 246, 0.14);
+  color: #6d28d9;
+}
+
+/* 5. Rose (Operating Expenses / Outflows) */
+.stat-card.accent-rose {
+  background: linear-gradient(145deg, #ffffff 0%, #fff1f2 100%);
+  border-color: rgba(244, 63, 94, 0.3);
+  border-top: 3.5px solid #f43f5e;
+}
+.stat-card.accent-rose .stat-card-icon-box {
+  background: rgba(244, 63, 94, 0.15);
+  color: #e11d48;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);
+}
+.stat-card.accent-rose .stat-card-badge {
+  background: rgba(244, 63, 94, 0.14);
+  color: #be123c;
+}
+
+/* 6. Purple (Tax Paid on Expenses / Input Tax Credit) */
+.stat-card.accent-purple {
+  background: linear-gradient(145deg, #ffffff 0%, #faf5ff 100%);
+  border-color: rgba(168, 85, 247, 0.3);
+  border-top: 3.5px solid #a855f7;
+}
+.stat-card.accent-purple .stat-card-icon-box {
+  background: rgba(168, 85, 247, 0.15);
+  color: #9333ea;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+}
+.stat-card.accent-purple .stat-card-badge {
+  background: rgba(168, 85, 247, 0.14);
+  color: #7e22ce;
+}
+
+/* 7. Coral (Total Expense incl Tax) */
+.stat-card.accent-coral {
+  background: linear-gradient(145deg, #ffffff 0%, #fff7ed 100%);
+  border-color: rgba(249, 115, 22, 0.3);
+  border-top: 3.5px solid #f97316;
+}
+.stat-card.accent-coral .stat-card-icon-box {
+  background: rgba(249, 115, 22, 0.15);
+  color: #ea580c;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+}
+.stat-card.accent-coral .stat-card-badge {
+  background: rgba(249, 115, 22, 0.14);
+  color: #c2410c;
+}
+
+/* 8. Dark Emerald Obsidian (Vehicle Purchases & Inventory Stock) */
+.stat-card.accent-dark-emerald {
+  background: linear-gradient(145deg, #0e161c 0%, #132822 100%);
+  border-color: rgba(215, 242, 75, 0.35);
+  border-top: 3.5px solid #d7f24b;
+  color: #ffffff;
+}
+.stat-card.accent-dark-emerald h3 {
+  color: rgba(255, 255, 255, 0.7);
+}
+.stat-card.accent-dark-emerald .amount {
+  color: #ffffff;
+}
+.stat-card.accent-dark-emerald .stat-card-note {
+  color: rgba(255, 255, 255, 0.65);
+}
+.stat-card.accent-dark-emerald .stat-card-icon-box {
+  background: rgba(215, 242, 75, 0.18);
+  color: #d7f24b;
+  box-shadow: 0 4px 14px rgba(215, 242, 75, 0.25);
+}
+.stat-card.accent-dark-emerald .stat-card-badge {
+  background: rgba(215, 242, 75, 0.2);
+  color: #d7f24b;
+}
+
+/* Legacy accents for compatibility */
+.stat-card.accent-lime {
+  background: var(--color-lime);
+  color: var(--color-ink);
+  border-color: var(--color-lime);
+}
+.stat-card.accent-ink {
+  background: var(--color-ink);
+  color: white;
+  border-color: var(--color-ink);
+}
+.stat-card.accent-white {
+  background: var(--card);
+  color: var(--foreground);
+  border-color: var(--border);
 }
 
 @media (max-width: 1350px) {
@@ -209,4 +400,41 @@
   .stat-card .amount.amount-compact {
     font-size: 1.35rem;
   }
+}
+
+
+/* Transaction Type Chips (matching reference image 1) */
+.tx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.tx-chip.tx-sale {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.tx-chip.tx-purchase {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.tx-chip.tx-auction {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.tx-chip.tx-default {
+  background: rgba(148, 163, 184, 0.12);
+  color: #475569;
+  border: 1px solid rgba(148, 163, 184, 0.25);
 }

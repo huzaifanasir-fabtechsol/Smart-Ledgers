@@ -146,22 +146,79 @@
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 1.25rem 1.4rem;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 4px 18px -4px rgba(18, 18, 22, 0.05);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.75rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
-  /* Lets .stat-card-value scale with the card's own width */
   container-type: inline-size;
+}
+
+.stat-card-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, var(--color-lime) 0%, transparent 100%);
+  opacity: 0.85;
+}
+
+.stat-card-item:has(.stat-icon-emerald) {
+  background: linear-gradient(145deg, #ffffff 0%, #ecfdf5 100%);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+.stat-card-item:has(.stat-icon-emerald)::before {
+  background: linear-gradient(90deg, #10b981 0%, transparent 100%);
+}
+
+.stat-card-item:has(.stat-icon-amber) {
+  background: linear-gradient(145deg, #ffffff 0%, #fffbeb 100%);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+.stat-card-item:has(.stat-icon-amber)::before {
+  background: linear-gradient(90deg, #f59e0b 0%, transparent 100%);
+}
+
+.stat-card-item:has(.stat-icon-blue) {
+  background: linear-gradient(145deg, #ffffff 0%, #eff6ff 100%);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+.stat-card-item:has(.stat-icon-blue)::before {
+  background: linear-gradient(90deg, #3b82f6 0%, transparent 100%);
+}
+
+.stat-card-item:has(.stat-icon-purple) {
+  background: linear-gradient(145deg, #ffffff 0%, #faf5ff 100%);
+  border-color: rgba(168, 85, 247, 0.25);
+}
+.stat-card-item:has(.stat-icon-purple)::before {
+  background: linear-gradient(90deg, #a855f7 0%, transparent 100%);
+}
+
+.stat-card-item:has(.stat-icon-rose) {
+  background: linear-gradient(145deg, #ffffff 0%, #fff1f2 100%);
+  border-color: rgba(244, 63, 94, 0.25);
+}
+.stat-card-item:has(.stat-icon-rose)::before {
+  background: linear-gradient(90deg, #f43f5e 0%, transparent 100%);
+}
+
+.stat-card-item:has(.stat-icon-lime) {
+  background: linear-gradient(145deg, #ffffff 0%, #f7fee7 100%);
+  border-color: rgba(215, 242, 75, 0.4);
+}
+.stat-card-item:has(.stat-icon-lime)::before {
+  background: linear-gradient(90deg, #d7f24b 0%, transparent 100%);
 }
 
 .stat-card-item:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 28px -6px rgba(18, 18, 22, 0.08);
-  border-color: oklch(0.85 0.03 260);
+  box-shadow: 0 14px 30px -8px rgba(18, 18, 22, 0.12);
 }
 
 .stat-card-content {

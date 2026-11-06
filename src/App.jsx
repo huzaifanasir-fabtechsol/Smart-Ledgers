@@ -53,6 +53,9 @@ import { apiRequest, SCREEN_LOCK_KEY } from './api';
 import ProfileSettings from './components/ProfileSettings';
 import LetterheadPage from './components/LetterheadPage';
 import GoogleTranslateInitializer from './components/GoogleTranslateInitializer';
+import BrandLogo from './components/BrandLogo';
+import AnimatedBackground from './components/AnimatedBackground';
+import SidebarIllustration from './components/SidebarIllustration';
 import { UserProvider, useUser } from './context/UserContext';
 import { translations } from './translations';
 import './notranslate.css';
@@ -258,6 +261,7 @@ function AppContent() {
 
   return (
     <div className="app-container">
+      <AnimatedBackground />
       {locked && <LockScreen onUnlock={unlockScreen} />}
       <GoogleTranslateInitializer />
       
@@ -268,20 +272,11 @@ function AppContent() {
 
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'collapsed'}`}>
         <div className="sidebar-header">
-          {sidebarOpen ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-              <div className="login-logo" style={{ width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0 }}>
-                <Wallet size={16} />
-              </div>
-              <h1 style={{ fontSize: '1.05rem', margin: 0, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {t.appTitle}
-              </h1>
-            </div>
-          ) : (
-            <div className="login-logo" style={{ width: '32px', height: '32px', borderRadius: '8px', margin: '0 auto' }}>
-              <Wallet size={16} />
-            </div>
-          )}
+          <BrandLogo
+            collapsed={!sidebarOpen}
+            title={companyName || t.appTitle}
+            subtitle={companyName ? t.appTitle : 'Auto Trade Accounting'}
+          />
           <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginLeft: sidebarOpen ? '0.5rem' : '0' }}>
             {sidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
           </button>
@@ -312,6 +307,8 @@ function AppContent() {
             </div>
           ))}
         </nav>
+
+        <SidebarIllustration collapsed={!sidebarOpen} />
 
         <div className="sidebar-footer">
           <div

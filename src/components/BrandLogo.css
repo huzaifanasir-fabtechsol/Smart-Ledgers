@@ -1,0 +1,164 @@
+/* Brand Logo - Sleek Japanese Used-Car Trade & Finance Identity */
+
+.brand-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease;
+}
+
+.brand-logo-container.collapsed {
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.brand-logo-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(229, 250, 91, 0.25);
+  box-shadow: 0 4px 16px -2px rgba(229, 250, 91, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-logo-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 60% 40%, rgba(229, 250, 91, 0.22) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.brand-logo-container:hover .brand-logo-badge {
+  border-color: rgba(229, 250, 91, 0.6);
+  box-shadow: 0 6px 22px rgba(229, 250, 91, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px) scale(1.03);
+}
+
+.brand-logo-container:hover .brand-logo-badge::before {
+  opacity: 1;
+}
+
+.brand-car-svg {
+  width: 32px;
+  height: 22px;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-logo-container:hover .brand-car-svg {
+  transform: translateX(1px);
+}
+
+/* Animations */
+.speed-trail {
+  stroke-dasharray: 10 4;
+  animation: speedDrift 2.4s linear infinite;
+}
+
+.trail-2 {
+  animation-duration: 1.8s;
+  animation-delay: 0.4s;
+}
+
+@keyframes speedDrift {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    stroke-dashoffset: -28;
+    opacity: 0.3;
+  }
+}
+
+.headlight-flare {
+  animation: flarePulse 2s ease-in-out infinite;
+}
+
+@keyframes flarePulse {
+  0%, 100% {
+    opacity: 0.6;
+    stroke-width: 1.8;
+  }
+  50% {
+    opacity: 1;
+    stroke-width: 2.6;
+    filter: drop-shadow(0 0 4px #E5FA5B);
+  }
+}
+
+.wheel-hub {
+  animation: hubGlow 3s ease-in-out infinite;
+}
+
+@keyframes hubGlow {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px #E5FA5B);
+  }
+}
+
+/* Logo Typography */
+.brand-logo-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.brand-logo-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.brand-title-accent {
+  color: #E5FA5B;
+  background: linear-gradient(135deg, #E5FA5B 0%, #A3E635 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+
+.brand-logo-subtitle {
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+

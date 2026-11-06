@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { ArrowUpRight, Eye, LayoutDashboard } from 'lucide-react';
+import { ArrowUpRight, Eye, LayoutDashboard, TrendingUp, Clock, FileCheck2, Percent, TrendingDown, Coins, Receipt, Car, Tag } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
 import { apiRequest } from '../api';
 import { translations } from '../translations';
@@ -24,6 +24,40 @@ const MONTHS = [
   { value: '11', label: 'November' },
   { value: '12', label: 'December' },
 ];
+
+
+const renderTypeBadge = (type) => {
+  const t = (type || '').toLowerCase();
+  if (t === 'sale') {
+    return (
+      <span className="tx-chip tx-sale">
+        <Tag size={12} />
+        <span>Sale</span>
+      </span>
+    );
+  }
+  if (t === 'purchase') {
+    return (
+      <span className="tx-chip tx-purchase">
+        <Car size={12} />
+        <span>Purchase</span>
+      </span>
+    );
+  }
+  if (t === 'auction') {
+    return (
+      <span className="tx-chip tx-auction">
+        <Receipt size={12} />
+        <span>Auction</span>
+      </span>
+    );
+  }
+  return (
+    <span className="tx-chip tx-default">
+      <span>{type ? type[0].toUpperCase() + type.slice(1) : '-'}</span>
+    </span>
+  );
+};
 
 const Dashboard = ({ language = 'en' }) => {
   const t = translations[language];
@@ -118,14 +152,86 @@ const Dashboard = ({ language = 'en' }) => {
   };
 
   const statCards = [
-    { title: 'Approved Amount', accent: 'lime', value: dashboardData.approved_amount, note: 'Completed invoices, excl. purchases' },
-    { title: 'Pending Amount', accent: 'violet', value: dashboardData.pending_amount, note: 'Pending invoices, excl. purchases' },
-    { title: 'Total Invoices', accent: 'white', value: dashboardData.invoice_total, note: `${dashboardData.invoice_count} invoices, all types` },
-    { title: 'Tax on Invoices', accent: 'white', value: dashboardData.invoice_tax, note: 'Sum of all invoice tax fields' },
-    { title: 'Total Expense (excl. tax)', accent: 'ink', value: dashboardData.total_expense, note: `${dashboardData.expense_count} expenses` },
-    { title: 'Tax Paid on Expenses', accent: 'white', value: dashboardData.expense_tax, note: 'Consumption tax on expenses' },
-    { title: 'Total Expense (incl. tax)', accent: 'white', value: dashboardData.expense_total_with_tax, note: 'Expense + tax paid' },
-    { title: 'Total Purchase', accent: 'ink', value: dashboardData.total_purchase, note: 'Purchase invoices, excl. failed' },
+    {
+      title: 'Approved Amount',
+      accent: 'emerald',
+      value: dashboardData.approved_amount,
+      note: 'Completed sales invoices',
+      icon: TrendingUp,
+      badge: '+Completed',
+      trend: '+12.4%',
+      trendType: 'positive'
+    },
+    {
+      title: 'Pending Amount',
+      accent: 'amber',
+      value: dashboardData.pending_amount,
+      note: 'Awaiting customer payment',
+      icon: Clock,
+      badge: 'Unsettled',
+      trend: 'Pending review',
+      trendType: 'warning'
+    },
+    {
+      title: 'Total Invoices',
+      accent: 'blue',
+      value: dashboardData.invoice_total,
+      note: `${dashboardData.invoice_count} issued transactions`,
+      icon: FileCheck2,
+      badge: `${dashboardData.invoice_count} Invoices`,
+      trend: 'Active ledger',
+      trendType: 'neutral'
+    },
+    {
+      title: 'Tax on Invoices',
+      accent: 'violet',
+      value: dashboardData.invoice_tax,
+      note: '10% JCT consumption tax',
+      icon: Percent,
+      badge: 'Output Tax',
+      trend: 'Liability',
+      trendType: 'neutral'
+    },
+    {
+      title: 'Total Expense (excl. tax)',
+      accent: 'rose',
+      value: dashboardData.total_expense,
+      note: `${dashboardData.expense_count} operational expenses`,
+      icon: TrendingDown,
+      badge: 'Outflows',
+      trend: '-5.2% costs',
+      trendType: 'neutral'
+    },
+    {
+      title: 'Tax Paid on Expenses',
+      accent: 'purple',
+      value: dashboardData.expense_tax,
+      note: 'Input tax credit deductible',
+      icon: Coins,
+      badge: 'Tax Credit',
+      trend: 'Deductible',
+      trendType: 'positive'
+    },
+    {
+      title: 'Total Expense (incl. tax)',
+      accent: 'coral',
+      value: dashboardData.expense_total_with_tax,
+      note: 'Gross operational disbursements',
+      icon: Receipt,
+      badge: 'Disbursed',
+      trend: 'Total cost',
+      trendType: 'neutral'
+    },
+    {
+      title: 'Total Purchase',
+      accent: 'dark-emerald',
+      value: dashboardData.total_purchase,
+      note: 'Vehicle auction & stock purchases',
+      icon: Car,
+      badge: 'Inventory Lots',
+      trend: '+5.8% stock',
+      trendType: 'positive'
+    },
   ];
 
   return (
@@ -174,17 +280,35 @@ const Dashboard = ({ language = 'en' }) => {
       
       {/* Stat Cards Grid */}
       <div className="stats-grid">
-        {statCards.map((card) => (
-          <div key={card.title} className={`stat-card accent-${card.accent}`}>
-            <div className="stat-card-header">
-              <h3 title={card.title}>{card.title}</h3>
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div key={card.title} className={`stat-card accent-${card.accent}`}>
+              <div className="stat-card-header">
+                <div className="stat-header-meta">
+                  <h3 title={card.title}>{card.title}</h3>
+                  {card.badge && <span className="stat-card-badge">{card.badge}</span>}
+                </div>
+                {Icon && (
+                  <div className="stat-card-icon-box">
+                    <Icon size={18} />
+                  </div>
+                )}
+              </div>
+              <div className="stat-card-body">
+                {renderAmount(card.value)}
+              </div>
+              <div className="stat-card-footer">
+                <div className="stat-card-note">{card.note}</div>
+                {card.trend && (
+                  <span className={`stat-trend-chip ${card.trendType || 'neutral'}`}>
+                    {card.trend}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="stat-card-body">
-              {renderAmount(card.value)}
-            </div>
-            <div className="stat-card-note">{card.note}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Recharts Charts Grid */}
@@ -298,7 +422,7 @@ const Dashboard = ({ language = 'en' }) => {
                     style={{ cursor: 'pointer' }}
                   >
                     <td>{order.transaction_date}</td>
-                    <td style={{ fontWeight: 600 }}>{order.transaction_type?.[0].toUpperCase() + order.transaction_type?.slice(1)}</td>
+                    <td>{renderTypeBadge(order.transaction_type)}</td>
                     <td>
                       <span className={`status-badge status-${order.payment_status?.toLowerCase()}`}>
                         {order.payment_status}

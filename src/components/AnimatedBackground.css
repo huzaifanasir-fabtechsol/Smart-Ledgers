@@ -1,0 +1,178 @@
+/* Animated Background Layer - Fintech & Automotive Aesthetic */
+
+.animated-bg-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background-color: var(--background);
+}
+
+/* Luminous Ambient Glowing Orbs */
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+  will-change: transform, opacity;
+  opacity: 0.55;
+}
+
+.orb-lime {
+  width: 520px;
+  height: 520px;
+  top: -120px;
+  right: 5%;
+  background: radial-gradient(circle, rgba(215, 242, 75, 0.28) 0%, rgba(16, 185, 129, 0.15) 50%, transparent 75%);
+  animation: orbDriftLime 18s ease-in-out infinite alternate;
+}
+
+.orb-cyan {
+  width: 480px;
+  height: 480px;
+  bottom: 5%;
+  left: 20%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.12) 50%, transparent 75%);
+  animation: orbDriftCyan 22s ease-in-out infinite alternate;
+}
+
+.orb-purple {
+  width: 420px;
+  height: 420px;
+  top: 35%;
+  left: 45%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.14) 0%, rgba(215, 242, 75, 0.08) 50%, transparent 75%);
+  animation: orbDriftPurple 26s ease-in-out infinite alternate;
+}
+
+@keyframes orbDriftLime {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate(-40px, 30px) scale(1.1);
+    opacity: 0.65;
+  }
+  100% {
+    transform: translate(25px, -20px) scale(0.95);
+    opacity: 0.5;
+  }
+}
+
+@keyframes orbDriftCyan {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate(50px, -40px) scale(1.15);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate(-30px, 20px) scale(0.9);
+    opacity: 0.4;
+  }
+}
+
+@keyframes orbDriftPurple {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-35px, -30px) scale(1.12);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(40px, 35px) scale(0.95);
+    opacity: 0.35;
+  }
+}
+
+/* Background SVG Waves & Illustration */
+.bg-illustration-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.fuji-illustration {
+  opacity: 0.85;
+  transform-origin: 1220px 180px;
+  animation: fujiBreathe 14s ease-in-out infinite alternate;
+}
+
+@keyframes fujiBreathe {
+  0% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0.95;
+    transform: translateY(-4px);
+  }
+}
+
+/* Financial Flow Wave Animations */
+.animated-flow-path {
+  will-change: transform, stroke-dashoffset;
+}
+
+.path-primary {
+  animation: waveFlow1 12s ease-in-out infinite alternate;
+}
+
+.path-secondary {
+  animation: waveFlow2 16s ease-in-out infinite alternate;
+}
+
+.path-tertiary {
+  stroke-dasharray: 8 8;
+  animation: waveDash 24s linear infinite;
+}
+
+@keyframes waveFlow1 {
+  0% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateY(-12px) scaleY(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(8px) scaleY(0.96);
+    opacity: 0.8;
+  }
+}
+
+@keyframes waveFlow2 {
+  0% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(14px) scaleY(0.94);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(-10px) scaleY(1.06);
+    opacity: 0.65;
+  }
+}
+
+@keyframes waveDash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -320;
+  }
+}
+

@@ -85,15 +85,18 @@
   box-shadow: 0 0 0 4px oklch(0.93 0.18 125 / 0.25);
 }
 
-/* Table Styles - Modern High-End SaaS UI (Stripe / Linear / Mercury aesthetic) */
+/* Table Styles - Floating Row Cards (Convert rows to subtle cards without feeling bulky) */
 .table-container {
   overflow-x: auto;
   border-radius: 20px;
   border: 1px solid var(--border);
-  min-height: 320px;
-  background: var(--card);
-  box-shadow: 0 2px 12px -2px rgba(18, 18, 22, 0.04), 0 8px 24px -4px rgba(18, 18, 22, 0.03);
+  min-height: 300px;
+  background: rgba(248, 250, 252, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px -4px rgba(18, 18, 22, 0.04), 0 2px 6px -1px rgba(18, 18, 22, 0.02);
   position: relative;
+  padding: 0.35rem 0.65rem 0.65rem 0.65rem;
   scrollbar-width: thin;
 }
 
@@ -101,31 +104,28 @@ table,
 .data-table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0;
+  border-spacing: 0 6px; /* Row Card Separation: Converts rows into sleek floating strips */
   font-family: var(--font-sans);
 }
 
 thead {
-  background: var(--table-header-bg, oklch(0.975 0.003 250));
+  background: transparent;
   position: sticky;
   top: 0;
   z-index: 2;
-  box-shadow: 0 1px 0 var(--border);
 }
 
 th {
-  padding: 0.95rem 1.25rem;
+  padding: 0.75rem 1.15rem;
   text-align: left;
   font-weight: 700;
   color: var(--table-header-color, oklch(0.40 0.015 260));
-  font-size: 0.73rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid var(--border);
-  border-right: none !important;
-  border-left: none !important;
+  letter-spacing: 0.07em;
+  border: none !important;
   white-space: nowrap;
-  background: inherit;
+  background: transparent;
   transition: color 0.15s ease;
   user-select: none;
 }
@@ -134,26 +134,16 @@ th:last-child {
   border-right: none !important;
 }
 
-thead tr:first-child th:first-child {
-  border-top-left-radius: 19px;
-}
-
-thead tr:first-child th:last-child {
-  border-top-right-radius: 19px;
-}
-
 /* Optional Dark Header Modifier */
 table.table-dark thead,
 thead.table-header-dark {
   background: linear-gradient(135deg, var(--color-ink) 0%, oklch(0.24 0.01 270) 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
 }
 
 table.table-dark th,
 thead.table-header-dark th {
   color: rgba(255, 255, 255, 0.9);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  border-right: none !important;
 }
 
 /* First Column (Serial Number / Index) */
@@ -171,9 +161,11 @@ td:first-child {
   font-variant-numeric: tabular-nums;
 }
 
+/* Row Card Styling (Each row feels like a light, modern floating card strip) */
 td {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--table-border-subtle, oklch(0.94 0.004 250));
+  padding: 0.9rem 1.15rem;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   border-right: none !important;
   border-left: none !important;
   color: var(--foreground);
@@ -181,51 +173,74 @@ td {
   line-height: 1.45;
   vertical-align: middle;
   background-color: var(--card);
-  transition: background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(18, 18, 22, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Left edge of row card */
+td:first-child {
+  border-left: 1px solid var(--border) !important;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+/* Right edge of row card */
 td:last-child {
-  border-right: none !important;
+  border-right: 1px solid var(--border) !important;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
+/* Empty State / Full Width Messages */
 td[colspan] {
-  border-right: none !important;
+  border-left: 1px dashed var(--border) !important;
+  border-right: 1px dashed var(--border) !important;
+  border-top: 1px dashed var(--border) !important;
+  border-bottom: 1px dashed var(--border) !important;
+  border-radius: 14px !important;
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
 }
 
 tbody tr {
-  transition: background-color 0.18s ease;
-  background: var(--card);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Smooth row hover with subtle brand glow - NO harsh alternating xlsx zebra */
+/* Floating Card Hover: Gentle lift & neon lime accent strip */
 tbody tr:hover td {
-  background: var(--table-row-hover, oklch(0.972 0.012 130 / 0.5)) !important;
-  cursor: default;
+  background: #ffffff !important;
+  border-top-color: oklch(0.85 0.06 130) !important;
+  border-bottom-color: oklch(0.85 0.06 130) !important;
+  box-shadow: 0 6px 18px -4px rgba(18, 18, 22, 0.08);
 }
 
-/* Highlighted rows - modern warm gold glow instead of raw excel yellow */
+tbody tr:hover td:first-child {
+  border-left-color: oklch(0.85 0.06 130) !important;
+  box-shadow: inset 3.5px 0 0 var(--color-lime), 0 6px 18px -4px rgba(18, 18, 22, 0.08);
+}
+
+tbody tr:hover td:last-child {
+  border-right-color: oklch(0.85 0.06 130) !important;
+}
+
+/* Highlighted rows */
 tbody tr.row-highlighted td {
-  background: oklch(0.985 0.025 85 / 0.7) !important;
+  background: oklch(0.985 0.025 85 / 0.85) !important;
+  border-top-color: oklch(0.88 0.08 85) !important;
+  border-bottom-color: oklch(0.88 0.08 85) !important;
 }
 
 tbody tr.row-highlighted td:first-child {
+  border-left-color: oklch(0.88 0.08 85) !important;
   box-shadow: inset 4px 0 0 oklch(0.78 0.16 80);
 }
 
+tbody tr.row-highlighted td:last-child {
+  border-right-color: oklch(0.88 0.08 85) !important;
+}
+
 tbody tr.row-highlighted:hover td {
-  background: oklch(0.975 0.035 85 / 0.88) !important;
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 19px;
-}
-
-tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 19px;
+  background: oklch(0.975 0.035 85 / 0.95) !important;
 }
 
 .amount-cell {
