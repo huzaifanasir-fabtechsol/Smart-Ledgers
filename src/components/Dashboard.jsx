@@ -106,22 +106,6 @@ const Dashboard = ({ language = 'en' }) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="loader">
-        <div className="loader-card">
-          <div className="loader-brand-ring">
-            <div className="loader-spinner"></div>
-          </div>
-          <div className="loader-text">
-            <span className="loader-title">Smart Ledgers</span>
-            <span className="loader-subtitle">Loading analytics & records...</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const emptyMonthly = [
     { m: 'Jan', month: 1, rev: 0, exp: 0, profit: 0 },
     { m: 'Feb', month: 2, rev: 0, exp: 0, profit: 0 },
@@ -311,35 +295,64 @@ const Dashboard = ({ language = 'en' }) => {
 
       {/* Stat Cards Grid */}
       <div className="stats-grid">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <div key={card.title} className={`stat-card accent-${card.accent}`}>
-              <div className="stat-card-header">
-                <div className="stat-header-meta">
-                  <h3 title={card.title}>{card.title}</h3>
-                  {card.badge && <span className="stat-card-badge">{card.badge}</span>}
-                </div>
-                {Icon && (
-                  <div className="stat-card-icon-box">
-                    <Icon size={18} />
-                  </div>
-                )}
+        {loading ? (
+          Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="stat-card stat-skeleton-card"
+              style={{
+                minHeight: '142px',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                background: 'rgba(255, 255, 255, 0.85)',
+                backdropFilter: 'blur(12px)',
+                borderColor: 'rgba(226, 232, 240, 0.8)',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '65%' }}>
+                <div className="stat-skeleton-line" style={{ height: '12px', width: '70%' }}></div>
+                <div className="stat-skeleton-line" style={{ height: '28px', width: '90%' }}></div>
+                <div className="stat-skeleton-line" style={{ height: '11px', width: '50%' }}></div>
               </div>
-              <div className="stat-card-body">
-                {renderAmount(card.value)}
-              </div>
-              <div className="stat-card-footer">
-                <div className="stat-card-note">{card.note}</div>
-                {card.trend && (
-                  <span className={`stat-trend-chip ${card.trendType || 'neutral'}`}>
-                    {card.trend}
-                  </span>
-                )}
-              </div>
+              <div
+                className="stat-skeleton-line"
+                style={{ width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0 }}
+              ></div>
             </div>
-          );
-        })}
+          ))
+        ) : (
+          statCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div key={card.title} className={`stat-card accent-${card.accent}`}>
+                <div className="stat-card-header">
+                  <div className="stat-header-meta">
+                    <h3 title={card.title}>{card.title}</h3>
+                    {card.badge && <span className="stat-card-badge">{card.badge}</span>}
+                  </div>
+                  {Icon && (
+                    <div className="stat-card-icon-box">
+                      <Icon size={18} />
+                    </div>
+                  )}
+                </div>
+                <div className="stat-card-body">
+                  {renderAmount(card.value)}
+                </div>
+                <div className="stat-card-footer">
+                  <div className="stat-card-note">{card.note}</div>
+                  {card.trend && (
+                    <span className={`stat-trend-chip ${card.trendType || 'neutral'}`}>
+                      {card.trend}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Recharts Charts Grid */}
@@ -359,7 +372,16 @@ const Dashboard = ({ language = 'en' }) => {
             </div>
           </div>
           <div style={{ height: '240px', width: '100%' }}>
-            {!hasChartData ? (
+            {loading ? (
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.75rem 0' }}>
+                <div className="stat-skeleton-line" style={{ height: '180px', width: '100%', borderRadius: '14px' }}></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 8px' }}>
+                  {['Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov'].map((m) => (
+                    <div key={m} className="stat-skeleton-line" style={{ height: '10px', width: '30px' }}></div>
+                  ))}
+                </div>
+              </div>
+            ) : !hasChartData ? (
               <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted-foreground)', gap: '0.5rem', background: 'var(--surface-subtle, rgba(0,0,0,0.02))', borderRadius: '12px' }}>
                 <TrendingUp size={30} style={{ opacity: 0.25 }} />
                 <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>No transaction data for this period</span>
@@ -403,15 +425,37 @@ const Dashboard = ({ language = 'en' }) => {
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', margin: 0 }}>Net Profit</h3>
               <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', margin: '0.25rem 0 0 0' }}>Approved Revenue - Purchases - Expenses (excl. tax)</p>
             </div>
-            <span style={{ fontSize: '0.75rem', background: 'var(--color-lime)', color: 'var(--color-ink)', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
-              {netProfit >= 0 ? 'Active' : '-Deficit'}
-            </span>
+            {loading ? (
+              <div className="stat-skeleton-line-dark" style={{ width: '56px', height: '22px', borderRadius: '12px' }}></div>
+            ) : (
+              <span style={{ fontSize: '0.75rem', background: 'var(--color-lime)', color: 'var(--color-ink)', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
+                {netProfit >= 0 ? 'Active' : '-Deficit'}
+              </span>
+            )}
           </div>
-          <div style={{ fontSize: '1.875rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '1.25rem', color: netProfit >= 0 ? 'white' : 'var(--danger)' }}>
-            ¥{netProfit.toLocaleString()}
-          </div>
+          {loading ? (
+            <div className="stat-skeleton-line-dark" style={{ width: '220px', height: '36px', marginBottom: '1.25rem' }}></div>
+          ) : (
+            <div style={{ fontSize: '1.875rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '1.25rem', color: netProfit >= 0 ? 'white' : 'var(--danger)' }}>
+              ¥{netProfit.toLocaleString()}
+            </div>
+          )}
           <div style={{ height: '160px', width: '100%' }}>
-            {!hasChartData ? (
+            {loading ? (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'flex-end', gap: '8px', padding: '0 8px' }}>
+                {[45, 30, 60, 75, 50, 85, 65, 80, 55, 70, 60, 95].map((h, idx) => (
+                  <div
+                    key={idx}
+                    className="stat-skeleton-line-dark"
+                    style={{
+                      flex: 1,
+                      height: `${h}%`,
+                      borderRadius: '4px 4px 0 0',
+                    }}
+                  ></div>
+                ))}
+              </div>
+            ) : !hasChartData ? (
               <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.45)', gap: '0.5rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '12px' }}>
                 <Coins size={26} style={{ opacity: 0.25 }} />
                 <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>No profit activity recorded</span>
@@ -470,7 +514,16 @@ const Dashboard = ({ language = 'en' }) => {
               </tr>
             </thead>
             <tbody>
-              {!dashboardData.latest_orders || dashboardData.latest_orders.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="5">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading latest invoices...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : !dashboardData.latest_orders || dashboardData.latest_orders.length === 0 ? (
                 <tr>
                   <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted-foreground)' }}>
                     No invoices found for the selected period
@@ -534,7 +587,16 @@ const Dashboard = ({ language = 'en' }) => {
               </tr>
             </thead>
             <tbody>
-              {!dashboardData.latest_expenses || dashboardData.latest_expenses.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="7">
+                    <div className="table-loader-container">
+                      <div className="spinner"></div>
+                      <span>Loading latest expenses...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : !dashboardData.latest_expenses || dashboardData.latest_expenses.length === 0 ? (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted-foreground)' }}>
                     No expenses found for the selected period
