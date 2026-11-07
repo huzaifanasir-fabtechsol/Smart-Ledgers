@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { FileText } from "lucide-react";
+import { FileText, FileSignature, Printer, Download } from "lucide-react";
 import { apiRequest, getErrorMessage, exportLetterheadDocxFromPayload, exportLetterheadDocxById } from "../api";
 import paperCss from "./Letterhead.css?inline";
 
@@ -372,12 +372,21 @@ const LetterheadPrinter = ({ profile }) => {
   ].filter(Boolean);
 
   return (
-    <div className="table-section">
-      <div className="table-header"><h3>Letterhead</h3></div>
-      <p style={{ margin: "0 0 1.5rem 0", fontSize: "0.875rem", color: "var(--muted-foreground)" }}>
-        Pick a design, choose your colors, check the preview, then print it or save it as a PDF.
-        Your letterhead details are remembered on this device.
-      </p>
+    <div className="settings-card">
+      <div className="settings-card-header">
+        <div className="settings-card-title-group">
+          <div className="settings-icon-box emerald">
+            <FileSignature size={22} />
+          </div>
+          <div>
+            <h3 className="settings-card-heading">Letterhead Designer</h3>
+            <p className="settings-card-sub">
+              Pick a geometric design, tune your colors, and generate high-resolution printed or Word stationery
+            </p>
+          </div>
+        </div>
+        <span className="settings-badge emerald">Official Stationery</span>
+      </div>
 
       <div className="lh-layout">
         <div className="lh-form">
@@ -426,10 +435,10 @@ const LetterheadPrinter = ({ profile }) => {
               </span>
             )}
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              {activeRecord && <button type="button" className="btn-primary" onClick={() => persist(activeRecord.id)} disabled={busy || !dirty}>Update saved</button>}
-              <button type="button" className={activeRecord ? "btn-secondary" : "btn-primary"} onClick={() => persist(null)} disabled={busy}>Save as new</button>
-              <button type="button" className="btn-secondary" onClick={startBlank}>New blank</button>
-              <button type="button" className="btn-secondary" onClick={fillFromProfile}>Use my company details</button>
+              {activeRecord && <button type="button" className="settings-btn-primary" onClick={() => persist(activeRecord.id)} disabled={busy || !dirty}>Update saved</button>}
+              <button type="button" className={activeRecord ? "settings-btn-secondary" : "settings-btn-primary"} onClick={() => persist(null)} disabled={busy}>Save as new</button>
+              <button type="button" className="settings-btn-secondary" onClick={startBlank}>New blank</button>
+              <button type="button" className="settings-btn-secondary" onClick={fillFromProfile}>Use my company details</button>
             </div>
           </div>
 
@@ -502,17 +511,17 @@ const LetterheadPrinter = ({ profile }) => {
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <button
                 type="button"
-                className="btn-secondary"
+                className="settings-btn-secondary"
                 onClick={handleExportDocx}
                 disabled={exportingDocx}
                 title="Export as editable Microsoft Word document (.docx)"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 650 }}
               >
                 <FileText size={15} style={{ color: '#2563eb' }} />
-                {exportingDocx ? "Exporting..." : "Export as Docs (.docx)"}
+                {exportingDocx ? "Exporting..." : "Export as Word (.docx)"}
               </button>
-              <button type="button" className="btn-primary" onClick={handlePrint}>
-                Print / Save as PDF
+              <button type="button" className="settings-btn-primary" onClick={handlePrint}>
+                <Printer size={16} /> Print / Save as PDF
               </button>
             </div>
           </div>

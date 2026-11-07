@@ -220,13 +220,9 @@ function AppContent() {
       ],
     },
     {
-      title: 'Letterhead',
+      title: 'System',
       items: [
         { path: '/letterhead', label: 'Letterhead', icon: FileSignature },
-      ],
-    },
-    {
-      items: [
         { path: '/settings', label: 'Settings', icon: Settings },
       ],
     },

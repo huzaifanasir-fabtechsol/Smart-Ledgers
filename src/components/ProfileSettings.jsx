@@ -2,7 +2,24 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Settings } from "lucide-react";
+import {
+  Settings,
+  Building2,
+  Percent,
+  KeyRound,
+  Lock,
+  ShieldCheck,
+  Mail,
+  Phone,
+  Globe,
+  MapPin,
+  Hash,
+  Check,
+  Plus,
+  Pencil,
+  Trash2,
+  User,
+} from "lucide-react";
 import { apiRequest } from "../api";
 import { useUser } from "../context/UserContext";
 import PageHeader from "./PageHeader";
@@ -314,10 +331,6 @@ const ProfileSettings = ({ onUserUpdate, onLockPinChange }) => {
     }
   };
 
-  if (loadingProfile) {
-    return <div className="loader">Loading settings...</div>;
-  }
-
   return (
     <div className="profile-settings">
       <PageHeader
@@ -328,142 +341,444 @@ const ProfileSettings = ({ onUserUpdate, onLockPinChange }) => {
         companyName={profile.company_name}
       />
 
-      <div className="table-section">
-        <div className="table-header">
-          <h3>Account &amp; Company Information</h3>
-        </div>
-        <div style={{ display:"flex", alignItems:"center", gap:"1.25rem", marginBottom:"2rem", padding:"0 0.5rem" }}>
-          <div style={{ width:"64px", height:"64px", borderRadius:"50%", background:"var(--color-violet-soft)", color:"var(--color-ink)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.5rem", fontWeight:"800", fontFamily:"var(--font-display)", textTransform:"uppercase", boxShadow:"var(--shadow-card)" }}>
-            {profile.username ? profile.username.substring(0, 2) : "SL"}
-          </div>
-          <div>
-            <h4 style={{ margin:0, fontSize:"1.1rem", fontWeight:700, color:"var(--ink)" }}>{profile.username || "User"}</h4>
-            <p style={{ margin:"0.25rem 0 0 0", fontSize:"0.8125rem", color:"var(--muted-foreground)" }}>{profile.email || "No email set"}</p>
+      {loadingProfile ? (
+        <div className="settings-card">
+          <div className="table-loader-container">
+            <div className="spinner"></div>
+            <span>Loading settings & preferences...</span>
           </div>
         </div>
-        <form onSubmit={handleProfileSubmit}>
-          <div className="form-row">
-            <div className="form-group"><label>Username</label><input type="text" name="username" value={profile.username} onChange={handleProfileChange} required /></div>
-            <div className="form-group"><label>Email</label><input type="email" name="email" value={profile.email} onChange={handleProfileChange} required /></div>
-          </div>
-          <div className="form-row">
-            <div className="form-group"><label>Company Name</label><input type="text" name="company_name" value={profile.company_name} onChange={handleProfileChange} /></div>
-            <div className="form-group"><label>Company Email</label><input type="email" name="company_email" value={profile.company_email} onChange={handleProfileChange} /></div>
-          </div>
-          <div className="form-row">
-            <div className="form-group"><label>Company Phone</label><input type="text" name="company_phone" value={profile.company_phone} onChange={handleProfileChange} /></div>
-            <div className="form-group"><label>Company Website</label><input type="text" name="company_website" value={profile.company_website} onChange={handleProfileChange} /></div>
-          </div>
-          <div className="form-group"><label>Company Address</label><textarea name="company_address" value={profile.company_address} onChange={handleProfileChange} rows="3" /></div>
-          <div className="form-group"><label>Business Registration</label><textarea name="business_registration" value={profile.business_registration} onChange={handleProfileChange} rows="3" /></div>
-          <button type="submit" className="btn-primary" disabled={savingProfile}>{savingProfile ? "Saving..." : "Save Settings"}</button>
-        </form>
-      </div>
-
-      <div className="table-section">
-        <div className="table-header"><h3>Tax Settings</h3></div>
-        <p style={{ margin:"0 0 1.5rem 0", fontSize:"0.875rem", color:"var(--muted-foreground)" }}>
-          Define named tax rates to choose from when recording expenses. Also set a system-wide default rate.
-        </p>
-
-        <form onSubmit={handleTaxSubmit} style={{ marginBottom:"2rem", paddingBottom:"1.5rem", borderBottom:"1px solid var(--border)" }}>
-          <div className="form-row">
-            <div className="form-group" style={{ maxWidth:"300px" }}>
-              <label>Default Tax Rate (%)</label>
-              <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
-                <input type="number" step="0.01" min="0" max="100" name="tax_rate" value={profile.tax_rate} onChange={handleProfileChange} placeholder="10.00" style={{ paddingRight:"2.5rem" }} required />
-                <span style={{ position:"absolute", right:"12px", color:"var(--muted-foreground)", fontWeight:600, fontSize:"0.9rem", pointerEvents:"none" }}>%</span>
-              </div>
-              <small style={{ color:"var(--muted-foreground)", marginTop:"0.35rem", display:"block" }}>System-wide default preset for new expenses.</small>
-            </div>
-          </div>
-          <button type="submit" className="btn-primary" disabled={savingTax}>{savingTax ? "Saving..." : "Save Default Rate"}</button>
-        </form>
-
-        <h4 style={{ margin:"0 0 1rem 0", fontWeight:700, fontSize:"0.95rem" }}>Saved Tax Rates</h4>
-        <div className="table-container" style={{ marginBottom:"1.5rem" }}>
-          <table>
-            <thead><tr><th>Name</th><th style={{ width:"100px" }}>Rate (%)</th><th style={{ width:"130px" }}>Actions</th></tr></thead>
-            <tbody>
-              {loadingTaxRates ? (
-                <tr><td colSpan="3"><div style={{ padding:"1rem", textAlign:"center" }}>Loading...</div></td></tr>
-              ) : taxRates.length === 0 ? (
-                <tr><td colSpan="3" style={{ textAlign:"center", color:"var(--muted-foreground)", padding:"1.5rem" }}>No tax rates defined yet</td></tr>
-              ) : (
-                taxRates.map((tr) => (
-                  <tr key={tr.id}>
-                    <td style={{ fontWeight:600 }}>{tr.name}</td>
-                    <td>{Number(tr.rate).toFixed(2)}%</td>
-                    <td>
-                      <div style={{ display:"flex", gap:"0.4rem" }}>
-                        <button className="btn-secondary" style={{ padding:"0.25rem 0.65rem", fontSize:"0.78rem" }} onClick={() => handleEditTaxRate(tr)}>✏️ Edit</button>
-                        <button className="btn-secondary" style={{ padding:"0.25rem 0.65rem", fontSize:"0.78rem", color:"#dc2626", borderColor:"#fca5a5" }} onClick={() => handleDeleteTaxRate(tr.id)} disabled={deletingTaxRateId === tr.id}>{deletingTaxRateId === tr.id ? "..." : "🗑️"}</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div style={{ background:"var(--secondary)", borderRadius:"16px", padding:"1.25rem", border:"1px solid var(--border)" }}>
-          <h4 style={{ margin:"0 0 1rem 0", fontWeight:700, fontSize:"0.9rem" }}>
-            {editingTaxRate ? `Editing: ${editingTaxRate.name}` : "Add New Tax Rate"}
-          </h4>
-          <form onSubmit={handleTaxRateSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Name</label>
-                <input type="text" name="name" value={taxForm.name} onChange={handleTaxRateFormChange} placeholder="e.g. Consumption Tax" required />
-              </div>
-              <div className="form-group" style={{ maxWidth:"180px" }}>
-                <label>Rate (%)</label>
-                <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
-                  <input type="number" step="0.01" min="0" max="100" name="rate" value={taxForm.rate} onChange={handleTaxRateFormChange} placeholder="10.00" style={{ paddingRight:"2.5rem" }} required />
-                  <span style={{ position:"absolute", right:"12px", color:"var(--muted-foreground)", fontWeight:600, pointerEvents:"none" }}>%</span>
+      ) : (
+        <>
+          {/* Card 1: Account & Company Information */}
+          <div className="settings-card">
+            <div className="settings-card-header">
+              <div className="settings-card-title-group">
+                <div className="settings-icon-box emerald">
+                  <Building2 size={22} />
+                </div>
+                <div>
+                  <h3 className="settings-card-heading">Account &amp; Company Information</h3>
+                  <p className="settings-card-sub">Identity details, business registration, contact and location records</p>
                 </div>
               </div>
+              <span className="settings-badge emerald">Enterprise Profile</span>
             </div>
-            <div style={{ display:"flex", gap:"0.75rem" }}>
-              <button type="submit" className="btn-primary" disabled={savingTaxRate}>{savingTaxRate ? "Saving..." : editingTaxRate ? "Update Rate" : "Add Tax Rate"}</button>
-              {editingTaxRate && (
-                <button type="button" className="btn-secondary" onClick={() => { setEditingTaxRate(null); setTaxForm(INITIAL_TAX_FORM); }}>Cancel</button>
-              )}
+
+            <div className="settings-user-hero">
+              <div className="settings-avatar-wrap">
+                <div className="settings-avatar-large">
+                  {profile.username ? profile.username.substring(0, 2).toUpperCase() : "SL"}
+                </div>
+              </div>
+              <div className="settings-user-info">
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <h4 className="settings-user-name">{profile.company_name || profile.username || "User"}</h4>
+                  <span className="settings-badge emerald" style={{ fontSize: "0.68rem", padding: "2px 8px" }}>Active Admin</span>
+                </div>
+                <p className="settings-user-email">{profile.email || "No email set"}</p>
+              </div>
             </div>
-          </form>
-        </div>
-      </div>
 
-      <div className="table-section">
-        <div className="table-header"><h3>Change Password</h3></div>
-        <form onSubmit={handlePasswordSubmit}>
-          <div className="form-row">
-            <div className="form-group"><label>Current Password</label><input type="password" name="current_password" value={passwordForm.current_password} onChange={handlePasswordChange} required /></div>
-            <div className="form-group"><label>New Password</label><input type="password" name="new_password" value={passwordForm.new_password} onChange={handlePasswordChange} required /></div>
-            <div className="form-group"><label>Confirm New Password</label><input type="password" name="confirm_password" value={passwordForm.confirm_password} onChange={handlePasswordChange} required /></div>
-          </div>
-          <button type="submit" className="btn-primary" disabled={savingPassword}>{savingPassword ? "Updating..." : "Update Password"}</button>
-        </form>
-      </div>
+            <form onSubmit={handleProfileSubmit}>
+              <div className="settings-form-grid">
+                <div className="settings-form-group">
+                  <label className="settings-label"><User size={13} /> Username</label>
+                  <div className="settings-input-wrap">
+                    <User size={15} className="settings-input-icon" />
+                    <input type="text" name="username" className="settings-input" value={profile.username} onChange={handleProfileChange} required />
+                  </div>
+                </div>
 
-      <div className="table-section">
-        <div className="table-header"><h3>Screen Lock PIN (Ctrl + Q)</h3></div>
-        <p style={{ margin: "0 0 1rem", color: "var(--muted-foreground)", fontSize: "0.875rem" }}>
-          Press Ctrl + Q anywhere to blank the screen until this 6-digit PIN is entered. {hasLockPin ? "A PIN is currently set." : "No PIN set yet."} Your account password is required to {hasLockPin ? "change or remove" : "set"} it.
-        </p>
-        <form onSubmit={handleSetPin}>
-          <div className="form-row">
-            <div className="form-group"><label>{hasLockPin ? "New PIN" : "PIN"} (6 digits)</label><input type="password" inputMode="numeric" maxLength={6} autoComplete="off" value={pinForm.pin} onChange={(e) => setPinForm((p) => ({ ...p, pin: e.target.value.replace(/\D/g, "") }))} required /></div>
-            <div className="form-group"><label>Confirm PIN</label><input type="password" inputMode="numeric" maxLength={6} autoComplete="off" value={pinForm.confirm_pin} onChange={(e) => setPinForm((p) => ({ ...p, confirm_pin: e.target.value.replace(/\D/g, "") }))} required /></div>
-            <div className="form-group"><label>Account Password</label><input type="password" autoComplete="current-password" value={pinForm.password} onChange={(e) => setPinForm((p) => ({ ...p, password: e.target.value }))} required /></div>
+                <div className="settings-form-group">
+                  <label className="settings-label"><Mail size={13} /> Personal Email</label>
+                  <div className="settings-input-wrap">
+                    <Mail size={15} className="settings-input-icon" />
+                    <input type="email" name="email" className="settings-input" value={profile.email} onChange={handleProfileChange} required />
+                  </div>
+                </div>
+
+                <div className="settings-form-group">
+                  <label className="settings-label"><Building2 size={13} /> Company Legal Name</label>
+                  <div className="settings-input-wrap">
+                    <Building2 size={15} className="settings-input-icon" />
+                    <input type="text" name="company_name" className="settings-input" value={profile.company_name} onChange={handleProfileChange} />
+                  </div>
+                </div>
+
+                <div className="settings-form-group">
+                  <label className="settings-label"><Mail size={13} /> Corporate Email</label>
+                  <div className="settings-input-wrap">
+                    <Mail size={15} className="settings-input-icon" />
+                    <input type="email" name="company_email" className="settings-input" value={profile.company_email} onChange={handleProfileChange} />
+                  </div>
+                </div>
+
+                <div className="settings-form-group">
+                  <label className="settings-label"><Phone size={13} /> Company Phone</label>
+                  <div className="settings-input-wrap">
+                    <Phone size={15} className="settings-input-icon" />
+                    <input type="text" name="company_phone" className="settings-input" value={profile.company_phone} onChange={handleProfileChange} />
+                  </div>
+                </div>
+
+                <div className="settings-form-group">
+                  <label className="settings-label"><Globe size={13} /> Company Website</label>
+                  <div className="settings-input-wrap">
+                    <Globe size={15} className="settings-input-icon" />
+                    <input type="text" name="company_website" className="settings-input" value={profile.company_website} onChange={handleProfileChange} />
+                  </div>
+                </div>
+
+                <div className="settings-form-group full-width">
+                  <label className="settings-label"><MapPin size={13} /> Company Physical Address</label>
+                  <textarea name="company_address" className="settings-textarea" value={profile.company_address} onChange={handleProfileChange} rows="3" />
+                </div>
+
+                <div className="settings-form-group full-width">
+                  <label className="settings-label"><Hash size={13} /> Business Registration / Corporate Number</label>
+                  <textarea name="business_registration" className="settings-textarea" value={profile.business_registration} onChange={handleProfileChange} rows="3" />
+                </div>
+              </div>
+
+              <button type="submit" className="settings-btn-primary" disabled={savingProfile}>
+                <Check size={16} />
+                {savingProfile ? "Saving Settings..." : "Save Settings"}
+              </button>
+            </form>
           </div>
-          <div style={{ display: "flex", gap: "0.75rem" }}>
-            <button type="submit" className="btn-primary" disabled={savingPin}>{savingPin ? "Saving..." : hasLockPin ? "Update PIN" : "Set PIN"}</button>
-            {hasLockPin && <button type="button" className="btn-secondary" disabled={savingPin} onClick={handleRemovePin}>Remove PIN</button>}
+
+          {/* Card 2: Tax Settings */}
+          <div className="settings-card">
+            <div className="settings-card-header">
+              <div className="settings-card-title-group">
+                <div className="settings-icon-box purple">
+                  <Percent size={22} />
+                </div>
+                <div>
+                  <h3 className="settings-card-heading">Tax Settings</h3>
+                  <p className="settings-card-sub">Define named consumption tax rates and configure the system-wide default preset</p>
+                </div>
+              </div>
+              <span className="settings-badge purple">JCT Presets</span>
+            </div>
+
+            <form onSubmit={handleTaxSubmit} style={{ marginBottom: "2rem", paddingBottom: "1.75rem", borderBottom: "1px solid rgba(226, 232, 240, 0.8)" }}>
+              <div className="settings-form-group" style={{ maxWidth: "340px", marginBottom: "1.25rem" }}>
+                <label className="settings-label">Default Tax Rate (%)</label>
+                <div className="settings-input-wrap">
+                  <Percent size={15} className="settings-input-icon" />
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    name="tax_rate"
+                    className="settings-input"
+                    value={profile.tax_rate}
+                    onChange={handleProfileChange}
+                    placeholder="10.00"
+                    style={{ paddingRight: "3rem" }}
+                    required
+                  />
+                  <span style={{ position: "absolute", right: "14px", color: "var(--muted-foreground)", fontWeight: 750, fontSize: "0.85rem", pointerEvents: "none" }}>%</span>
+                </div>
+                <small style={{ color: "var(--muted-foreground)", fontSize: "0.75rem", marginTop: "0.25rem", display: "block" }}>
+                  Standard preset applied automatically when creating new expenses.
+                </small>
+              </div>
+              <button type="submit" className="settings-btn-primary" disabled={savingTax}>
+                <Check size={16} />
+                {savingTax ? "Saving Default..." : "Save Default Rate"}
+              </button>
+            </form>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h4 style={{ margin: 0, fontWeight: 750, fontSize: "1rem", color: "var(--ink)" }}>Saved Tax Rates</h4>
+              <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{taxRates.length} configured rates</span>
+            </div>
+
+            <div className="table-container" style={{ minHeight: "auto", marginBottom: "1.5rem" }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th style={{ width: "140px" }}>Rate (%)</th>
+                    <th style={{ width: "150px" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingTaxRates ? (
+                    <tr>
+                      <td colSpan="3">
+                        <div className="table-loader-container" style={{ minHeight: "120px", padding: "1.5rem" }}>
+                          <div className="spinner"></div>
+                          <span>Loading tax rates...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : taxRates.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" style={{ textAlign: "center", color: "var(--muted-foreground)", padding: "2rem" }}>
+                        No custom tax rates defined yet
+                      </td>
+                    </tr>
+                  ) : (
+                    taxRates.map((tr) => (
+                      <tr key={tr.id}>
+                        <td style={{ fontWeight: 650, color: "var(--ink)" }}>{tr.name}</td>
+                        <td>
+                          <span className="rate-pill">{Number(tr.rate).toFixed(2)}%</span>
+                        </td>
+                        <td>
+                          <div style={{ display: "flex", gap: "0.5rem" }}>
+                            <button
+                              type="button"
+                              className="settings-btn-secondary"
+                              style={{ padding: "0.35rem 0.75rem", fontSize: "0.78rem" }}
+                              onClick={() => handleEditTaxRate(tr)}
+                            >
+                              <Pencil size={13} /> Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="settings-btn-danger"
+                              onClick={() => handleDeleteTaxRate(tr.id)}
+                              disabled={deletingTaxRateId === tr.id}
+                            >
+                              <Trash2 size={13} /> {deletingTaxRateId === tr.id ? "..." : "Delete"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="settings-subcard">
+              <h4 className="settings-subcard-title">
+                <Plus size={16} style={{ color: "#7e22ce" }} />
+                {editingTaxRate ? `Editing Tax Rate: ${editingTaxRate.name}` : "Add New Named Tax Rate"}
+              </h4>
+              <form onSubmit={handleTaxRateSubmit}>
+                <div className="settings-form-grid" style={{ marginBottom: "1rem" }}>
+                  <div className="settings-form-group">
+                    <label className="settings-label">Rate Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      className="settings-input no-icon"
+                      value={taxForm.name}
+                      onChange={handleTaxRateFormChange}
+                      placeholder="e.g. Reduced Food Rate, Zero-Rated Export"
+                      required
+                    />
+                  </div>
+                  <div className="settings-form-group" style={{ maxWidth: "220px" }}>
+                    <label className="settings-label">Tax Rate (%)</label>
+                    <div className="settings-input-wrap">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        name="rate"
+                        className="settings-input no-icon"
+                        value={taxForm.rate}
+                        onChange={handleTaxRateFormChange}
+                        placeholder="8.00"
+                        style={{ paddingRight: "2.5rem" }}
+                        required
+                      />
+                      <span style={{ position: "absolute", right: "12px", color: "var(--muted-foreground)", fontWeight: 700, pointerEvents: "none" }}>%</span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <button type="submit" className="settings-btn-primary" disabled={savingTaxRate}>
+                    <Check size={16} />
+                    {savingTaxRate ? "Saving..." : editingTaxRate ? "Update Rate" : "Add Tax Rate"}
+                  </button>
+                  {editingTaxRate && (
+                    <button
+                      type="button"
+                      className="settings-btn-secondary"
+                      onClick={() => { setEditingTaxRate(null); setTaxForm(INITIAL_TAX_FORM); }}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
           </div>
-        </form>
-      </div>
+
+          {/* Card 3: Change Password */}
+          <div className="settings-card">
+            <div className="settings-card-header">
+              <div className="settings-card-title-group">
+                <div className="settings-icon-box amber">
+                  <KeyRound size={22} />
+                </div>
+                <div>
+                  <h3 className="settings-card-heading">Change Password</h3>
+                  <p className="settings-card-sub">Update your account login password with strong authentication</p>
+                </div>
+              </div>
+              <span className="settings-badge amber">Credentials</span>
+            </div>
+
+            <form onSubmit={handlePasswordSubmit}>
+              <div className="settings-form-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+                <div className="settings-form-group">
+                  <label className="settings-label"><Lock size={13} /> Current Password</label>
+                  <div className="settings-input-wrap">
+                    <Lock size={15} className="settings-input-icon" />
+                    <input
+                      type="password"
+                      name="current_password"
+                      className="settings-input"
+                      value={passwordForm.current_password}
+                      onChange={handlePasswordChange}
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="settings-form-group">
+                  <label className="settings-label"><KeyRound size={13} /> New Password</label>
+                  <div className="settings-input-wrap">
+                    <KeyRound size={15} className="settings-input-icon" />
+                    <input
+                      type="password"
+                      name="new_password"
+                      className="settings-input"
+                      value={passwordForm.new_password}
+                      onChange={handlePasswordChange}
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="settings-form-group">
+                  <label className="settings-label"><Check size={13} /> Confirm New Password</label>
+                  <div className="settings-input-wrap">
+                    <Check size={15} className="settings-input-icon" />
+                    <input
+                      type="password"
+                      name="confirm_password"
+                      className="settings-input"
+                      value={passwordForm.confirm_password}
+                      onChange={handlePasswordChange}
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              <button type="submit" className="settings-btn-primary" disabled={savingPassword}>
+                <KeyRound size={16} />
+                {savingPassword ? "Updating Password..." : "Update Password"}
+              </button>
+            </form>
+          </div>
+
+          {/* Card 4: Screen Lock PIN */}
+          <div className="settings-card">
+            <div className="settings-card-header">
+              <div className="settings-card-title-group">
+                <div className="settings-icon-box cyan">
+                  <ShieldCheck size={22} />
+                </div>
+                <div>
+                  <h3 className="settings-card-heading">Screen Lock PIN (Ctrl + Q)</h3>
+                  <p className="settings-card-sub">Instantly blank and secure your workstation when away from your desk</p>
+                </div>
+              </div>
+              <span className={`settings-badge ${hasLockPin ? "emerald" : "amber"}`}>
+                {hasLockPin ? "PIN Protected" : "Not Set"}
+              </span>
+            </div>
+
+            <p style={{ margin: "0 0 1.5rem", color: "var(--muted-foreground)", fontSize: "0.85rem", lineHeight: 1.5 }}>
+              Press <kbd style={{ padding: "2px 6px", background: "rgba(226, 232, 240, 0.8)", border: "1px solid #cbd5e1", borderRadius: "6px", fontWeight: 700, fontSize: "0.8rem" }}>Ctrl + Q</kbd> anywhere in the application to instantly lock the view until your 6-digit security PIN is entered. Your login password is required to {hasLockPin ? "change or remove" : "set"} it.
+            </p>
+
+            <form onSubmit={handleSetPin}>
+              <div className="settings-form-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+                <div className="settings-form-group">
+                  <label className="settings-label"><Lock size={13} /> {hasLockPin ? "New PIN" : "PIN"} (6 digits)</label>
+                  <div className="settings-input-wrap">
+                    <Lock size={15} className="settings-input-icon" />
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={6}
+                      autoComplete="off"
+                      className="settings-input"
+                      value={pinForm.pin}
+                      onChange={(e) => setPinForm((p) => ({ ...p, pin: e.target.value.replace(/\D/g, "") }))}
+                      placeholder="6 digits (0-9)"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="settings-form-group">
+                  <label className="settings-label"><Check size={13} /> Confirm PIN</label>
+                  <div className="settings-input-wrap">
+                    <Check size={15} className="settings-input-icon" />
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={6}
+                      autoComplete="off"
+                      className="settings-input"
+                      value={pinForm.confirm_pin}
+                      onChange={(e) => setPinForm((p) => ({ ...p, confirm_pin: e.target.value.replace(/\D/g, "") }))}
+                      placeholder="Repeat 6 digits"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="settings-form-group">
+                  <label className="settings-label"><KeyRound size={13} /> Account Password</label>
+                  <div className="settings-input-wrap">
+                    <KeyRound size={15} className="settings-input-icon" />
+                    <input
+                      type="password"
+                      autoComplete="current-password"
+                      className="settings-input"
+                      value={pinForm.password}
+                      onChange={(e) => setPinForm((p) => ({ ...p, password: e.target.value }))}
+                      placeholder="Your account password"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.85rem", flexWrap: "wrap" }}>
+                <button type="submit" className="settings-btn-primary" disabled={savingPin}>
+                  <ShieldCheck size={16} />
+                  {savingPin ? "Saving PIN..." : hasLockPin ? "Update PIN" : "Set PIN"}
+                </button>
+                {hasLockPin && (
+                  <button
+                    type="button"
+                    className="settings-btn-danger"
+                    disabled={savingPin}
+                    onClick={handleRemovePin}
+                  >
+                    <Trash2 size={15} /> Remove PIN
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </>
+      )}
 
       <ToastContainer position="top-right" autoClose={3000} />
     </div>

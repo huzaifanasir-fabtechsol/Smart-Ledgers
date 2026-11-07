@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { Upload, Download, Trash2, FileText } from "lucide-react";
+import { Upload, Download, Trash2, FileText, Files } from "lucide-react";
 import { apiRequest, getErrorMessage, downloadFile } from "../api";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import Pagination from "./Pagination";
@@ -129,22 +129,31 @@ const LetterheadRecords = () => {
   };
 
   return (
-    <div className="table-section" style={{ marginTop: "1.5rem" }}>
-      <div className="table-header"><h3>Document Records</h3></div>
-      <p style={{ margin: "0 0 1.25rem 0", fontSize: "0.875rem", color: "var(--muted-foreground)" }}>
-        Upload finished documents (e.g. letters written on your exported letterhead) to keep them on record.
-        Files are compressed on the server when that saves space; downloads are always identical to the original.
-      </p>
-
-      <form onSubmit={handleUpload} style={{ display: "grid", gap: "0.25rem", maxWidth: 640 }}>
-        <div className="form-group">
-          <label>Document (Word, PDF or image, max 20 MB)</label>
-          <input ref={fileInputRef} type="file" accept={ACCEPT} className="form-input" onChange={handleFileChange} />
+    <div className="settings-card" style={{ marginTop: "2rem" }}>
+      <div className="settings-card-header">
+        <div className="settings-card-title-group">
+          <div className="settings-icon-box purple">
+            <Files size={22} />
+          </div>
+          <div>
+            <h3 className="settings-card-heading">Document Records Archive</h3>
+            <p className="settings-card-sub">
+              Upload completed contracts, quotations, and official notices to maintain a secure audit history
+            </p>
+          </div>
         </div>
-        <div className="form-group">
-          <label>Description</label>
+        <span className="settings-badge purple">Document Vault</span>
+      </div>
+
+      <form onSubmit={handleUpload} style={{ display: "grid", gap: "0.85rem", maxWidth: 640 }}>
+        <div className="settings-form-group">
+          <label className="settings-label">Document File (Word, PDF or image, max 20 MB)</label>
+          <input ref={fileInputRef} type="file" accept={ACCEPT} className="settings-input no-icon" onChange={handleFileChange} />
+        </div>
+        <div className="settings-form-group">
+          <label className="settings-label">Description / Note</label>
           <textarea
-            className="form-input"
+            className="settings-textarea"
             rows={2}
             placeholder="e.g. Quotation sent to ABC Trading, 25 Oct 2026"
             value={description}
@@ -152,7 +161,7 @@ const LetterheadRecords = () => {
           />
         </div>
         <div>
-          <button type="submit" className="btn-primary" disabled={uploading}>
+          <button type="submit" className="settings-btn-primary" disabled={uploading}>
             <Upload size={16} /> {uploading ? "Uploading..." : "Upload Document"}
           </button>
         </div>
@@ -205,21 +214,20 @@ const LetterheadRecords = () => {
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                       <button
                         type="button"
-                        className="btn-secondary"
+                        className="settings-btn-secondary"
                         onClick={() => handleDownload(record)}
                         disabled={downloadingId === record.id}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.35rem 0.7rem", fontSize: "0.8rem" }}
+                        style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}
                       >
                         <Download size={14} /> {downloadingId === record.id ? "..." : "Download"}
                       </button>
                       <button
                         type="button"
-                        className="btn-secondary"
+                        className="settings-btn-danger"
                         onClick={() => setPendingDelete(record)}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.35rem 0.7rem", fontSize: "0.8rem", color: "var(--destructive)" }}
                       >
                         <Trash2 size={14} /> Delete
                       </button>

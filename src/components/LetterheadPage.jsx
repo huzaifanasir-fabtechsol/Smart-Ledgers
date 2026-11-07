@@ -30,10 +30,6 @@ const LetterheadPage = () => {
     return () => { cancelled = true; };
   }, []);
 
-  if (loading) {
-    return <div className="loader">Loading letterhead...</div>;
-  }
-
   return (
     <div className="profile-settings">
       <PageHeader
@@ -44,9 +40,19 @@ const LetterheadPage = () => {
         companyName={profile?.company_name}
       />
 
-      <LetterheadPrinter profile={profile} />
-
-      <LetterheadRecords />
+      {loading ? (
+        <div className="settings-card">
+          <div className="table-loader-container">
+            <div className="spinner"></div>
+            <span>Loading letterhead designer...</span>
+          </div>
+        </div>
+      ) : (
+        <>
+          <LetterheadPrinter profile={profile} />
+          <LetterheadRecords />
+        </>
+      )}
 
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
