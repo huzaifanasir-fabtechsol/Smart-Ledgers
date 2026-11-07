@@ -283,24 +283,30 @@
 .stat-card.accent-coral .stat-card-badge { background: #c2410c !important; color: #ffffff !important; }
 .stat-card.accent-coral .stat-card-note { color: #9a3412 !important; }
 
-/* 8. Dark Emerald Obsidian (Vehicle Purchases & Inventory Stock) */
-.stat-card.accent-dark-emerald {
-  background: linear-gradient(140deg, #0f172a 0%, #134e4a 60%, #064e3b 100%) !important;
-  border: 1.5px solid #2dd4bf !important;
+/* 8. Teal / Mint (Vehicle Purchases & Inventory Stock) */
+.stat-card.accent-dark-emerald,
+.stat-card.accent-teal {
+  background: linear-gradient(140deg, #ccfbf1 0%, #99f6e4 50%, #5eead4 100%) !important;
+  border: 1.5px solid #0d9488 !important;
+  box-shadow: 0 10px 28px -4px rgba(13, 148, 136, 0.25) !important;
+}
+.stat-card.accent-dark-emerald h3,
+.stat-card.accent-teal h3 { color: #115e59 !important; }
+.stat-card.accent-dark-emerald .amount,
+.stat-card.accent-teal .amount { color: #134e4a !important; }
+.stat-card.accent-dark-emerald .stat-card-icon-box,
+.stat-card.accent-teal .stat-card-icon-box {
+  background: #0d9488 !important;
   color: #ffffff !important;
-  box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3) !important;
 }
-.stat-card.accent-dark-emerald h3 { color: #a7f3d0 !important; }
-.stat-card.accent-dark-emerald .amount { color: #d7f24b !important; }
-.stat-card.accent-dark-emerald .stat-card-note { color: #cbd5e1 !important; }
-.stat-card.accent-dark-emerald .stat-card-icon-box {
-  background: rgba(215, 242, 75, 0.25) !important;
-  color: #d7f24b !important;
-  box-shadow: 0 4px 14px rgba(215, 242, 75, 0.3) !important;
-}
-.stat-card.accent-dark-emerald .stat-card-badge { background: #047857 !important; color: #d7f24b !important; }
-.stat-card.accent-dark-emerald::after {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+.stat-card.accent-dark-emerald .stat-card-badge,
+.stat-card.accent-teal .stat-card-badge { background: #0f766e !important; color: #ffffff !important; }
+.stat-card.accent-dark-emerald .stat-card-note,
+.stat-card.accent-teal .stat-card-note { color: #115e59 !important; }
+.stat-card.accent-dark-emerald::after,
+.stat-card.accent-teal::after {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 70%);
 }
 
 /* Fallbacks for Legacy Accent Classes - Ensure NO plain white! */

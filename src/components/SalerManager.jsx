@@ -9,7 +9,7 @@ import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
-const SalerManager = () => {
+const SalerManager = ({ headerTabs }) => {
   const [salers, setSalers] = useState([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -142,6 +142,7 @@ const SalerManager = () => {
         subtitle="Track registered sellers, auction vendors, payment credentials, and supply order volume"
         icon={UserSquare2}
         category="Sales & Supply"
+        tabs={headerTabs}
         actions={
           <button
             className="btn-primary"

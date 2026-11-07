@@ -9,7 +9,7 @@ import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
 
-const CustomerManager = () => {
+const CustomerManager = ({ headerTabs }) => {
   const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -149,6 +149,7 @@ const CustomerManager = () => {
         subtitle="Manage client portfolios, contact profiles, banking credentials, and order volumes"
         icon={Users}
         category="Sales & CRM"
+        tabs={headerTabs}
         actions={
           <button
             className="btn-primary"

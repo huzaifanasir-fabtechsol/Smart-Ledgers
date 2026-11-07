@@ -239,7 +239,7 @@ const Dashboard = ({ language = 'en' }) => {
     },
     {
       title: 'Total Purchase',
-      accent: 'dark-emerald',
+      accent: 'teal',
       value: dashboardData.total_purchase,
       note: 'Vehicle auction & stock purchases',
       icon: Car,
@@ -419,24 +419,24 @@ const Dashboard = ({ language = 'en' }) => {
         </div>
 
         {/* Bar Chart: Monthly Profit */}
-        <div className="table-section" style={{ background: 'var(--color-ink)', color: 'white', padding: '1.5rem' }}>
+        <div className="table-section" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', margin: 0 }}>Net Profit</h3>
-              <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', margin: '0.25rem 0 0 0' }}>Approved Revenue - Purchases - Expenses (excl. tax)</p>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--ink)', margin: 0 }}>Net Profit</h3>
+              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', margin: '0.25rem 0 0 0' }}>Approved Revenue - Purchases - Expenses (excl. tax)</p>
             </div>
             {loading ? (
-              <div className="stat-skeleton-line-dark" style={{ width: '56px', height: '22px', borderRadius: '12px' }}></div>
+              <div className="stat-skeleton-line" style={{ width: '56px', height: '22px', borderRadius: '12px' }}></div>
             ) : (
-              <span style={{ fontSize: '0.75rem', background: 'var(--color-lime)', color: 'var(--color-ink)', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
-                {netProfit >= 0 ? 'Active' : '-Deficit'}
+              <span style={{ fontSize: '0.75rem', background: netProfit >= 0 ? '#dcfce7' : '#ffe4e6', color: netProfit >= 0 ? '#15803d' : '#be123c', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
+                {netProfit >= 0 ? '+Active' : '-Deficit'}
               </span>
             )}
           </div>
           {loading ? (
-            <div className="stat-skeleton-line-dark" style={{ width: '220px', height: '36px', marginBottom: '1.25rem' }}></div>
+            <div className="stat-skeleton-line" style={{ width: '220px', height: '36px', marginBottom: '1.25rem' }}></div>
           ) : (
-            <div style={{ fontSize: '1.875rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '1.25rem', color: netProfit >= 0 ? 'white' : 'var(--danger)' }}>
+            <div style={{ fontSize: '1.875rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '1.25rem', color: netProfit >= 0 ? 'var(--ink)' : 'var(--danger)' }}>
               ¥{netProfit.toLocaleString()}
             </div>
           )}
@@ -446,7 +446,7 @@ const Dashboard = ({ language = 'en' }) => {
                 {[45, 30, 60, 75, 50, 85, 65, 80, 55, 70, 60, 95].map((h, idx) => (
                   <div
                     key={idx}
-                    className="stat-skeleton-line-dark"
+                    className="stat-skeleton-line"
                     style={{
                       flex: 1,
                       height: `${h}%`,
@@ -456,19 +456,19 @@ const Dashboard = ({ language = 'en' }) => {
                 ))}
               </div>
             ) : !hasChartData ? (
-              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.45)', gap: '0.5rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '12px' }}>
-                <Coins size={26} style={{ opacity: 0.25 }} />
-                <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>No profit activity recorded</span>
-                <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>Net profit breakdown will appear as transactions are completed</span>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted-foreground)', gap: '0.5rem', background: 'rgba(241, 245, 249, 0.5)', borderRadius: '12px' }}>
+                <Coins size={26} style={{ opacity: 0.35, color: 'var(--muted-foreground)' }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No profit activity recorded</span>
+                <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>Net profit breakdown will appear as transactions are completed</span>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
-                  <XAxis dataKey="m" stroke="rgba(255, 255, 255, 0.4)" fontSize={10} tickLine={false} axisLine={false}/>
-                  <YAxis hide/>
+                  <XAxis dataKey="m" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false}/>
+                  <YAxis hide domain={['auto', 'auto']}/>
                   <Tooltip 
-                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} 
-                    contentStyle={{ borderRadius: 12, border: 'none', background: 'white', color: 'var(--color-ink)' }}
+                    cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }} 
+                    contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', background: 'white', color: 'var(--ink)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                     formatter={(value, name, item) => [`¥${Number(item?.payload?.rawProfit || 0).toLocaleString()}`, 'Net Profit']}
                     labelFormatter={(label) => `${label}`}
                   />
@@ -479,7 +479,7 @@ const Dashboard = ({ language = 'en' }) => {
                       return (
                         <Cell 
                           key={index} 
-                          fill={isDeficit ? '#f43f5e' : (isSelected ? 'var(--color-lime)' : 'var(--color-violet-soft)')}
+                          fill={isDeficit ? '#f43f5e' : (isSelected ? '#10b981' : '#818cf8')}
                         />
                       );
                     })}

@@ -10,6 +10,7 @@ const PageHeader = ({
   icon: Icon,
   actions,
   children,
+  tabs,
   companyName: propCompanyName,
 }) => {
   const {
@@ -85,14 +86,15 @@ const PageHeader = ({
       </div>
 
       {/* Lower Row: Somewhat Smaller / Refined Elements */}
-      {(subtitle || actions || children) && (
+      {(subtitle || actions || children || tabs) && (
         <div className="unified-header-lower">
           <div className="unified-lower-left">
             {subtitle && <p className="unified-subtitle">{subtitle}</p>}
           </div>
 
-          {(actions || children) && (
+          {(actions || children || tabs) && (
             <div className="unified-lower-right">
+              {tabs}
               {actions}
               {children}
             </div>
