@@ -107,7 +107,19 @@ const Dashboard = ({ language = 'en' }) => {
   };
 
   if (loading) {
-    return <div className="loader">Loading...</div>;
+    return (
+      <div className="loader">
+        <div className="loader-card">
+          <div className="loader-brand-ring">
+            <div className="loader-spinner"></div>
+          </div>
+          <div className="loader-text">
+            <span className="loader-title">Smart Ledgers</span>
+            <span className="loader-subtitle">Loading analytics & records...</span>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const emptyMonthly = [

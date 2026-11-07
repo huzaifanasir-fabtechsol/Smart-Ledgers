@@ -1,17 +1,20 @@
 /* Upgraded Shared Component Styles - Premium UI Design */
 
 .table-section {
-  background: var(--card);
+  background: rgba(255, 255, 255, 0.94);
   border-radius: 24px;
   padding: 1.75rem;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 10px 30px -6px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(0, 0, 0, 0.02);
   margin-bottom: 2rem;
-  border: 1px solid var(--border);
-  transition: box-shadow 0.25s ease;
+  border: 1.5px solid rgba(226, 232, 240, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .table-section:hover {
-  box-shadow: var(--shadow-lift);
+  box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.08);
+  border-color: rgba(215, 242, 75, 0.5);
 }
 
 .table-header {
@@ -104,34 +107,39 @@ table,
 .data-table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 6px; /* Row Card Separation: Converts rows into sleek floating strips */
+  border-spacing: 0 7px; /* Row Card Separation: Converts rows into sleek floating strips */
   font-family: var(--font-sans);
 }
 
 thead {
-  background: transparent;
   position: sticky;
   top: 0;
   z-index: 2;
 }
 
-th {
-  padding: 0.75rem 1.15rem;
+thead tr th {
+  background: rgba(241, 245, 249, 0.75);
+  padding: 0.65rem 1.15rem;
   text-align: left;
-  font-weight: 700;
-  color: var(--table-header-color, oklch(0.40 0.015 260));
-  font-size: 0.72rem;
+  font-weight: 750;
+  color: #475569;
+  font-size: 0.73rem;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   border: none !important;
   white-space: nowrap;
-  background: transparent;
-  transition: color 0.15s ease;
   user-select: none;
+  transition: color 0.15s ease;
 }
 
-th:last-child {
-  border-right: none !important;
+thead tr th:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+thead tr th:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 /* Optional Dark Header Modifier */
@@ -164,31 +172,38 @@ td:first-child {
 /* Row Card Styling (Each row feels like a light, modern floating card strip) */
 td {
   padding: 0.9rem 1.15rem;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid rgba(226, 232, 240, 0.95);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95);
   border-right: none !important;
   border-left: none !important;
   color: var(--foreground);
   font-size: 0.875rem;
   line-height: 1.45;
   vertical-align: middle;
-  background-color: var(--card);
-  box-shadow: 0 1px 3px rgba(18, 18, 22, 0.02);
+  background-color: #ffffff;
+  box-shadow: 0 2px 5px -1px rgba(15, 23, 42, 0.03);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Left edge of row card */
 td:first-child {
-  border-left: 1px solid var(--border) !important;
+  border-left: 1px solid rgba(226, 232, 240, 0.95) !important;
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
 }
 
 /* Right edge of row card */
 td:last-child {
-  border-right: 1px solid var(--border) !important;
+  border-right: 1px solid rgba(226, 232, 240, 0.95) !important;
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
+}
+
+tr:hover td {
+  background-color: #f8fafc;
+  border-color: rgba(215, 242, 75, 0.8);
+  box-shadow: 0 4px 14px -2px rgba(16, 185, 129, 0.12);
+  transform: translateY(-1px);
 }
 
 /* Empty State / Full Width Messages */
@@ -919,31 +934,107 @@ textarea.form-input {
   margin: 0 auto;
 }
 
-/* Loader with Spinner */
+/* Loader with Premium Card & Spinner */
 .loader,
 .table-loader-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3.5rem 1.5rem;
-  min-height: 240px;
+  padding: 4rem 1.5rem;
+  min-height: 280px;
   color: var(--muted-foreground);
   font-weight: 500;
   font-size: 0.875rem;
-  gap: 0.875rem;
+  gap: 1rem;
+}
+
+/* Beautiful Glassmorphic Loader Card */
+.loader-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+  padding: 2.25rem 3rem;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1.5px solid rgba(215, 242, 75, 0.6);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px -10px rgba(16, 185, 129, 0.15), 0 8px 24px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  text-align: center;
+  animation: loaderPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes loaderPopIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.loader-brand-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3.5px solid rgba(215, 242, 75, 0.25);
+  border-top-color: #10b981;
+  border-right-color: #d7f24b;
+  border-radius: 50%;
+  animation: smartSpin 0.85s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+}
+
+.loader-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.loader-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.025em;
+}
+
+.loader-subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+/* Fallback spinner for basic .loader text */
+.loader:not(:has(.loader-card))::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(215, 242, 75, 0.3);
+  border-top-color: #10b981;
+  border-right-color: #d7f24b;
+  border-radius: 50%;
+  animation: smartSpin 0.85s linear infinite;
+  margin-bottom: 0.5rem;
 }
 
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border);
-  border-top-color: var(--lime);
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(215, 242, 75, 0.3);
+  border-top-color: #10b981;
+  border-right-color: #d7f24b;
   border-radius: 50%;
-  animation: tableSpin 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: smartSpin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-@keyframes tableSpin {
+@keyframes smartSpin {
   to {
     transform: rotate(360deg);
   }

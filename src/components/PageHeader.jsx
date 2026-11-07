@@ -10,14 +10,17 @@ const PageHeader = ({
   icon: Icon,
   actions,
   children,
+  companyName: propCompanyName,
 }) => {
   const {
     user,
-    companyName,
+    companyName: ctxCompanyName,
     hasLockPin,
     lockScreen,
     toggleSidebar,
   } = useUser();
+
+  const effectiveCompanyName = propCompanyName || ctxCompanyName || 'Smart Ledgers';
 
   const formattedDate = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
@@ -48,14 +51,19 @@ const PageHeader = ({
             </div>
           )}
 
+          {/* Swapped: Highlight Company Name as the main title */}
           <div className="unified-title-wrap">
-            <h1 className="unified-title">{title}</h1>
+            <div className="unified-company-heading">
+              <Building2 size={20} className="unified-company-icon" />
+              <h1 className="unified-title">{effectiveCompanyName}</h1>
+              <span className="unified-company-badge">Active</span>
+            </div>
           </div>
 
-          <div className="unified-company-chip" title={`Organization: ${companyName || 'Smart Ledgers'}`}>
-            <Building2 size={15} />
-            <span className="unified-company-name">{companyName || 'Smart Ledgers'}</span>
-            <span className="unified-company-badge">Active</span>
+          {/* Swapped: Section Name as smaller refined section chip */}
+          <div className="unified-section-chip" title={`Current Section: ${title}`}>
+            <span className="unified-section-dot"></span>
+            <span className="unified-section-name">{title}</span>
           </div>
         </div>
 
