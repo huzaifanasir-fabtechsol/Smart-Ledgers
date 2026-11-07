@@ -39,7 +39,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -299,6 +299,9 @@
   box-shadow: 0 4px 14px rgba(215, 242, 75, 0.3) !important;
 }
 .stat-card.accent-dark-emerald .stat-card-badge { background: #047857 !important; color: #d7f24b !important; }
+.stat-card.accent-dark-emerald::after {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+}
 
 /* Fallbacks for Legacy Accent Classes - Ensure NO plain white! */
 .stat-card.accent-white {
