@@ -12,8 +12,10 @@
 /* Sidebar design - fixed in place, never scrolls away */
 .sidebar {
   width: 248px;
-  background: var(--sidebar);
-  color: var(--sidebar-foreground);
+  background: linear-gradient(175deg, rgba(15, 23, 42, 0.76) 0%, rgba(20, 32, 54, 0.82) 50%, rgba(10, 18, 32, 0.88) 100%);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  color: #f8fafc;
   position: fixed;
   top: 1rem;
   left: 1rem;
@@ -26,9 +28,10 @@
   flex-shrink: 0;
   z-index: 100;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
-  border: 1px solid var(--sidebar-border);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 1px 0 0 rgba(255, 255, 255, 0.08);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
@@ -157,15 +160,19 @@
 }
 
 .nav-item:hover {
-  background: var(--sidebar-accent);
-  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  backdrop-filter: blur(12px);
+  transform: translateX(2px);
 }
 
 .nav-item.active {
   background: var(--color-lime);
   color: var(--color-ink);
-  box-shadow: 0 8px 24px -8px oklch(0.93 0.18 125 / 0.6);
-  font-weight: 700;
+  box-shadow: 0 8px 24px -4px rgba(215, 242, 75, 0.55);
+  font-weight: 800;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Collapsed sidebar: a single centred icon column */
@@ -238,8 +245,6 @@
   margin-left: calc(248px + 2rem);
   padding: 1.75rem 2rem 4rem 2rem;
   background: transparent;
-  position: relative;
-  z-index: 1;
   min-height: 100vh;
   min-width: 0;
   display: flex;
@@ -247,6 +252,8 @@
   max-width: 1600px;
   width: calc(100% - 248px - 2rem);
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

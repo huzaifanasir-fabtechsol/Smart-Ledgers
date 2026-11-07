@@ -177,7 +177,7 @@ const Dashboard = ({ language = 'en' }) => {
       value: dashboardData.approved_amount,
       note: 'Completed sales invoices',
       icon: TrendingUp,
-      badge: '+Completed',
+      badge: 'Completed',
       trend: '+12.4%',
       trendType: 'positive'
     },
@@ -296,7 +296,7 @@ const Dashboard = ({ language = 'en' }) => {
           </div>
         }
       />
-      
+
       {/* Stat Cards Grid */}
       <div className="stats-grid">
         {statCards.map((card) => {
@@ -392,7 +392,7 @@ const Dashboard = ({ language = 'en' }) => {
               <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', margin: '0.25rem 0 0 0' }}>Approved Revenue - Purchases - Expenses (excl. tax)</p>
             </div>
             <span style={{ fontSize: '0.75rem', background: 'var(--color-lime)', color: 'var(--color-ink)', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
-              {netProfit >= 0 ? '+Active' : '-Deficit'}
+              {netProfit >= 0 ? 'Active' : '-Deficit'}
             </span>
           </div>
           <div style={{ fontSize: '1.875rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '1.25rem', color: netProfit >= 0 ? 'white' : 'var(--danger)' }}>
@@ -439,8 +439,8 @@ const Dashboard = ({ language = 'en' }) => {
       <div className="table-section">
         <div className="table-header">
           <h3>Latest Invoices</h3>
-          <button 
-            onClick={() => navigate('/inovice')} 
+          <button
+            onClick={() => navigate('/inovice')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted-foreground)' }}
           >
             View all <ArrowUpRight size={14} />
@@ -466,8 +466,8 @@ const Dashboard = ({ language = 'en' }) => {
                 </tr>
               ) : (
                 dashboardData.latest_orders.map((order, idx) => (
-                  <tr 
-                    key={order.id || idx} 
+                  <tr
+                    key={order.id || idx}
                     onClick={() => { setSelectedInvoice(order); setShowViewModal(true); }}
                     style={{ cursor: 'pointer' }}
                   >
@@ -480,7 +480,7 @@ const Dashboard = ({ language = 'en' }) => {
                     </td>
                     <td className="amount-cell">¥{order.total_amount?.toLocaleString()}</td>
                     <td>
-                      <button 
+                      <button
                         className="btn-menu"
                         onClick={(e) => { e.stopPropagation(); setSelectedInvoice(order); setShowViewModal(true); }}
                         title="View Invoice Details"

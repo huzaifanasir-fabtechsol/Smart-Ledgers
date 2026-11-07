@@ -169,162 +169,165 @@
   background: rgba(148, 163, 184, 0.15);
 }
 
-/* ================= Colorful Finance Themes ================= */
+/* ================= Colorful Finance Themes (Vibrant & Distinct, No Plain White) ================= */
 
-/* 1. Emerald (Approved Sales Revenue / Growth) */
+/* 1. Emerald / Lime (Approved Sales Revenue / Growth) */
 .stat-card.accent-emerald {
-  background: linear-gradient(145deg, #ffffff 0%, #ecfdf5 100%);
-  border-color: rgba(16, 185, 129, 0.3);
-  border-top: 3.5px solid #10b981;
+  background: linear-gradient(140deg, #dcfce7 0%, #d7f24b 45%, #bbf7d0 100%) !important;
+  border: 1.5px solid #10b981 !important;
+  box-shadow: 0 10px 28px -4px rgba(16, 185, 129, 0.25) !important;
 }
+.stat-card.accent-emerald h3 { color: #065f46 !important; }
+.stat-card.accent-emerald .amount { color: #064e3b !important; }
 .stat-card.accent-emerald .stat-card-icon-box {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  background: #065f46 !important;
+  color: #d7f24b !important;
+  box-shadow: 0 4px 14px rgba(6, 95, 70, 0.3) !important;
 }
-.stat-card.accent-emerald .stat-card-badge {
-  background: rgba(16, 185, 129, 0.14);
-  color: #047857;
-}
+.stat-card.accent-emerald .stat-card-badge { background: #065f46 !important; color: #d7f24b !important; }
+.stat-card.accent-emerald .stat-card-note { color: #047857 !important; }
 
 /* 2. Amber (Pending Receivables / Action Needed) */
 .stat-card.accent-amber {
-  background: linear-gradient(145deg, #ffffff 0%, #fffbeb 100%);
-  border-color: rgba(245, 158, 11, 0.3);
-  border-top: 3.5px solid #f59e0b;
+  background: linear-gradient(140deg, #fef3c7 0%, #fde68a 50%, #fef08a 100%) !important;
+  border: 1.5px solid #f59e0b !important;
+  box-shadow: 0 10px 28px -4px rgba(245, 158, 11, 0.25) !important;
 }
+.stat-card.accent-amber h3 { color: #92400e !important; }
+.stat-card.accent-amber .amount { color: #78350f !important; }
 .stat-card.accent-amber .stat-card-icon-box {
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  background: #b45309 !important;
+  color: #fef3c7 !important;
+  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
 }
-.stat-card.accent-amber .stat-card-badge {
-  background: rgba(245, 158, 11, 0.14);
-  color: #b45309;
-}
+.stat-card.accent-amber .stat-card-badge { background: #b45309 !important; color: #ffffff !important; }
+.stat-card.accent-amber .stat-card-note { color: #92400e !important; }
 
 /* 3. Blue (Total Invoices / Ledger Records) */
 .stat-card.accent-blue {
-  background: linear-gradient(145deg, #ffffff 0%, #eff6ff 100%);
-  border-color: rgba(59, 130, 246, 0.3);
-  border-top: 3.5px solid #3b82f6;
+  background: linear-gradient(140deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%) !important;
+  border: 1.5px solid #0284c7 !important;
+  box-shadow: 0 10px 28px -4px rgba(2, 132, 199, 0.25) !important;
 }
+.stat-card.accent-blue h3 { color: #075985 !important; }
+.stat-card.accent-blue .amount { color: #0c4a6e !important; }
 .stat-card.accent-blue .stat-card-icon-box {
-  background: rgba(59, 130, 246, 0.15);
-  color: #2563eb;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3) !important;
 }
-.stat-card.accent-blue .stat-card-badge {
-  background: rgba(59, 130, 246, 0.14);
-  color: #1d4ed8;
-}
+.stat-card.accent-blue .stat-card-badge { background: #0369a1 !important; color: #ffffff !important; }
+.stat-card.accent-blue .stat-card-note { color: #075985 !important; }
 
 /* 4. Violet (Tax on Invoices / Compliance) */
 .stat-card.accent-violet {
-  background: linear-gradient(145deg, #ffffff 0%, #f5f3ff 100%);
-  border-color: rgba(139, 92, 246, 0.3);
-  border-top: 3.5px solid #8b5cf6;
+  background: linear-gradient(140deg, #ede9fe 0%, #ddd6fe 50%, #c4b5fd 100%) !important;
+  border: 1.5px solid #7c3aed !important;
+  box-shadow: 0 10px 28px -4px rgba(124, 58, 237, 0.25) !important;
 }
+.stat-card.accent-violet h3 { color: #5b21b6 !important; }
+.stat-card.accent-violet .amount { color: #4c1d95 !important; }
 .stat-card.accent-violet .stat-card-icon-box {
-  background: rgba(139, 92, 246, 0.15);
-  color: #7c3aed;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  background: #7c3aed !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3) !important;
 }
-.stat-card.accent-violet .stat-card-badge {
-  background: rgba(139, 92, 246, 0.14);
-  color: #6d28d9;
-}
+.stat-card.accent-violet .stat-card-badge { background: #6d28d9 !important; color: #ffffff !important; }
+.stat-card.accent-violet .stat-card-note { color: #5b21b6 !important; }
 
 /* 5. Rose (Operating Expenses / Outflows) */
 .stat-card.accent-rose {
-  background: linear-gradient(145deg, #ffffff 0%, #fff1f2 100%);
-  border-color: rgba(244, 63, 94, 0.3);
-  border-top: 3.5px solid #f43f5e;
+  background: linear-gradient(140deg, #ffe4e6 0%, #fecdd3 50%, #fda4af 100%) !important;
+  border: 1.5px solid #e11d48 !important;
+  box-shadow: 0 10px 28px -4px rgba(225, 29, 72, 0.25) !important;
 }
+.stat-card.accent-rose h3 { color: #9f1239 !important; }
+.stat-card.accent-rose .amount { color: #881337 !important; }
 .stat-card.accent-rose .stat-card-icon-box {
-  background: rgba(244, 63, 94, 0.15);
-  color: #e11d48;
-  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);
+  background: #e11d48 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3) !important;
 }
-.stat-card.accent-rose .stat-card-badge {
-  background: rgba(244, 63, 94, 0.14);
-  color: #be123c;
-}
+.stat-card.accent-rose .stat-card-badge { background: #be123c !important; color: #ffffff !important; }
+.stat-card.accent-rose .stat-card-note { color: #9f1239 !important; }
 
 /* 6. Purple (Tax Paid on Expenses / Input Tax Credit) */
 .stat-card.accent-purple {
-  background: linear-gradient(145deg, #ffffff 0%, #faf5ff 100%);
-  border-color: rgba(168, 85, 247, 0.3);
-  border-top: 3.5px solid #a855f7;
+  background: linear-gradient(140deg, #fae8ff 0%, #f5d0fe 50%, #e879f9 100%) !important;
+  border: 1.5px solid #c026d3 !important;
+  box-shadow: 0 10px 28px -4px rgba(192, 38, 211, 0.25) !important;
 }
+.stat-card.accent-purple h3 { color: #86198f !important; }
+.stat-card.accent-purple .amount { color: #701a75 !important; }
 .stat-card.accent-purple .stat-card-icon-box {
-  background: rgba(168, 85, 247, 0.15);
-  color: #9333ea;
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+  background: #c026d3 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(192, 38, 211, 0.3) !important;
 }
-.stat-card.accent-purple .stat-card-badge {
-  background: rgba(168, 85, 247, 0.14);
-  color: #7e22ce;
-}
+.stat-card.accent-purple .stat-card-badge { background: #a21caf !important; color: #ffffff !important; }
+.stat-card.accent-purple .stat-card-note { color: #86198f !important; }
 
 /* 7. Coral (Total Expense incl Tax) */
 .stat-card.accent-coral {
-  background: linear-gradient(145deg, #ffffff 0%, #fff7ed 100%);
-  border-color: rgba(249, 115, 22, 0.3);
-  border-top: 3.5px solid #f97316;
+  background: linear-gradient(140deg, #ffedd5 0%, #fed7aa 50%, #fdba74 100%) !important;
+  border: 1.5px solid #ea580c !important;
+  box-shadow: 0 10px 28px -4px rgba(234, 88, 12, 0.25) !important;
 }
+.stat-card.accent-coral h3 { color: #9a3412 !important; }
+.stat-card.accent-coral .amount { color: #7c2d12 !important; }
 .stat-card.accent-coral .stat-card-icon-box {
-  background: rgba(249, 115, 22, 0.15);
-  color: #ea580c;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+  background: #ea580c !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3) !important;
 }
-.stat-card.accent-coral .stat-card-badge {
-  background: rgba(249, 115, 22, 0.14);
-  color: #c2410c;
-}
+.stat-card.accent-coral .stat-card-badge { background: #c2410c !important; color: #ffffff !important; }
+.stat-card.accent-coral .stat-card-note { color: #9a3412 !important; }
 
 /* 8. Dark Emerald Obsidian (Vehicle Purchases & Inventory Stock) */
 .stat-card.accent-dark-emerald {
-  background: linear-gradient(145deg, #0e161c 0%, #132822 100%);
-  border-color: rgba(215, 242, 75, 0.35);
-  border-top: 3.5px solid #d7f24b;
-  color: #ffffff;
+  background: linear-gradient(140deg, #0f172a 0%, #134e4a 60%, #064e3b 100%) !important;
+  border: 1.5px solid #2dd4bf !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.35) !important;
 }
-.stat-card.accent-dark-emerald h3 {
-  color: rgba(255, 255, 255, 0.7);
-}
-.stat-card.accent-dark-emerald .amount {
-  color: #ffffff;
-}
-.stat-card.accent-dark-emerald .stat-card-note {
-  color: rgba(255, 255, 255, 0.65);
-}
+.stat-card.accent-dark-emerald h3 { color: #a7f3d0 !important; }
+.stat-card.accent-dark-emerald .amount { color: #d7f24b !important; }
+.stat-card.accent-dark-emerald .stat-card-note { color: #cbd5e1 !important; }
 .stat-card.accent-dark-emerald .stat-card-icon-box {
-  background: rgba(215, 242, 75, 0.18);
-  color: #d7f24b;
-  box-shadow: 0 4px 14px rgba(215, 242, 75, 0.25);
+  background: rgba(215, 242, 75, 0.25) !important;
+  color: #d7f24b !important;
+  box-shadow: 0 4px 14px rgba(215, 242, 75, 0.3) !important;
 }
-.stat-card.accent-dark-emerald .stat-card-badge {
-  background: rgba(215, 242, 75, 0.2);
-  color: #d7f24b;
-}
+.stat-card.accent-dark-emerald .stat-card-badge { background: #047857 !important; color: #d7f24b !important; }
 
-/* Legacy accents for compatibility */
-.stat-card.accent-lime {
-  background: var(--color-lime);
-  color: var(--color-ink);
-  border-color: var(--color-lime);
-}
-.stat-card.accent-ink {
-  background: var(--color-ink);
-  color: white;
-  border-color: var(--color-ink);
-}
+/* Fallbacks for Legacy Accent Classes - Ensure NO plain white! */
 .stat-card.accent-white {
-  background: var(--card);
-  color: var(--foreground);
-  border-color: var(--border);
+  background: linear-gradient(140deg, #f0fdfa 0%, #e0f2fe 50%, #bae6fd 100%) !important;
+  border: 1.5px solid #0284c7 !important;
+  color: #0c4a6e !important;
 }
+.stat-card.accent-white h3 { color: #075985 !important; }
+.stat-card.accent-white .amount { color: #0c4a6e !important; }
+.stat-card.accent-white .stat-card-note { color: #075985 !important; }
+
+.stat-card.accent-lime {
+  background: linear-gradient(140deg, #dcfce7 0%, #d7f24b 45%, #bbf7d0 100%) !important;
+  border: 1.5px solid #10b981 !important;
+  color: #064e3b !important;
+}
+.stat-card.accent-lime h3 { color: #065f46 !important; }
+.stat-card.accent-lime .amount { color: #064e3b !important; }
+.stat-card.accent-lime .stat-card-note { color: #047857 !important; }
+
+.stat-card.accent-ink {
+  background: linear-gradient(140deg, #0f172a 0%, #1e293b 60%, #0f172a 100%) !important;
+  border: 1.5px solid #475569 !important;
+  color: #ffffff !important;
+}
+.stat-card.accent-ink h3 { color: #cbd5e1 !important; }
+.stat-card.accent-ink .amount { color: #ffffff !important; }
+.stat-card.accent-ink .stat-card-note { color: #94a3b8 !important; }
+
 
 @media (max-width: 1350px) {
   .stats-grid {
@@ -437,4 +440,68 @@
   background: rgba(148, 163, 184, 0.12);
   color: #475569;
   border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+
+/* ================= STAT CARDS HIERARCHY =================
+   Upper Row Cards: Primary Revenue / Invoices KPIs -> Bigger & Prominent
+   Lower Row Cards: Secondary Expense / Tax Breakdown -> Compact & Smaller
+========================================================== */
+
+/* Upper 4 Cards (1st Row) - Bigger */
+.stats-grid > .stat-card:nth-child(-n+4) {
+  min-height: 155px;
+  padding: 1.4rem 1.6rem;
+  border-width: 2px;
+}
+
+.stats-grid > .stat-card:nth-child(-n+4) .amount {
+  font-size: clamp(1.4rem, 1.85vw, 2.15rem);
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.stats-grid > .stat-card:nth-child(-n+4) h3 {
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.stats-grid > .stat-card:nth-child(-n+4) .stat-card-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+
+.stats-grid > .stat-card:nth-child(-n+4) .stat-card-badge {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+}
+
+/* Lower 4 Cards (2nd Row) - Smaller than Upper */
+.stats-grid > .stat-card:nth-child(n+5) {
+  min-height: 118px;
+  padding: 0.95rem 1.25rem;
+  border-width: 1.5px;
+  opacity: 0.96;
+}
+
+.stats-grid > .stat-card:nth-child(n+5) .amount {
+  font-size: clamp(1.1rem, 1.35vw, 1.45rem);
+  font-weight: 750;
+}
+
+.stats-grid > .stat-card:nth-child(n+5) h3 {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.stats-grid > .stat-card:nth-child(n+5) .stat-card-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+
+.stats-grid > .stat-card:nth-child(n+5) .stat-card-note {
+  font-size: 0.67rem;
 }

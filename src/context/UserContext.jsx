@@ -1,11 +1,20 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { apiRequest } from '../api';
+import { apiRequest, SCREEN_LOCK_KEY } from '../api';
 
 const UserContext = createContext({
   user: null,
   companyName: '',
   setUser: () => {},
   refreshUser: () => {},
+  locked: false,
+  setLocked: () => {},
+  hasLockPin: false,
+  setHasLockPin: () => {},
+  lockScreen: () => {},
+  unlockScreen: () => {},
+  sidebarOpen: true,
+  setSidebarOpen: () => {},
+  toggleSidebar: () => {},
 });
 
 export const UserProvider = ({ children, initialUser, onUserUpdate }) => {
@@ -19,6 +28,22 @@ export const UserProvider = ({ children, initialUser, onUserUpdate }) => {
     }
   });
 
+  const [locked, setLocked] = useState(() => localStorage.getItem(SCREEN_LOCK_KEY) === '1');
+  const [hasLockPin, setHasLockPin] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const lockScreen = () => {
+    localStorage.setItem(SCREEN_LOCK_KEY, '1');
+    setLocked(true);
+  };
+
+  const unlockScreen = () => {
+    localStorage.removeItem(SCREEN_LOCK_KEY);
+    setLocked(false);
+  };
+
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+
   const refreshUser = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -31,6 +56,9 @@ export const UserProvider = ({ children, initialUser, onUserUpdate }) => {
           localStorage.setItem('user', JSON.stringify(updated));
           return updated;
         });
+        if (data.has_lock_pin !== undefined) {
+          setHasLockPin(Boolean(data.has_lock_pin));
+        }
         if (onUserUpdate) onUserUpdate(data);
       }
     } catch {
@@ -55,6 +83,9 @@ export const UserProvider = ({ children, initialUser, onUserUpdate }) => {
     setUserState(newUser);
     if (newUser) {
       localStorage.setItem('user', JSON.stringify(newUser));
+      if (newUser.has_lock_pin !== undefined) {
+        setHasLockPin(Boolean(newUser.has_lock_pin));
+      }
     }
     if (onUserUpdate) onUserUpdate(newUser);
   };
@@ -62,7 +93,23 @@ export const UserProvider = ({ children, initialUser, onUserUpdate }) => {
   const companyName = (user?.company_name || '').trim();
 
   return (
-    <UserContext.Provider value={{ user, companyName, setUser, refreshUser }}>
+    <UserContext.Provider
+      value={{
+        user,
+        companyName,
+        setUser,
+        refreshUser,
+        locked,
+        setLocked,
+        hasLockPin,
+        setHasLockPin,
+        lockScreen,
+        unlockScreen,
+        sidebarOpen,
+        setSidebarOpen,
+        toggleSidebar,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
