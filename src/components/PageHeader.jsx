@@ -46,12 +46,6 @@ const PageHeader = ({
             </button>
           )}
 
-          {Icon && (
-            <div className="unified-icon-box">
-              <Icon size={24} />
-            </div>
-          )}
-
           {/* Swapped: Highlight Company Name as the main title */}
           <div className="unified-title-wrap">
             <div className="unified-company-heading">

@@ -1,12 +1,12 @@
 
 /* ================= UNIFIED MERGED HEADER CARD ================= */
 .unified-header-banner {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 253, 244, 0.92) 45%, rgba(238, 242, 255, 0.92) 100%);
-  border: 1.5px solid rgba(215, 242, 75, 0.6);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid rgba(226, 232, 240, 0.85);
   border-radius: 24px;
-  padding: 1.25rem 1.6rem;
+  padding: 1.25rem 1.75rem;
   margin-bottom: 1.75rem;
-  box-shadow: 0 12px 36px -6px rgba(16, 185, 129, 0.1), 0 4px 14px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 30px -6px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(0, 0, 0, 0.02);
   position: relative;
   overflow: visible;
   z-index: 50;
@@ -14,17 +14,12 @@
   -webkit-backdrop-filter: blur(20px);
   width: 100%;
   box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.unified-header-banner::before {
-  content: "";
-  position: absolute;
-  top: 18px;
-  bottom: 18px;
-  left: 0;
-  width: 5px;
-  background: linear-gradient(180deg, var(--lime) 0%, oklch(0.65 0.18 140) 100%);
-  border-radius: 0 6px 6px 0;
+.unified-header-banner:hover {
+  border-color: rgba(203, 213, 225, 0.95);
+  box-shadow: 0 14px 36px -6px rgba(15, 23, 42, 0.08);
 }
 
 /* Upper Row: Prominent & Bigger Elements */
@@ -281,16 +276,7 @@
   box-sizing: border-box;
 }
 
-.section-header-banner::before {
-  content: "";
-  position: absolute;
-  top: 18px;
-  bottom: 18px;
-  left: 0;
-  width: 5px;
-  background: linear-gradient(180deg, var(--lime) 0%, oklch(0.65 0.18 140) 100%);
-  border-radius: 0 6px 6px 0;
-}
+
 
 .section-header-banner::after {
   content: "";

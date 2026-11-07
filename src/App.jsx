@@ -55,7 +55,6 @@ import LetterheadPage from './components/LetterheadPage';
 import GoogleTranslateInitializer from './components/GoogleTranslateInitializer';
 import BrandLogo from './components/BrandLogo';
 import AnimatedBackground from './components/AnimatedBackground';
-import SidebarIllustration from './components/SidebarIllustration';
 import { UserProvider, useUser } from './context/UserContext';
 import { translations } from './translations';
 import './notranslate.css';
@@ -304,8 +303,6 @@ function AppContent() {
             </div>
           ))}
         </nav>
-
-        <SidebarIllustration collapsed={!sidebarOpen} />
 
         <div className="sidebar-footer">
           <div
