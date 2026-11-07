@@ -21,6 +21,7 @@ const PageHeader = ({
   } = useUser();
 
   const effectiveCompanyName = propCompanyName || ctxCompanyName || 'Smart Ledgers';
+  const companyName = effectiveCompanyName;
 
   const formattedDate = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
