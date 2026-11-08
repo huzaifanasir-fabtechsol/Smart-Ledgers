@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="380" height="260" viewBox="0 0 380 260" fill="none"
+     stroke="#b45309" stroke-opacity="0.15" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Receipt -->
+  <path d="M150 20 H250 V214 L240 204 L230 214 L220 204 L210 214 L200 204 L190 214 L180 204 L170 214 L160 204 L150 214 Z" fill="#fef3c7" fill-opacity="0.35"/>
+  <path d="M166 40 h44"/>
+  <path d="M166 62 h50 M226 62 h10"/>
+  <path d="M166 80 h40 M226 80 h10"/>
+  <path d="M166 98 h46 M226 98 h10"/>
+  <path d="M166 120 H236" stroke-dasharray="4 4"/>
+  <path d="M166 140 l6 8 l6 -8 M172 148 v10 M166 151 h12"/>
+  <path d="M196 146 h40"/>
+  <path d="M166 176 v16 M172 176 v16 M180 176 v16 M186 176 v16 M194 176 v16 M202 176 v16 M208 176 v16 M216 176 v16 M224 176 v16"/>
+  <!-- Card -->
+  <g transform="rotate(-14 80 150)">
+    <rect x="20" y="118" width="120" height="76" rx="10" fill="#fff7ed" fill-opacity="0.35"/>
+    <path d="M20 138 H140"/>
+    <rect x="34" y="150" width="20" height="15" rx="3"/>
+    <path d="M34 178 h50"/>
+  </g>
+  <!-- Coin stack -->
+  <ellipse cx="310" cy="200" rx="34" ry="11"/>
+  <path d="M276 200 v14 a34 11 0 0 0 68 0 v-14"/>
+  <ellipse cx="310" cy="178" rx="34" ry="11"/>
+  <path d="M276 178 v12 M344 178 v12"/>
+  <ellipse cx="310" cy="156" rx="34" ry="11"/>
+  <path d="M276 156 v12 M344 156 v12"/>
+  <!-- Single coin -->
+  <circle cx="320" cy="70" r="22"/>
+  <circle cx="320" cy="70" r="15" stroke-dasharray="3 3"/>
+  <path d="M312 60 l8 10 l8 -10 M320 70 v12 M312 74 h16"/>
+  <!-- Sparkles -->
+  <path d="M60 40 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3 Z"/>
+  <circle cx="276" cy="24" r="3"/>
+  <path d="M10 240 H370" stroke-dasharray="10 10"/>
+</svg>

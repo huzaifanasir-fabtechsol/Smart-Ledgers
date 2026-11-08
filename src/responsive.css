@@ -250,6 +250,15 @@
     animation: sheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /* Smaller watermark illustration in the sheet background */
+  .modal,
+  .modal-box,
+  .expense-manager .modal,
+  .expense-manager .modal-box {
+    background-size: 190px auto, auto, auto, 26px 26px, auto;
+    background-position: right -1rem bottom 5rem, 0 0, 0 0, 0 0, 0 0;
+  }
+
   /* Grab handle at the top of the sheet */
   .modal::before,
   .modal-box::before {

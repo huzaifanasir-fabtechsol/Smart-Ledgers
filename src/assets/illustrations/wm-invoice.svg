@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="260" viewBox="0 0 420 260" fill="none"
+     stroke="#6d28d9" stroke-opacity="0.14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Invoice sheet behind the car -->
+  <rect x="236" y="14" width="120" height="150" rx="10" fill="#ede9fe" fill-opacity="0.35"/>
+  <path d="M236 44 H356"/>
+  <path d="M252 30 h40"/>
+  <path d="M252 62 h56 M322 62 h20"/>
+  <path d="M252 78 h48 M322 78 h20"/>
+  <path d="M252 94 h60 M322 94 h20"/>
+  <path d="M300 116 h42"/>
+  <!-- Hanko stamp -->
+  <circle cx="326" cy="140" r="15"/>
+  <circle cx="326" cy="140" r="10" stroke-dasharray="3 3"/>
+  <!-- Sedan, side profile -->
+  <path d="M28 196 C30 182 46 172 74 168 L112 140 C124 131 140 126 158 126 L238 126 C258 126 274 132 288 144 L314 166 C342 170 364 178 372 192 L372 206 C372 212 368 216 362 216 L338 216
+           M290 216 L152 216 M104 216 L40 216 C33 216 28 211 28 204 Z" fill="#f5f3ff" fill-opacity="0.4"/>
+  <path d="M120 164 L144 142 C150 137 158 134 166 134 L196 134 L196 164 Z"/>
+  <path d="M210 134 L238 134 C252 134 264 139 274 148 L288 164 L210 164 Z"/>
+  <path d="M60 186 h18 M346 186 h14"/>
+  <circle cx="128" cy="216" r="24"/>
+  <circle cx="128" cy="216" r="10"/>
+  <circle cx="314" cy="216" r="24"/>
+  <circle cx="314" cy="216" r="10"/>
+  <!-- Road -->
+  <path d="M10 244 H410" stroke-dasharray="14 10"/>
+  <!-- Yen coins -->
+  <circle cx="392" cy="40" r="16"/>
+  <path d="M386 32 l6 8 l6 -8 M392 40 v10 M386 43 h12"/>
+  <!-- Sparkles -->
+  <path d="M40 40 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3 Z"/>
+  <circle cx="190" cy="40" r="3"/>
+</svg>

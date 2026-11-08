@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="260" viewBox="0 0 440 260" fill="none"
+     stroke="#047857" stroke-opacity="0.14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Office building -->
+  <path d="M150 236 V60 L230 30 V236" fill="#ecfdf5" fill-opacity="0.35"/>
+  <path d="M230 236 V96 H300 V236"/>
+  <path d="M168 80 h12 M196 80 h12 M168 108 h12 M196 108 h12 M168 136 h12 M196 136 h12 M168 164 h12 M196 164 h12 M168 192 h12 M196 192 h12"/>
+  <path d="M246 120 h10 M272 120 h10 M246 146 h10 M272 146 h10 M246 172 h10 M272 172 h10"/>
+  <path d="M180 236 V210 H202 V236"/>
+  <!-- Flag -->
+  <path d="M230 30 V8 L252 14 L230 20"/>
+  <!-- Bar chart -->
+  <path d="M330 236 V170 M330 236 H430"/>
+  <rect x="342" y="196" width="16" height="40" rx="3"/>
+  <rect x="368" y="176" width="16" height="60" rx="3"/>
+  <rect x="394" y="150" width="16" height="86" rx="3"/>
+  <path d="M338 168 L370 150 L396 136 L424 110"/>
+  <circle cx="424" cy="110" r="4"/>
+  <!-- Pie chart -->
+  <circle cx="70" cy="80" r="40"/>
+  <path d="M70 80 V40 M70 80 L104 100"/>
+  <!-- Document with seal -->
+  <rect x="24" y="150" width="90" height="86" rx="8" fill="#f0fdf4" fill-opacity="0.35"/>
+  <path d="M38 170 h50 M38 186 h40 M38 202 h46"/>
+  <circle cx="96" cy="216" r="11"/>
+  <!-- Ground -->
+  <path d="M10 240 H430"/>
+  <path d="M300 36 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3 Z"/>
+  <circle cx="132" cy="24" r="3"/>
+</svg>
