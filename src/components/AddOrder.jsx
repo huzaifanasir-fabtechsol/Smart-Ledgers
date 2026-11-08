@@ -1433,14 +1433,16 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
       {showPartyModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 540 }}>
-            <div className="modal-header">
-              <h3>{partyType === 'saler' ? 'Add New Seller' : 'Add New Customer'}</h3>
-              <button 
-                type="button" 
-                className="modal-close" 
-                onClick={() => setShowPartyModal(false)}
-              >×</button>
-            </div>
+            <FormHero
+              compact
+              tone="violet"
+              artIcon={UserPlus}
+              icon={UserPlus}
+              eyebrow={partyType === 'saler' ? 'New seller' : 'New customer'}
+              title={partyType === 'saler' ? 'Add New Seller' : 'Add New Customer'}
+              subtitle="Saved to your contacts and filled in on this invoice."
+              onClose={() => setShowPartyModal(false)}
+            />
 
             <form onSubmit={handleSaveParty} className="modal-form" style={{ padding: '1.25rem 1.5rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>

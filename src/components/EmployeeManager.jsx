@@ -10,6 +10,7 @@ import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
+import FormHero from './FormHero';
 
 const EmployeeManager = () => {
   const navigate = useNavigate();
@@ -445,10 +446,16 @@ const EmployeeManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 640 }}>
-            <div className="modal-header">
-              <h3>{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
-              <button className="modal-close" onClick={() => !submitting && setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="rose"
+              artIcon={BriefcaseBusiness}
+              icon={BriefcaseBusiness}
+              eyebrow="Team member"
+              title={editingEmployee ? 'Edit Employee' : 'Add Employee'}
+              subtitle="Personal details, contract and pay settings for this employee."
+              onClose={() => !submitting && setShowModal(false)}
+            />
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-grid-2">
                 <div className="form-group">

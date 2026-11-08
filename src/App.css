@@ -328,7 +328,8 @@
   width: calc(100% - 248px - 2rem);
   box-sizing: border-box;
   position: relative;
-  z-index: 1;
+  /* No z-index: a stacking context here kept page modals underneath the sidebar.
+     Painted after the fixed background anyway, since it comes later in the DOM. */
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

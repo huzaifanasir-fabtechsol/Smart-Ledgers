@@ -1,0 +1,245 @@
+/* ─────────────────────────────────────────────────────────────────────
+   Form design refresh: create/edit modals, the invoice page and the
+   financial-statements inputs. Loaded after every other stylesheet
+   (imported last in App.jsx), so these rules win over shared.css.
+   ───────────────────────────────────────────────────────────────────── */
+
+/* ── Modal shell ───────────────────────────────────────────────────── */
+.modal-overlay {
+  background: rgba(15, 23, 42, 0.36);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+}
+
+.modal,
+.modal-box {
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  background:
+    radial-gradient(circle at 0% 100%, rgba(236, 252, 203, 0.45) 0%, transparent 35%),
+    linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  box-shadow:
+    0 40px 90px -28px rgba(15, 23, 42, 0.45),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+.modal-box .modal-form {
+  padding: 1.35rem 1.6rem 0.75rem;
+}
+
+/* ── Labels ────────────────────────────────────────────────────────── */
+.modal .form-group > label,
+.modal-box .form-group > label,
+.order-form .form-group > label,
+.fs-card .form-group > label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Text inputs, selects, textareas ───────────────────────────────── */
+.form-group input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
+.form-group select,
+.form-group textarea,
+.form-input:not([type='file']) {
+  /* No padding here: search boxes set their own left padding for the leading icon */
+  min-height: 46px;
+  border: 1.5px solid #e6ebf2;
+  border-radius: 14px;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-size: 0.875rem;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.form-group input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']):hover,
+.form-group select:hover,
+.form-group textarea:hover,
+.form-input:not([type='file']):hover {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.form-group input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']):focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.form-input:not([type='file']):focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #84cc16;
+  box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.35), 0 8px 18px -12px rgba(101, 163, 13, 0.6);
+}
+
+.form-group input[readonly],
+.form-group input:disabled,
+.form-group select:disabled,
+.form-input:disabled {
+  background-color: #f1f5f9 !important;
+  border-style: dashed;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* File pickers: a dashed drop-zone look */
+.form-group input[type='file'],
+.form-input[type='file'] {
+  padding: 0.9rem 1rem;
+  border: 1.5px dashed #a3e635;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f7fee7 0%, #f0f9ff 100%);
+  color: #334155;
+  cursor: pointer;
+}
+
+.form-group input[type='file']::file-selector-button,
+.form-input[type='file']::file-selector-button {
+  margin-right: 0.85rem;
+  padding: 0.45rem 0.9rem;
+  border: none;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* ── Action bar ────────────────────────────────────────────────────── */
+.modal-actions {
+  border-top: 1px dashed #e2e8f0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, #ffffff 60%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-box .modal-actions {
+  padding: 1rem 1.6rem 1.35rem;
+  border-radius: 0 0 28px 28px;
+}
+
+.modal .modal-actions {
+  border-radius: 0 0 28px 28px;
+}
+
+/* Most forms put the action bar inside .modal-form: stretch it to the modal edges */
+.modal-box .modal-form .modal-actions {
+  margin: 1.25rem -1.6rem -0.75rem;
+}
+
+.modal-actions .btn-primary,
+.form-actions .btn-primary {
+  min-width: 128px;
+  justify-content: center;
+}
+
+/* ── Invoice page ──────────────────────────────────────────────────── */
+.order-form {
+  border-radius: 28px;
+  padding: 2rem 2.25rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(237, 233, 254, 0.55) 0%, transparent 30%),
+    rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 18px 40px -20px rgba(15, 23, 42, 0.25);
+}
+
+.items-section {
+  border-top: 1px dashed #e2e8f0;
+}
+
+.items-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.items-section h4::before {
+  content: '';
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230369a1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2'/><circle cx='7' cy='17' r='2'/><path d='M9 17h6'/><circle cx='17' cy='17' r='2'/></svg>") center / 16px no-repeat,
+    linear-gradient(135deg, #e0f2fe, #bae6fd);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 6px -2px rgba(15, 23, 42, 0.15);
+}
+
+.item-form {
+  position: relative;
+  border-radius: 22px;
+  padding: 1.6rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(224, 242, 254, 0.8) 0%, transparent 35%),
+    linear-gradient(135deg, #f8fafc 0%, #f5f3ff 100%);
+  border: 1.5px dashed #c7d2fe;
+}
+
+.item-form .form-group input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.item-form .form-group select {
+  background-color: #ffffff;
+}
+
+.form-actions {
+  border-top: 1px dashed #e2e8f0;
+}
+
+/* ── Financial statements inputs ───────────────────────────────────── */
+.fs-card {
+  border-radius: 22px;
+  padding: 1.5rem 1.6rem;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 14px 34px -20px rgba(15, 23, 42, 0.25);
+}
+
+.fs-card > h3,
+.fs-card-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.fs-card > h3::before,
+.fs-card-head h3::before {
+  content: '';
+  width: 4px;
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #a3e635, #10b981);
+}
+
+/* ── Small screens ─────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .modal-box .modal-form {
+    padding: 1.1rem 1.1rem 0.5rem;
+  }
+
+  .modal-box .modal-actions {
+    padding: 0.9rem 1.1rem 1.1rem;
+  }
+
+  .modal-box .modal-form .modal-actions {
+    margin: 1rem -1.1rem -0.5rem;
+  }
+
+  .order-form {
+    padding: 1.25rem;
+    border-radius: 22px;
+  }
+
+  .item-form {
+    padding: 1.1rem;
+  }
+}

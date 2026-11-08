@@ -28,6 +28,7 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import Pagination from './Pagination';
 import PayslipModal from './PayslipModal';
 import PageHeader from './PageHeader';
+import FormHero from './FormHero';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
@@ -888,15 +889,20 @@ const SalaryManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 840 }}>
-            <div className="modal-header">
-              <div>
-                <h3>{editingSalary ? 'Edit Salary Record' : 'Create Salary Record'}</h3>
-                <span className="live-calc-badge" style={{ marginTop: 4 }}>
-                  <Sparkles size={13} /> {calculating ? 'Calculating Taxes...' : 'Auto-Calculation Active'}
-                </span>
-              </div>
-              <button className="modal-close" onClick={() => !submitting && setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="rose"
+              artIcon={BadgeDollarSign}
+              icon={BadgeDollarSign}
+              eyebrow="Payroll"
+              title={editingSalary ? 'Edit Salary Record' : 'Create Salary Record'}
+              subtitle="Pick the employee and month; tax, insurance and net pay are calculated for you."
+              onClose={() => !submitting && setShowModal(false)}
+            >
+              <span className="live-calc-badge" style={{ marginTop: 10 }}>
+                <Sparkles size={13} /> {calculating ? 'Calculating Taxes...' : 'Auto-Calculation Active'}
+              </span>
+            </FormHero>
 
             <form onSubmit={handleSubmit} className="modal-form">
               {/* Top Overview Grid */}

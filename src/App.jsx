@@ -62,6 +62,8 @@ import './notranslate.css';
 import './google-translate.css';
 import './components/SectionHeader.css';
 import './App.css';
+import './forms.css';
+import './responsive.css';
 
 function AppContent() {
   const [language, setLanguage] = useState('en');

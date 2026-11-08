@@ -1,0 +1,465 @@
+/* ─────────────────────────────────────────────────────────────────────
+   Phone & tablet layout. Imported last in App.jsx so it overrides the
+   desktop rules. Breakpoints: 1024px (sidebar becomes a drawer),
+   768px (phones / small tablets), 480px (narrow phones).
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Safety net: nothing should make the whole page scroll sideways.
+   `clip` (unlike `hidden`) does not create a scroll container, so sticky and fixed still work. */
+.app-container {
+  overflow-x: clip;
+}
+
+/* ── Tablet ────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .unified-header-banner {
+    padding: 1.1rem 1.25rem;
+    border-radius: 20px;
+    margin-bottom: 1.25rem;
+  }
+
+  .stats-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* ── Phones ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .main-content,
+  .sidebar.collapsed ~ .main-content {
+    padding: 0.85rem 0.75rem 3rem !important;
+  }
+
+  /* Page header: one compact block */
+  .unified-header-banner {
+    padding: 0.9rem 1rem;
+    border-radius: 18px;
+  }
+
+  .unified-header-upper {
+    gap: 0.65rem;
+  }
+
+  .unified-upper-left {
+    width: 100%;
+    gap: 0.5rem 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  .unified-menu-btn {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+  }
+
+  .unified-title-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .unified-company-heading {
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+  }
+
+  .unified-title {
+    font-size: 1.05rem !important;
+    line-height: 1.25 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .unified-section-chip {
+    order: 3;
+  }
+
+  /* Date, lock and profile become a tidy row of compact chips */
+  .unified-upper-right {
+    width: 100%;
+    flex-shrink: 1;
+    gap: 0.45rem;
+    flex-wrap: nowrap;
+  }
+
+  .unified-date-pill {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+
+  .unified-lock-btn {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .unified-lock-btn span {
+    display: none;
+  }
+
+  .unified-user-pill {
+    margin-left: auto;
+    padding: 0.25rem;
+    border-radius: 999px;
+  }
+
+  .unified-user-name {
+    display: none;
+  }
+
+  .unified-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .unified-header-lower {
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+    gap: 0.75rem;
+  }
+
+  .unified-lower-left {
+    flex-basis: 100%;
+  }
+
+  .unified-subtitle {
+    font-size: 0.78rem !important;
+  }
+
+  /* Header actions: a two-column button grid that always fits */
+  .unified-lower-right,
+  .unified-lower-right > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem !important;
+    width: 100%;
+  }
+
+  .unified-lower-right > div {
+    grid-column: 1 / -1;
+  }
+
+  .unified-lower-right button,
+  .unified-lower-right a {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    padding: 0.65rem 0.6rem !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* An odd last button (usually the main "Add …" action) takes the full row */
+  .unified-lower-right > :last-child:nth-child(odd),
+  .unified-lower-right > div > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* Stat cards: two per row, compact */
+  .stats-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .stat-card-item {
+    padding: 0.85rem 0.9rem;
+    border-radius: 16px;
+    gap: 0.4rem;
+  }
+
+  .stat-card-label {
+    font-size: 0.64rem;
+    letter-spacing: 0.04em;
+  }
+
+  .stat-card-value {
+    font-size: clamp(0.95rem, calc(12cqi - 0.3rem), 1.25rem);
+  }
+
+  .stat-card-subtext {
+    font-size: 0.68rem;
+  }
+
+  .stat-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  .stat-icon-wrapper svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .stat-skeleton-card {
+    padding: 0.85rem 0.9rem;
+  }
+
+  /* Filters: two columns, the search box full width */
+  .filters {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem !important;
+  }
+
+  .filters > * {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .filters > :first-child,
+  .filters .filter-date-field,
+  .filters > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .filters select,
+  .filters input,
+  .filters button {
+    width: 100%;
+    min-width: 0 !important;
+    font-size: 0.82rem;
+  }
+
+  /* Tables scroll sideways inside their card, with a hint of the edge */
+  .table-container {
+    -webkit-overflow-scrolling: touch;
+    border-radius: 14px;
+  }
+
+  .table-section {
+    padding: 1rem 0.85rem;
+    border-radius: 18px;
+  }
+
+  /* Modals become bottom sheets */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal,
+  .modal-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    max-height: 92vh;
+    border-radius: 24px 24px 0 0;
+    animation: sheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Grab handle at the top of the sheet */
+  .modal::before,
+  .modal-box::before {
+    content: '';
+    display: block;
+    flex-shrink: 0;
+    width: 42px;
+    height: 5px;
+    margin: 0.55rem auto 0;
+    border-radius: 999px;
+    background: #cbd5e1;
+  }
+
+  .modal {
+    padding: 0.75rem 1.1rem 1.1rem;
+    --modal-pad: 1.1rem;
+  }
+
+  .modal::before {
+    margin-top: -0.2rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .modal-box > .form-hero {
+    margin: 0.6rem 0.75rem 0;
+  }
+
+  .modal-box .modal-actions,
+  .modal .modal-actions {
+    border-radius: 0;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .modal-actions {
+    flex-direction: row !important;
+  }
+
+  .modal-actions button {
+    flex: 1;
+  }
+
+  /* Forms: single column */
+  .form-row,
+  .form-grid-2,
+  .settings-form-grid,
+  .fs-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Once a row collapses to one column, the field's own bottom margin is the only spacing */
+  .form-row,
+  .form-grid-2 {
+    row-gap: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .order-form {
+    padding: 1rem 0.9rem;
+    border-radius: 20px;
+  }
+
+  .form-actions {
+    flex-direction: row;
+  }
+
+  .form-actions button {
+    flex: 1;
+  }
+
+  /* Prevent iOS zoom-on-focus: inputs need >= 16px text */
+  .form-group input:not([type='checkbox']):not([type='radio']),
+  .form-group select,
+  .form-group textarea,
+  .form-input,
+  .filter-input,
+  .settings-input,
+  .settings-textarea {
+    font-size: 16px !important;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  /* Settings / letterhead cards */
+  .settings-card {
+    padding: 1.1rem 1rem;
+    border-radius: 20px;
+  }
+
+  .settings-card-header {
+    margin-bottom: 1.1rem;
+  }
+
+  .fs-card {
+    padding: 1.1rem 1rem;
+  }
+
+  .fs-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .fs-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fs-tab {
+    flex-shrink: 0;
+  }
+}
+
+/* ── Phones: header title and dashboard cards ──────────────────────── */
+@media (max-width: 768px) {
+  /* Company name on one line with its badge; the section chip drops below */
+  .unified-company-icon {
+    display: none;
+  }
+
+  .unified-title-wrap {
+    flex: 1 1 calc(100% - 52px);
+  }
+
+  .unified-section-chip {
+    margin-left: 0;
+  }
+
+  /* Dashboard KPI cards: two per row, compact, top row no bigger than the rest */
+  .dashboard .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.6rem;
+  }
+
+  .dashboard .stats-grid > .stat-card,
+  .dashboard .stats-grid > .stat-card:nth-child(-n+4),
+  .dashboard .stats-grid > .stat-card:nth-child(n+5) {
+    min-height: 0;
+    padding: 0.85rem 0.85rem 0.75rem;
+    border-radius: 16px;
+    border-width: 1.5px;
+  }
+
+  .dashboard .stats-grid > .stat-card h3,
+  .dashboard .stats-grid > .stat-card:nth-child(-n+4) h3,
+  .dashboard .stats-grid > .stat-card:nth-child(n+5) h3 {
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+
+  .dashboard .stats-grid > .stat-card .amount,
+  .dashboard .stats-grid > .stat-card:nth-child(-n+4) .amount,
+  .dashboard .stats-grid > .stat-card:nth-child(n+5) .amount {
+    font-size: 1.15rem;
+  }
+
+  .dashboard .stats-grid > .stat-card .stat-card-icon-box,
+  .dashboard .stats-grid > .stat-card:nth-child(-n+4) .stat-card-icon-box,
+  .dashboard .stats-grid > .stat-card:nth-child(n+5) .stat-card-icon-box {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+
+  .dashboard .stats-grid > .stat-card .stat-card-icon-box svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .dashboard .stats-grid > .stat-card .stat-card-badge,
+  .dashboard .stats-grid > .stat-card:nth-child(-n+4) .stat-card-badge {
+    font-size: 0.56rem;
+    padding: 2px 6px;
+  }
+
+  /* The trend pill is the least important part; the note stays */
+  .dashboard .stat-card-footer > :not(.stat-card-note) {
+    display: none;
+  }
+
+  .dashboard .stat-card-note {
+    font-size: 0.64rem !important;
+    white-space: normal;
+  }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Narrow phones ─────────────────────────────────────────────────── */
+@media (max-width: 400px) {
+  .unified-date-pill svg {
+    display: none;
+  }
+
+  .stat-card-item {
+    flex-direction: column-reverse;
+  }
+
+  .stat-icon-wrapper {
+    width: 28px;
+    height: 28px;
+  }
+}

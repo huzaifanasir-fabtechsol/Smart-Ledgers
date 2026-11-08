@@ -8,6 +8,7 @@ import Pagination from './Pagination';
 import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
+import FormHero from './FormHero';
 
 const TransactionManager = () => {
   const [transactions, setTransactions] = useState([]);
@@ -486,10 +487,16 @@ const TransactionManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 560 }}>
-            <div className="modal-header">
-              <h3>{editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="emerald"
+              artIcon={ArrowLeftRight}
+              icon={ArrowLeftRight}
+              eyebrow="Bank transaction"
+              title={editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
+              subtitle="One deposit or withdrawal on a company bank account."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-grid-2">
                 <div className="form-group">
@@ -610,10 +617,15 @@ const TransactionManager = () => {
       {showBulkModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 620 }}>
-            <div className="modal-header">
-              <h3>Bulk Import Transactions</h3>
-              <button className="modal-close" onClick={() => setShowBulkModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              variant="import"
+              icon={UploadCloud}
+              eyebrow="Excel upload"
+              title="Bulk Import Transactions"
+              subtitle="Upload a bank statement in Excel to add many transactions at once."
+              onClose={() => setShowBulkModal(false)}
+            />
             
             <form onSubmit={handleBulkSubmit} className="modal-form">
               <div style={{ marginBottom: '1rem', background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#475569' }}>

@@ -8,6 +8,7 @@ import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
+import FormHero from './FormHero';
 
 const CarManager = () => {
   const [cars, setCars] = useState([]);
@@ -272,10 +273,16 @@ const CarManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 480 }}>
-            <div className="modal-header">
-              <h3>{editingCar ? 'Edit Car' : 'Add Car'}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="sky"
+              artIcon={Car}
+              icon={Car}
+              eyebrow="Vehicle"
+              title={editingCar ? 'Edit Car' : 'Add Car'}
+              subtitle="Vehicles in your collection, with chassis, purchase and sale details."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Car Name (Company - Model)</label>

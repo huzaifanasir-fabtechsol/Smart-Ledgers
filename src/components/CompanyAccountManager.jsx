@@ -8,6 +8,7 @@ import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
+import FormHero from './FormHero';
 
 const CompanyAccountManager = () => {
   const [accounts, setAccounts] = useState([]);
@@ -275,10 +276,16 @@ const CompanyAccountManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 480 }}>
-            <div className="modal-header">
-              <h3>{editingAccount ? 'Edit Account' : 'Add Account'}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="emerald"
+              artIcon={Landmark}
+              icon={Landmark}
+              eyebrow="Bank account"
+              title={editingAccount ? 'Edit Account' : 'Add Account'}
+              subtitle="Company bank accounts used for transactions, expenses and invoices."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Bank Name</label>

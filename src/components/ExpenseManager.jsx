@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Receipt, Wallet, BadgeDollarSign, Landmark, Plus, Copy, FileSpreadsheet, FileDown } from 'lucide-react';
+import { Receipt, Wallet, BadgeDollarSign, Landmark, Plus, Copy, FileSpreadsheet, FileDown, UtensilsCrossed, Tags } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
 import { jsPDF } from 'jspdf';
@@ -1490,11 +1490,17 @@ const ExpenseManager = ({ language = 'en' }) => {
 
       {showCategoryModal && (
         <div className="modal-overlay">
-          <div className="modal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ margin: 0 }}>{editingCategory ? 'Edit Category' : t.addNewCategory}</h3>
-              <button className="modal-close" type="button" onClick={() => setShowCategoryModal(false)}>×</button>
-            </div>
+          <div className="modal modal-with-hero">
+            <FormHero
+              compact
+              tone="amber"
+              artIcon={Tags}
+              icon={Tags}
+              eyebrow="Expense category"
+              title={editingCategory ? 'Edit Category' : t.addNewCategory}
+              subtitle="Categories group expenses in reports and tax filings."
+              onClose={() => setShowCategoryModal(false)}
+            />
             <form onSubmit={handleCategorySubmit}>
               <div className="form-group">
                 <label>Category Name</label>
@@ -2446,14 +2452,16 @@ const ExpenseManager = ({ language = 'en' }) => {
       {showRestaurantModal && (
         <div className="modal-overlay" style={{ zIndex: 3000 }}>
           <div className="modal-box" style={{ maxWidth: 480 }}>
-            <div className="modal-header">
-              <h3>Add New Restaurant</h3>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={() => setShowRestaurantModal(false)}
-              >×</button>
-            </div>
+            <FormHero
+              compact
+              tone="amber"
+              artIcon={UtensilsCrossed}
+              icon={UtensilsCrossed}
+              eyebrow="Restaurant"
+              title="Add New Restaurant"
+              subtitle="Added to your restaurants and selected on this expense."
+              onClose={() => setShowRestaurantModal(false)}
+            />
             <form onSubmit={handleSaveRestaurant} className="modal-form">
               <div className="form-group">
                 <label>Restaurant Name <span style={{ color: 'var(--destructive, #ef4444)' }}>*</span></label>

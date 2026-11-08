@@ -8,6 +8,7 @@ import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
+import FormHero from './FormHero';
 
 const CustomerManager = ({ headerTabs }) => {
   const [customers, setCustomers] = useState([]);
@@ -283,10 +284,16 @@ const CustomerManager = ({ headerTabs }) => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 540 }}>
-            <div className="modal-header">
-              <h3>{editingCustomer ? 'Edit Customer' : 'Add Customer'}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="violet"
+              artIcon={Users}
+              icon={Users}
+              eyebrow="Customer"
+              title={editingCustomer ? 'Edit Customer' : 'Add Customer'}
+              subtitle="Contact and bank details used when invoicing this customer."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Name</label>

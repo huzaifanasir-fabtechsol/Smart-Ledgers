@@ -8,6 +8,7 @@ import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
+import FormHero from './FormHero';
 
 const INITIAL_FORM = { name: '', address: '', description: '' };
 
@@ -267,10 +268,16 @@ const SparePartManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 480 }}>
-            <div className="modal-header">
-              <h3>{editingSparePart ? 'Edit Shop' : 'Add Shop'}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="amber"
+              artIcon={Store}
+              icon={Store}
+              eyebrow="Shop"
+              title={editingSparePart ? 'Edit Shop' : 'Add Shop'}
+              subtitle="Shops and suppliers for spare parts and other purchases."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Name</label>

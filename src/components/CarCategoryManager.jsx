@@ -10,6 +10,7 @@ import Pagination from './Pagination';
 import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import './CarCategoryManager.css';
+import FormHero from './FormHero';
 
 const CarCategoryManager = ({ language = 'en' }) => {
   const t = translations[language];
@@ -322,11 +323,17 @@ const CarCategoryManager = ({ language = 'en' }) => {
 
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ margin: 0 }}>{editingCategory ? t.editCarCategory : t.addNewCarCategory}</h3>
-              <button className="modal-close" type="button" onClick={() => setShowModal(false)}>×</button>
-            </div>
+          <div className="modal modal-with-hero">
+            <FormHero
+              compact
+              tone="sky"
+              artIcon={Car}
+              icon={Car}
+              eyebrow="Car name"
+              title={editingCategory ? t.editCarCategory : t.addNewCarCategory}
+              subtitle="Makes and models used across vehicles and invoices."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Company</label>

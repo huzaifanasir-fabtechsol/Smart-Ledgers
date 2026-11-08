@@ -34,11 +34,197 @@
   mask-image: linear-gradient(90deg, #000 0%, transparent 55%);
 }
 
-.form-hero-expense { --hero-from: #fffbeb; --hero-to: #fde68a; --hero-accent: #b45309; --hero-chip: rgba(251, 191, 36, 0.25); }
-.form-hero-invoice { --hero-from: #f5f3ff; --hero-to: #ddd6fe; --hero-accent: #6d28d9; --hero-chip: rgba(139, 92, 246, 0.16); }
-.form-hero-letterhead { --hero-from: #ecfdf5; --hero-to: #bbf7d0; --hero-accent: #047857; --hero-chip: rgba(16, 185, 129, 0.16); }
-.form-hero-settings { --hero-from: #eef2ff; --hero-to: #c7d2fe; --hero-accent: #4338ca; --hero-chip: rgba(99, 102, 241, 0.16); }
-.form-hero-import { --hero-from: #f0fdf4; --hero-to: #bae6fd; --hero-accent: #15803d; --hero-chip: rgba(34, 197, 94, 0.16); }
+/* Colour tones: background gradient, accent text, eyebrow chip, art colours */
+.form-hero.tone-amber { --hero-from: #fffbeb; --hero-to: #fde68a; --hero-accent: #b45309; --hero-chip: rgba(251, 191, 36, 0.25); --art-a: #fbbf24; --art-b: #f59e0b; --art-soft: #fef3c7; }
+.form-hero.tone-violet { --hero-from: #f5f3ff; --hero-to: #ddd6fe; --hero-accent: #6d28d9; --hero-chip: rgba(139, 92, 246, 0.16); --art-a: #a78bfa; --art-b: #7c3aed; --art-soft: #ede9fe; }
+.form-hero.tone-emerald { --hero-from: #ecfdf5; --hero-to: #bbf7d0; --hero-accent: #047857; --hero-chip: rgba(16, 185, 129, 0.16); --art-a: #34d399; --art-b: #059669; --art-soft: #d1fae5; }
+.form-hero.tone-indigo { --hero-from: #eef2ff; --hero-to: #c7d2fe; --hero-accent: #4338ca; --hero-chip: rgba(99, 102, 241, 0.16); --art-a: #818cf8; --art-b: #4f46e5; --art-soft: #e0e7ff; }
+.form-hero.tone-green { --hero-from: #f0fdf4; --hero-to: #bae6fd; --hero-accent: #15803d; --hero-chip: rgba(34, 197, 94, 0.16); --art-a: #4ade80; --art-b: #16a34a; --art-soft: #dcfce7; }
+.form-hero.tone-sky { --hero-from: #f0f9ff; --hero-to: #bae6fd; --hero-accent: #0369a1; --hero-chip: rgba(14, 165, 233, 0.16); --art-a: #38bdf8; --art-b: #0284c7; --art-soft: #e0f2fe; }
+.form-hero.tone-rose { --hero-from: #fff1f2; --hero-to: #fecdd3; --hero-accent: #be123c; --hero-chip: rgba(244, 63, 94, 0.14); --art-a: #fb7185; --art-b: #e11d48; --art-soft: #ffe4e6; }
+.form-hero.tone-teal { --hero-from: #f0fdfa; --hero-to: #99f6e4; --hero-accent: #0f766e; --hero-chip: rgba(20, 184, 166, 0.16); --art-a: #2dd4bf; --art-b: #0d9488; --art-soft: #ccfbf1; }
+.form-hero.tone-slate { --hero-from: #f8fafc; --hero-to: #e2e8f0; --hero-accent: #334155; --hero-chip: rgba(100, 116, 139, 0.14); --art-a: #94a3b8; --art-b: #475569; --art-soft: #f1f5f9; }
+
+/* Icon illustration: a lit glass tile with the form's icon, a card behind it,
+   a metallic coin and a soft contact shadow on the "floor". */
+.form-hero-badge {
+  position: relative;
+  z-index: 1;
+  width: 170px;
+  height: 120px;
+  flex-shrink: 0;
+  margin-right: 2rem;
+}
+
+.form-hero.compact .form-hero-badge {
+  width: 150px;
+  height: 108px;
+  margin-right: 2.4rem;
+}
+
+/* Contact shadow under the tiles */
+.form-hero-badge::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 112px;
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.28) 0%, rgba(15, 23, 42, 0) 70%);
+}
+
+.fhb-glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 124px;
+  height: 124px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, var(--art-soft) 50%, transparent 72%);
+}
+
+.fhb-ring {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 104px;
+  height: 104px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.25);
+}
+
+.fhb-card {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 70px;
+  height: 80px;
+  border-radius: 16px;
+  transform-origin: center;
+}
+
+/* Solid coloured card at the back */
+.fhb-card-back {
+  transform: translate(-50%, -50%) translate(26px, -4px) rotate(14deg);
+  background: linear-gradient(150deg, var(--art-a) 0%, var(--art-b) 100%);
+  box-shadow: 0 10px 18px -8px rgba(15, 23, 42, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Frosted glass card in the middle */
+.fhb-card-mid {
+  transform: translate(-50%, -50%) translate(13px, -2px) rotate(7deg);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 8px 16px -10px rgba(15, 23, 42, 0.35);
+}
+
+/* Front tile: lit from the top-left, with a glossy reflection */
+.fhb-card-front {
+  transform: translate(-50%, -50%) rotate(-4deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #ffffff 0%, #f8fafc 55%, #eef2f7 100%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 18px 28px -12px rgba(15, 23, 42, 0.45),
+    0 3px 6px -2px rgba(15, 23, 42, 0.15),
+    inset 0 1px 0 #ffffff,
+    inset 0 -3px 6px -2px rgba(15, 23, 42, 0.08);
+  color: var(--art-b);
+}
+
+.fhb-card-front::before {
+  content: '';
+  position: absolute;
+  inset: -40% -60% auto auto;
+  width: 120%;
+  height: 70%;
+  transform: rotate(25deg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.fhb-card-front svg {
+  position: relative;
+  filter: drop-shadow(0 2px 2px rgba(15, 23, 42, 0.18));
+}
+
+.fhb-lines {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 38px;
+}
+
+.fhb-lines span {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--art-soft), #e2e8f0);
+}
+
+.fhb-lines span:last-child {
+  width: 65%;
+}
+
+/* Metallic gold coin */
+.fhb-coin {
+  position: absolute;
+  left: 10px;
+  bottom: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #92400e;
+  text-shadow: 0 1px 0 rgba(255, 247, 209, 0.9);
+  background: radial-gradient(circle at 35% 30%, #fff7d1 0%, #fcd34d 35%, #f59e0b 75%, #b45309 100%);
+  box-shadow:
+    0 3px 0 #92400e,
+    0 8px 12px -4px rgba(120, 53, 15, 0.55),
+    inset 0 0 0 3px rgba(180, 83, 9, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  transform: rotate(-12deg);
+  z-index: 2;
+}
+
+.fhb-spark {
+  position: absolute;
+  right: 8px;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  fill: var(--art-a);
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9));
+}
+
+.fhb-dot {
+  position: absolute;
+  left: 24px;
+  top: 12px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, var(--art-a) 60%, var(--art-b) 100%);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
+}
 
 .form-hero-text {
   position: relative;
@@ -103,7 +289,6 @@
   height: 133px;
   flex-shrink: 0;
   margin: -0.5rem 1.5rem -0.75rem 0;
-  filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.1));
 }
 
 .form-hero-close {
@@ -163,6 +348,12 @@
   margin: 1.25rem 1.25rem 0;
 }
 
+/* .modal-box is a flex column with a max height: never let the banner be squeezed */
+.modal-box > .form-hero,
+.modal > .form-hero {
+  flex-shrink: 0;
+}
+
 @media (max-width: 640px) {
   .form-hero {
     min-height: 0;
@@ -177,6 +368,14 @@
     align-self: flex-start;
   }
 
+  /* Keep the icon art on phones, just smaller (zoom scales its fixed-size pieces together) */
+  .form-hero-badge,
+  .form-hero.compact .form-hero-badge {
+    zoom: 0.58;
+    margin-right: 4.2rem;
+    align-self: center;
+  }
+
   .form-hero .form-hero-title {
     font-size: 1.15rem;
   }
@@ -186,9 +385,11 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 360px) {
   .form-hero-art,
-  .form-hero.compact .form-hero-art {
+  .form-hero.compact .form-hero-art,
+  .form-hero-badge,
+  .form-hero.compact .form-hero-badge {
     display: none;
   }
 }

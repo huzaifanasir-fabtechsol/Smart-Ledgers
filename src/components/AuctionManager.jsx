@@ -8,6 +8,7 @@ import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
+import FormHero from './FormHero';
 
 const EMPTY_FORM = { name: '', auction_type: '', description: '' };
 
@@ -302,10 +303,16 @@ const AuctionManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 480 }}>
-            <div className="modal-header">
-              <h3>{editingAuction ? 'Edit Auction' : 'Add Auction'}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="violet"
+              artIcon={Gavel}
+              icon={Gavel}
+              eyebrow="Auction house"
+              title={editingAuction ? 'Edit Auction' : 'Add Auction'}
+              subtitle="Auction houses and tender sources you buy vehicles from."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Name</label>

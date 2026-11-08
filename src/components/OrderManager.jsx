@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FileText, Wallet, CheckCircle2, Clock, Plus } from 'lucide-react';
+import { FileText, Wallet, CheckCircle2, Clock, Plus, CreditCard } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
@@ -11,6 +11,7 @@ import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
+import FormHero from './FormHero';
 
 const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
   const t = translations[language];
@@ -467,11 +468,17 @@ const OrderManager = ({ language = 'en', onAddOrder, onEditOrder }) => {
 
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ margin: 0 }}>Update Payment Status</h3>
-              <button className="modal-close" type="button" onClick={() => setShowModal(false)}>×</button>
-            </div>
+          <div className="modal modal-with-hero">
+            <FormHero
+              compact
+              tone="violet"
+              artIcon={CreditCard}
+              icon={CreditCard}
+              eyebrow="Invoice payment"
+              title="Update Payment Status"
+              subtitle="Record whether this invoice has been paid, and how."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleUpdateStatus}>
               <div className="form-group">
                 <label>{t.paymentStatus}</label>

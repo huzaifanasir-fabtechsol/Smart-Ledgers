@@ -8,6 +8,7 @@ import PageHeader from './PageHeader';
 import StatCards from './StatCards';
 import '../shared.css';
 import './OrderManager.css';
+import FormHero from './FormHero';
 
 const SalerManager = ({ headerTabs }) => {
   const [salers, setSalers] = useState([]);
@@ -276,10 +277,16 @@ const SalerManager = ({ headerTabs }) => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: 540 }}>
-            <div className="modal-header">
-              <h3>{editingSaler ? 'Edit Saler' : 'Add Saler'}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
+            <FormHero
+              compact
+              tone="teal"
+              artIcon={UserSquare2}
+              icon={UserSquare2}
+              eyebrow="Seller"
+              title={editingSaler ? 'Edit Saler' : 'Add Saler'}
+              subtitle="Contact and bank details for people and companies you buy from."
+              onClose={() => setShowModal(false)}
+            />
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
                 <label>Name</label>
