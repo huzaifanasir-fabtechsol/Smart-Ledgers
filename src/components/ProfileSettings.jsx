@@ -23,6 +23,7 @@ import {
 import { apiRequest } from "../api";
 import { useUser } from "../context/UserContext";
 import PageHeader from "./PageHeader";
+import FormHero from "./FormHero";
 import "./ProfileSettings.css";
 
 const INITIAL_PROFILE = {
@@ -339,6 +340,14 @@ const ProfileSettings = ({ onUserUpdate, onLockPinChange }) => {
         icon={Settings}
         category="Administration"
         companyName={profile.company_name}
+      />
+
+      <FormHero
+        variant="settings"
+        icon={Settings}
+        eyebrow="Workspace settings"
+        title={profile.company_name ? `${profile.company_name} preferences` : "Settings & Preferences"}
+        subtitle="Keep company details, tax presets, the lock PIN and your password up to date. Changes apply across invoices, expenses and letterheads."
       />
 
       {loadingProfile ? (

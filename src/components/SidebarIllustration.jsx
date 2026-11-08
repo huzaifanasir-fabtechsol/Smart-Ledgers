@@ -1,148 +1,59 @@
 import React from 'react';
 import './SidebarIllustration.css';
 
+// Small illustrated glass strip under the sidebar wordmark: a growing ledger chart,
+// Mt Fuji under a rising sun, and a yen coin. Hidden when the sidebar is collapsed.
 const SidebarIllustration = ({ collapsed = false }) => {
+  if (collapsed) return null;
+
   return (
-    <div className={`sidebar-illustration-wrap ${collapsed ? 'collapsed' : ''}`} aria-hidden="true">
-      <svg
-        className="sidebar-wave-svg"
-        viewBox="0 0 260 170"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+    <div className="sidebar-illustration-wrap" aria-hidden="true">
+      <svg className="sidebar-scene-svg" viewBox="0 0 210 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="sbCarBodyGrad" x1="0%" y1="0%" x2="100%" y2="50%">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.85" />
-            <stop offset="50%" stopColor="#D7F24B" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.85" />
+          <linearGradient id="sbSky" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#ECFCCB" />
+            <stop offset="55%" stopColor="#E0F2FE" />
+            <stop offset="100%" stopColor="#EDE9FE" />
           </linearGradient>
-
-          <linearGradient id="sbFujiGrad" x1="50%" y1="0%" x2="50%" y2="100%">
-            <stop offset="0%" stopColor="#D7F24B" stopOpacity="0.35" />
-            <stop offset="50%" stopColor="#10B981" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="#0F172A" stopOpacity="0" />
+          <linearGradient id="sbFuji" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#818CF8" />
+            <stop offset="100%" stopColor="#A5B4FC" stopOpacity="0.35" />
           </linearGradient>
-
-          <linearGradient id="sbEmblemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#D7F24B" />
-            <stop offset="100%" stopColor="#10B981" />
+          <linearGradient id="sbBar" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#A3E635" />
+            <stop offset="100%" stopColor="#34D399" />
           </linearGradient>
-
-          <radialGradient id="sbHeadlightBeam" cx="95%" cy="60%" r="65%">
-            <stop offset="0%" stopColor="#D7F24B" stopOpacity="0.6" />
-            <stop offset="50%" stopColor="#10B981" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-          </radialGradient>
-
-          <radialGradient id="sbGlowGround" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-          </radialGradient>
+          <linearGradient id="sbLine" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#0EA5E9" />
+            <stop offset="100%" stopColor="#65A30D" />
+          </linearGradient>
         </defs>
 
-        {/* Ambient Ground Glow */}
-        <ellipse cx="140" cy="150" rx="100" ry="16" fill="url(#sbGlowGround)" />
+        <rect width="210" height="64" fill="url(#sbSky)" />
 
-        {/* Mt Fuji Silhouette Peak */}
-        <path
-          d="M100 135 L145 65 L165 65 L210 135 Z"
-          fill="url(#sbFujiGrad)"
-        />
-        {/* Snow Cap on Fuji */}
-        <path
-          d="M136 78 L145 65 L165 65 L174 78 C168 81, 162 76, 155 79 C148 76, 142 81, 136 78 Z"
-          fill="rgba(255, 255, 255, 0.45)"
-        />
+        {/* Rising sun and Mt Fuji */}
+        <circle cx="150" cy="22" r="11" fill="#FB7185" fillOpacity="0.85" />
+        <circle cx="150" cy="22" r="17" fill="#FDA4AF" fillOpacity="0.25" />
+        <path d="M100 64 L136 26 L148 26 L190 64 Z" fill="url(#sbFuji)" />
+        <path d="M130 33 L136 26 L148 26 L155 33 C150 36 146 32 142 35 C138 32 134 36 130 33 Z" fill="#FFFFFF" />
 
-        {/* Iconic Speedometer Gauge Arc (Finance & Speed) */}
-        <path
-          d="M35 130 A 42 42 0 0 1 105 130"
-          stroke="url(#sbCarBodyGrad)"
-          strokeWidth="2.5"
-          strokeDasharray="4 3"
-          strokeLinecap="round"
-          opacity="0.75"
-        />
-        <circle cx="70" cy="130" r="3" fill="#D7F24B" />
+        {/* Ledger bars with trend line */}
+        <rect x="16" y="40" width="10" height="24" rx="3" fill="url(#sbBar)" fillOpacity="0.7" />
+        <rect x="31" y="32" width="10" height="32" rx="3" fill="url(#sbBar)" fillOpacity="0.8" />
+        <rect x="46" y="24" width="10" height="40" rx="3" fill="url(#sbBar)" fillOpacity="0.9" />
+        <rect x="61" y="16" width="10" height="48" rx="3" fill="url(#sbBar)" />
+        <path d="M14 36 L36 26 L51 20 L74 8" stroke="url(#sbLine)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="74" cy="8" r="3.2" fill="#65A30D" stroke="#FFFFFF" strokeWidth="1.4" />
 
-        {/* Iconic Japanese Seal Badge: 車 (Automobile) */}
-        <g transform="translate(18, 55)">
-          <circle cx="18" cy="18" r="16" fill="rgba(15, 23, 42, 0.7)" stroke="url(#sbEmblemGrad)" strokeWidth="1.8" />
-          <circle cx="18" cy="18" r="13" fill="none" stroke="rgba(215, 242, 75, 0.3)" strokeWidth="1" strokeDasharray="2 2" />
-          {/* Kanji: 車 (Automotive) */}
-          <text
-            x="18"
-            y="23.5"
-            textAnchor="middle"
-            fill="#D7F24B"
-            fontSize="13"
-            fontWeight="900"
-            fontFamily="'Noto Sans JP', 'Hiragino Sans', sans-serif"
-          >
-            車
-          </text>
+        {/* Yen coin */}
+        <g transform="translate(188 46)">
+          <circle r="10" fill="#FDE68A" stroke="#F59E0B" strokeWidth="1.5" />
+          <text y="4" textAnchor="middle" fontSize="11" fontWeight="800" fill="#B45309" fontFamily="'Plus Jakarta Sans', sans-serif">¥</text>
         </g>
 
-        {/* Headlight Projection Beam */}
-        <path
-          d="M210 128 L255 115 L258 142 L210 138 Z"
-          fill="url(#sbHeadlightBeam)"
-        />
-
-        {/* Iconic Japanese Luxury Sports Sedan Silhouette */}
-        <g transform="translate(58, 88)">
-          {/* Car Body Shell */}
-          <path
-            d="M 12 40
-               C 18 36, 28 32, 42 30
-               C 56 20, 78 12, 102 12
-               C 122 12, 136 20, 146 30
-               C 156 31, 164 34, 168 38
-               C 170 41, 168 45, 162 47
-               L 150 47
-               C 148 42, 142 38, 134 38
-               C 126 38, 120 42, 118 47
-               L 52 47
-               C 50 42, 44 38, 36 38
-               C 28 38, 22 42, 20 47
-               L 8 47
-               C 5 47, 4 44, 7 42
-               Z"
-            fill="url(#sbCarBodyGrad)"
-          />
-
-          {/* Cabin Windshield & Glass */}
-          <path
-            d="M 52 28
-               C 62 18, 80 15, 100 15
-               C 118 15, 128 20, 136 28
-               Z"
-            fill="#0F172A"
-            opacity="0.8"
-          />
-
-          {/* Pillar Divider */}
-          <line x1="94" y1="15" x2="94" y2="28" stroke="rgba(215, 242, 75, 0.6)" strokeWidth="1.5" />
-
-          {/* LED Headlight Beam Stripe */}
-          <path
-            d="M 160 38 L 168 39 L 165 41 Z"
-            fill="#FFFFFF"
-            boxShadow="0 0 8px #FFFFFF"
-          />
-
-          {/* Front Wheel & Rim */}
-          <circle cx="134" cy="46" r="8.5" fill="#0F172A" stroke="url(#sbEmblemGrad)" strokeWidth="2.2" />
-          <circle cx="134" cy="46" r="4.5" fill="#D7F24B" />
-
-          {/* Rear Wheel & Rim */}
-          <circle cx="36" cy="46" r="8.5" fill="#0F172A" stroke="url(#sbEmblemGrad)" strokeWidth="2.2" />
-          <circle cx="36" cy="46" r="4.5" fill="#D7F24B" />
-        </g>
-
-        {/* High-Tech Road Base Strip */}
-        <line x1="15" y1="140" x2="245" y2="140" stroke="rgba(16, 185, 129, 0.45)" strokeWidth="1.5" />
-        <line x1="30" y1="143" x2="230" y2="143" stroke="rgba(215, 242, 75, 0.35)" strokeWidth="1" strokeDasharray="8 6" />
+        {/* Sparkles */}
+        <path d="M92 12 l1.8 4 l4 1.8 l-4 1.8 l-1.8 4 l-1.8 -4 l-4 -1.8 l4 -1.8 Z" fill="#C4B5FD" />
+        <circle cx="196" cy="14" r="2" fill="#7DD3FC" />
       </svg>
     </div>
   );

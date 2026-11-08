@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, FileText, ArrowLeft } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest, getErrorMessage } from '../api';
 import DateInput from './DateInput';
+import FormHero from './FormHero';
 import '../shared.css';
 import './OrderManager.css';
 
@@ -712,10 +713,18 @@ const AddOrder = ({ language = 'en', onSave, onCancel, editingOrder = null }) =>
   return (
     <div className="order-manager">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="page-header">
-        <h2>{editingOrder ? 'Edit Order' : t.addNewOrder}</h2>
-        <button className="btn-secondary" onClick={onCancel}>{t.cancel}</button>
-      </div>
+      <FormHero
+        variant="invoice"
+        icon={FileText}
+        eyebrow={editingOrder ? `Invoice #${editingOrder.id}` : 'New invoice'}
+        title={editingOrder ? 'Edit Invoice' : t.addNewOrder}
+        subtitle="Fill in the customer, vehicle and line items. Totals and tax are calculated as you go."
+        actions={(
+          <button type="button" className="btn-secondary form-hero-back" onClick={onCancel}>
+            <ArrowLeft size={15} /> {t.cancel}
+          </button>
+        )}
+      />
 
       <form onSubmit={handleSubmit} className="order-form">
         <div className="form-row">

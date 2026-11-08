@@ -6,6 +6,7 @@ import { apiRequest, getErrorMessage } from "../api";
 import LetterheadPrinter from "./LetterheadPrinter";
 import LetterheadRecords from "./LetterheadRecords";
 import PageHeader from "./PageHeader";
+import FormHero from "./FormHero";
 import "./ProfileSettings.css";
 
 const LetterheadPage = () => {
@@ -38,6 +39,14 @@ const LetterheadPage = () => {
         icon={FileSignature}
         category="Corporate Identity"
         companyName={profile?.company_name}
+      />
+
+      <FormHero
+        variant="letterhead"
+        icon={FileSignature}
+        eyebrow="Corporate stationery"
+        title="Design your official letterhead"
+        subtitle="Company details are filled in from Settings. Write the letter, preview it, then print or save it to the records below."
       />
 
       {loading ? (

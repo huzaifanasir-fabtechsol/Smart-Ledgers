@@ -12,10 +12,16 @@
 /* Sidebar design - fixed in place, never scrolls away */
 .sidebar {
   width: 248px;
-  background: linear-gradient(175deg, rgba(15, 23, 42, 0.52) 0%, rgba(18, 30, 52, 0.58) 50%, rgba(10, 18, 34, 0.65) 100%);
-  backdrop-filter: blur(22px) saturate(190%);
-  -webkit-backdrop-filter: blur(22px) saturate(190%);
-  color: #f8fafc;
+  /* Light frosted glass: the page background shows through, text stays dark */
+  --sb-text: #334155;
+  --sb-muted: #64748b;
+  --sb-hover: rgba(255, 255, 255, 0.62);
+  --sb-line: rgba(15, 23, 42, 0.07);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.34) 45%, rgba(255, 255, 255, 0.22) 100%);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  color: var(--sb-text);
   position: fixed;
   top: 1rem;
   left: 1rem;
@@ -28,10 +34,27 @@
   flex-shrink: 0;
   z-index: 100;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 1px 0 0 rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 24px 60px -16px rgba(15, 23, 42, 0.22),
+    0 2px 6px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 1px 0 0 rgba(255, 255, 255, 0.6);
   box-sizing: border-box;
   overflow: hidden;
+}
+
+/* Soft colour pools inside the glass for depth */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 0% 100%, rgba(190, 242, 100, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 100% 55%, rgba(167, 139, 250, 0.14) 0%, transparent 40%),
+    radial-gradient(circle at 10% 35%, rgba(56, 189, 248, 0.12) 0%, transparent 40%);
 }
 
 .sidebar.collapsed {
@@ -45,14 +68,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  margin-bottom: 1.6rem;
   padding: 0 0.5rem;
 }
 
 .sidebar-header h1 {
   font-size: 1.2rem;
   font-weight: 800;
-  color: white;
+  color: var(--ink);
   margin: 0;
   letter-spacing: -0.03em;
   white-space: nowrap;
@@ -62,12 +85,13 @@
 }
 
 .toggle-btn {
-  background: var(--sidebar-accent);
-  border: 1px solid var(--sidebar-border);
-  color: var(--sidebar-foreground);
-  border-radius: 8px;
-  width: 24px;
-  height: 24px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  color: #334155;
+  box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.18);
+  border-radius: 9px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,9 +101,9 @@
 }
 
 .toggle-btn:hover {
-  color: var(--sidebar-primary);
-  border-color: var(--sidebar-primary);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+  border-color: var(--lime);
+  background: var(--lime);
 }
 
 .sidebar-nav {
@@ -93,7 +117,7 @@
   overflow-x: hidden;
   padding-right: 6px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+  scrollbar-color: rgba(15, 23, 42, 0.18) transparent;
 }
 
 .sidebar-nav::-webkit-scrollbar {
@@ -105,13 +129,13 @@
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(15, 23, 42, 0.16);
   border-radius: 9999px;
   transition: background 0.2s ease;
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(15, 23, 42, 0.3);
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb:active {
@@ -125,31 +149,63 @@
 }
 
 .nav-section-title {
-  padding: 0.85rem 1rem 0.3rem;
-  color: var(--sidebar-foreground);
-  opacity: 0.5;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1.1rem 0.6rem 0.4rem;
+  color: var(--tone-fg, #334155);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+/* Coloured marker before the heading, and a fading rule after it */
+.nav-section-title::before {
+  content: '';
+  width: 4px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--tone-fg);
+  flex-shrink: 0;
+}
+
+.nav-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--tone-fg), transparent);
+  opacity: 0.3;
 }
 
 .nav-section-divider {
   height: 1px;
   margin: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--sb-line);
 }
+
+/* Per-section colour for the icon tiles */
+.nav-section { --tone-bg: #f1f5f9; --tone-fg: #475569; }
+.nav-section.tone-lime { --tone-bg: linear-gradient(135deg, #ecfccb, #d9f99d); --tone-fg: #4d7c0f; }
+.nav-section.tone-violet { --tone-bg: linear-gradient(135deg, #ede9fe, #ddd6fe); --tone-fg: #6d28d9; }
+.nav-section.tone-sky { --tone-bg: linear-gradient(135deg, #e0f2fe, #bae6fd); --tone-fg: #0369a1; }
+.nav-section.tone-amber { --tone-bg: linear-gradient(135deg, #fef3c7, #fde68a); --tone-fg: #b45309; }
+.nav-section.tone-emerald { --tone-bg: linear-gradient(135deg, #d1fae5, #a7f3d0); --tone-fg: #047857; }
+.nav-section.tone-rose { --tone-bg: linear-gradient(135deg, #ffe4e6, #fecdd3); --tone-fg: #be123c; }
+.nav-section.tone-indigo { --tone-bg: linear-gradient(135deg, #e0e7ff, #c7d2fe); --tone-fg: #4338ca; }
+.nav-section.tone-slate { --tone-bg: linear-gradient(135deg, #f1f5f9, #e2e8f0); --tone-fg: #475569; }
 
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  color: var(--sidebar-foreground);
+  padding: 0.45rem 0.6rem;
+  color: var(--sb-text);
   text-decoration: none;
-  border-radius: 16px;
+  border-radius: 14px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
   cursor: pointer;
   border: none;
@@ -160,19 +216,17 @@
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-  backdrop-filter: blur(12px);
+  background: var(--sb-hover);
+  color: #0f172a;
+  box-shadow: 0 4px 14px -6px rgba(15, 23, 42, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transform: translateX(2px);
 }
 
 .nav-item.active {
   background: var(--color-lime);
   color: var(--color-ink);
-  box-shadow: 0 8px 24px -4px rgba(215, 242, 75, 0.55);
+  box-shadow: 0 8px 22px -6px rgba(132, 204, 22, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   font-weight: 800;
-  border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Collapsed sidebar: a single centred icon column */
@@ -198,7 +252,7 @@
 
 .sidebar.collapsed .nav-item {
   justify-content: center;
-  padding: 0.65rem 0;
+  padding: 0.4rem 0;
 }
 
 .sidebar.collapsed .nav-section-divider {
@@ -218,22 +272,43 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: inherit;
-  width: 18px;
-  height: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--tone-bg, #f1f5f9);
+  color: var(--tone-fg, #475569);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 6px -2px rgba(15, 23, 42, 0.12);
   flex-shrink: 0;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.nav-item .icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.nav-item:hover .icon {
+  transform: scale(1.06) rotate(-4deg);
 }
 
 .nav-item.active .icon {
-  color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-lime);
+  box-shadow: 0 4px 10px -3px rgba(15, 23, 42, 0.4);
+}
+
+/* Logout gets a soft red tile */
+.sidebar-footer .nav-item .icon {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #b91c1c;
 }
 
 .sidebar-footer {
   position: relative;
   z-index: 2;
   margin-top: auto;
-  padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 1rem;
+  border-top: 1px solid var(--sb-line);
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -295,6 +370,11 @@
 
   .sidebar.open {
     left: 0;
+  }
+
+  /* The drawer floats over page content, so give the glass more body for legibility */
+  .sidebar {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.74) 100%);
   }
 
   .main-content,

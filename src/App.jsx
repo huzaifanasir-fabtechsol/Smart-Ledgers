@@ -54,6 +54,7 @@ import ProfileSettings from './components/ProfileSettings';
 import LetterheadPage from './components/LetterheadPage';
 import GoogleTranslateInitializer from './components/GoogleTranslateInitializer';
 import BrandLogo from './components/BrandLogo';
+import SidebarIllustration from './components/SidebarIllustration';
 import AnimatedBackground from './components/AnimatedBackground';
 import { UserProvider, useUser } from './context/UserContext';
 import { translations } from './translations';
@@ -169,12 +170,14 @@ function AppContent() {
   // Sidebar links grouped by area. A section without a title is shown without a heading.
   const menuSections = [
     {
+      tone: 'lime',
       items: [
         { path: '/dashboard', label: t.dashboard, icon: LayoutDashboard },
       ],
     },
     {
       title: 'Sales',
+      tone: 'violet',
       items: [
         { path: '/inovice', label: t.orders, icon: FileText },
         { path: '/customers', label: 'Customers', icon: Users },
@@ -183,6 +186,7 @@ function AppContent() {
     },
     {
       title: 'Vehicles',
+      tone: 'sky',
       items: [
         { path: '/cars', label: 'Collection', icon: Wallet },
         { path: '/categories', label: t.carCategories, icon: Car },
@@ -190,6 +194,7 @@ function AppContent() {
     },
     {
       title: 'Expenses',
+      tone: 'amber',
       items: [
         { path: '/expenses', label: t.manageExpenses, icon: Receipt },
         { path: '/restaurants', label: 'Restaurants', icon: UtensilsCrossed },
@@ -198,6 +203,7 @@ function AppContent() {
     },
     {
       title: 'Banking',
+      tone: 'emerald',
       items: [
         { path: '/company-accounts', label: 'Accounts', icon: Landmark },
         { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
@@ -205,6 +211,7 @@ function AppContent() {
     },
     {
       title: 'HR',
+      tone: 'rose',
       items: [
         { path: '/employees', label: 'Employees', icon: BriefcaseBusiness },
         { path: '/salaries', label: 'Salaries', icon: BadgeDollarSign },
@@ -212,6 +219,7 @@ function AppContent() {
     },
     {
       title: 'Reports',
+      tone: 'indigo',
       items: [
         { path: '/tax-reports', label: 'Tax Reports', icon: Calculator },
         { path: '/financial-statements', label: 'Financial Statements', icon: FileText },
@@ -220,6 +228,7 @@ function AppContent() {
     },
     {
       title: 'System',
+      tone: 'slate',
       items: [
         { path: '/letterhead', label: 'Letterhead', icon: FileSignature },
         { path: '/settings', label: 'Settings', icon: Settings },
@@ -278,9 +287,11 @@ function AppContent() {
           </button>
         </div>
 
+        <SidebarIllustration collapsed={!sidebarOpen} />
+
         <nav className="sidebar-nav" ref={navRef}>
           {menuSections.map((section, sectionIndex) => (
-            <div key={section.title || `section-${sectionIndex}`} className="nav-section">
+            <div key={section.title || `section-${sectionIndex}`} className={`nav-section tone-${section.tone || 'slate'}`}>
               {sectionIndex > 0 && (sidebarOpen && section.title
                 ? <div className="nav-section-title">{section.title}</div>
                 : <div className="nav-section-divider" />)}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Receipt, Wallet, BadgeDollarSign, Landmark, Plus, Copy } from 'lucide-react';
+import { Receipt, Wallet, BadgeDollarSign, Landmark, Plus, Copy, FileSpreadsheet, FileDown } from 'lucide-react';
 import { translations } from '../translations';
 import { apiRequest } from '../api';
 import { jsPDF } from 'jspdf';
@@ -13,6 +13,7 @@ import YearSelector from './YearSelector';
 import Pagination from './Pagination';
 import ExpenseBulkImport from './ExpenseBulkImport';
 import PageHeader from './PageHeader';
+import FormHero from './FormHero';
 import StatCards from './StatCards';
 import '../shared.css';
 import './ExpenseManager.css';
@@ -1053,10 +1054,10 @@ const ExpenseManager = ({ language = 'en' }) => {
         actions={
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button className="btn-secondary" onClick={exportToXLSX}>
-              📊 {t.exportXlsx || 'Export XLSX'}
+              <FileSpreadsheet size={16} color="#16a34a" /> {t.exportXlsx || 'Export XLSX'}
             </button>
             <button className="btn-secondary" onClick={exportToPDF}>
-              📄 {t.exportPdf || 'Export PDF'}
+              <FileDown size={16} color="#dc2626" /> {t.exportPdf || 'Export PDF'}
             </button>
             <ExpenseBulkImport
               companyAccounts={companyAccounts}
@@ -1529,11 +1530,16 @@ const ExpenseManager = ({ language = 'en' }) => {
 
       {showExpenseModal && (
         <div className="modal-overlay">
-          <div className="modal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ margin: 0 }}>{editingExpense ? 'Edit Expense' : t.addNewExpense}</h3>
-              <button className="modal-close" type="button" onClick={() => setShowExpenseModal(false)}>×</button>
-            </div>
+          <div className="modal modal-with-hero">
+            <FormHero
+              compact
+              variant="expense"
+              icon={Receipt}
+              eyebrow={editingExpense ? `Expense #${editingExpense.id}` : 'New expense'}
+              title={editingExpense ? 'Edit Expense' : t.addNewExpense}
+              subtitle="Record the amount, category and tax, then link the bank transaction or receipt."
+              onClose={() => setShowExpenseModal(false)}
+            />
 
             <form onSubmit={handleExpenseSubmit}>
               <div className="form-row">

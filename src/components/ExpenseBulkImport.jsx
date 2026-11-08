@@ -1,7 +1,13 @@
 import { Fragment, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'react-toastify';
+import {
+  Upload, Loader2, CheckCircle2, AlertTriangle, FileSpreadsheet, Receipt, ArrowLeftRight, Copy, Landmark, Rows3,
+} from 'lucide-react';
 import { apiRequest, downloadFile } from '../api';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import FormHero from './FormHero';
+import './ExpenseBulkImport.css';
 
 const SEEN_JOB_KEY = 'expenseImportSeenJobId';
 const POLL_INTERVAL_MS = 1500;
@@ -212,9 +218,46 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
     }
   };
 
-  let buttonLabel = '📥 Bulk Import';
-  if (isActive) buttonLabel = `⏳ Importing... ${job.percent}%`;
-  else if (hasUnseenResult) buttonLabel = job.status === 'completed' ? '✅ Import finished' : '⚠️ Import failed';
+  let buttonState = 'idle';
+  if (isActive) buttonState = 'running';
+  else if (hasUnseenResult) buttonState = job.status === 'completed' ? 'done' : 'failed';
+
+  const renderButtonContent = () => {
+    if (buttonState === 'running') {
+      return (
+        <>
+          <Loader2 size={16} className="bulk-import-spin" />
+          <span>Importing… {job.percent}%</span>
+          <span className="bulk-import-btn-progress" style={{ width: `${job.percent}%` }} />
+        </>
+      );
+    }
+    if (buttonState === 'done') {
+      return (
+        <>
+          <span className="bulk-import-btn-pulse" />
+          <CheckCircle2 size={16} />
+          <span>Import finished</span>
+          <span className="bulk-import-btn-tag">View</span>
+        </>
+      );
+    }
+    if (buttonState === 'failed') {
+      return (
+        <>
+          <AlertTriangle size={16} />
+          <span>Import failed</span>
+          <span className="bulk-import-btn-tag">View</span>
+        </>
+      );
+    }
+    return (
+      <>
+        <Upload size={16} color="#0284c7" />
+        <span>Bulk Import</span>
+      </>
+    );
+  };
 
   const renderProgress = () => (
     <div className="modal-form">
@@ -228,7 +271,7 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
         aria-valuemax={100}
         style={{ height: 12, background: '#e2e8f0', borderRadius: 999, overflow: 'hidden' }}
       >
-        <div style={{ width: `${job.percent}%`, height: '100%', background: '#2563eb', transition: 'width 0.4s ease' }} />
+        <div style={{ width: `${job.percent}%`, height: '100%', background: 'linear-gradient(90deg, #22c55e, #84cc16)', transition: 'width 0.4s ease' }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.85rem', color: '#475569' }}>
         <span>{job.processed_rows} of {job.total_rows} rows</span>
@@ -256,32 +299,38 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
     }
 
     const result = job.result || {};
-    const rows = [
-      ['Rows in file', result.total_rows],
-      ['Transactions created', result.transactions_created],
-      ['Transactions already existing', result.transactions_existing],
-      ['Expenses created', result.expenses_created],
-      ['Expenses already existing', result.expenses_existing],
-      ['Deposit rows (no expense)', result.deposit_rows],
+    const tiles = [
+      { label: 'Rows in file', value: result.total_rows, icon: Rows3, tone: 'slate' },
+      { label: 'Expenses created', value: result.expenses_created, icon: Receipt, tone: 'green' },
+      { label: 'Expenses already existing', value: result.expenses_existing, icon: Copy, tone: 'amber' },
+      { label: 'Transactions created', value: result.transactions_created, icon: ArrowLeftRight, tone: 'sky' },
+      { label: 'Transactions already existing', value: result.transactions_existing, icon: Copy, tone: 'violet' },
+      { label: 'Deposit rows (no expense)', value: result.deposit_rows, icon: Landmark, tone: 'slate' },
     ];
     const createdCategories = result.categories_created || [];
     const warnings = result.warnings || [];
 
     return (
       <div className="modal-form">
-        <div style={{ fontWeight: 700, color: '#15803d', marginBottom: '0.75rem' }}>
-          ✅ Import completed: {job.file_name}
+        <div className="bulk-import-file">
+          <FileSpreadsheet size={18} />
+          <span className="bulk-import-file-name">{job.file_name}</span>
+          <span className="bulk-import-file-status"><CheckCircle2 size={13} /> Completed</span>
+          {job.finished_at && (
+            <span className="bulk-import-file-time">{new Date(job.finished_at).toLocaleString()}</span>
+          )}
         </div>
-        <div style={{ fontSize: '0.875rem' }}>
-          {rows.map(([label, value]) => (
-            <div
-              key={label}
-              style={{ display: 'flex', justifyContent: 'space-between', padding: '0.45rem 0', borderBottom: '1px solid #e2e8f0' }}
-            >
-              <span style={{ color: '#475569' }}>{label}</span>
-              <span style={{ fontWeight: 600 }}>{value ?? 0}</span>
-            </div>
-          ))}
+        <div className="bulk-import-tiles">
+          {tiles.map((tile) => {
+            const TileIcon = tile.icon;
+            return (
+              <div key={tile.label} className={`bulk-import-tile tone-${tile.tone}`}>
+                <span className="bulk-import-tile-icon"><TileIcon size={16} /></span>
+                <span className="bulk-import-tile-value">{Number(tile.value ?? 0).toLocaleString()}</span>
+                <span className="bulk-import-tile-label">{tile.label}</span>
+              </div>
+            );
+          })}
         </div>
         {createdCategories.length > 0 && (
           <div style={{ ...infoBoxStyle, marginTop: '1rem', marginBottom: 0 }}>
@@ -488,34 +537,52 @@ const ExpenseBulkImport = ({ companyAccounts = [], onImported }) => {
 
   return (
     <>
-      <button className="btn-secondary" onClick={() => setShowModal(true)}>
-        {buttonLabel}
+      <button
+        type="button"
+        className={`btn-secondary bulk-import-btn is-${buttonState}`}
+        onClick={() => setShowModal(true)}
+      >
+        {renderButtonContent()}
       </button>
 
-      {showModal && (
+      {/* Portal to <body>: the button lives in the page header, and any ancestor with a
+          filter/transform would otherwise clip this fixed-position overlay. */}
+      {showModal && createPortal(
         <div className="modal-overlay">
-          <div className="modal-box" style={{ maxWidth: showingResult && reviewItems?.length ? 1100 : 640 }}>
-            <div className="modal-header">
-              <h3>Bulk Import Expenses & Transactions</h3>
-              <button className="modal-close" type="button" onClick={closeModal} disabled={uploading}>×</button>
-            </div>
+          <div className="modal-box" style={{ maxWidth: showingResult && reviewItems?.length ? 1100 : 680 }}>
+            <FormHero
+              compact
+              variant="import"
+              icon={FileSpreadsheet}
+              eyebrow={isActive ? 'In progress' : showingResult ? (job.status === 'completed' ? 'Import result' : 'Import failed') : 'Excel upload'}
+              title={showingResult ? 'Import Summary' : 'Bulk Import Expenses & Transactions'}
+              subtitle={showingResult
+                ? 'What was created from the uploaded bank statement, and anything that still needs a look.'
+                : 'Upload a bank statement in Excel to create transactions and expenses in one go.'}
+              onClose={closeModal}
+              closeDisabled={uploading}
+            />
             {body}
             <div className="modal-actions">{actions}</div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
-      <DeleteConfirmModal
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteExpense}
-        title="Delete Expense"
-        message={deleteTarget
-          ? `Delete expense #${deleteTarget.id} '${deleteTarget.title}' ${yen(deleteTarget.total_amount)} `
-            + `(${deleteTarget.category || 'no category'}, ${deleteTarget.date})? This cannot be undone. `
-            + 'The bank transaction itself is kept.'
-          : ''}
-      />
+      {createPortal(
+        <DeleteConfirmModal
+          isOpen={Boolean(deleteTarget)}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={handleDeleteExpense}
+          title="Delete Expense"
+          message={deleteTarget
+            ? `Delete expense #${deleteTarget.id} '${deleteTarget.title}' ${yen(deleteTarget.total_amount)} `
+              + `(${deleteTarget.category || 'no category'}, ${deleteTarget.date})? This cannot be undone. `
+              + 'The bank transaction itself is kept.'
+            : ''}
+        />,
+        document.body,
+      )}
     </>
   );
 };
