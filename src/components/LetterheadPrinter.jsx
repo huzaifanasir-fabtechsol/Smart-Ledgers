@@ -210,7 +210,10 @@ const LetterheadPrinter = ({ profile }) => {
     const el = stageRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(() => {
-      setScale(Math.min(1, (el.clientWidth - 2) / PAPER_PX));
+      // clientWidth includes the stage's padding; fit the paper inside it
+      const style = getComputedStyle(el);
+      const inner = el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      setScale(Math.min(1, (inner - 2) / PAPER_PX));
     });
     observer.observe(el);
     return () => observer.disconnect();

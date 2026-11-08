@@ -256,7 +256,7 @@
   .expense-manager .modal,
   .expense-manager .modal-box {
     background-size: 190px auto, auto, auto, 26px 26px, auto;
-    background-position: right -1rem bottom 5rem, 0 0, 0 0, 0 0, 0 0;
+    background-position: right 1.1rem bottom 5rem, 0 0, 0 0, 0 0, 0 0;
   }
 
   /* Grab handle at the top of the sheet */
@@ -376,6 +376,51 @@
   .fs-tab {
     flex-shrink: 0;
   }
+
+  /* Letterhead: saved rows put their buttons on a second line */
+  .lh-saved {
+    max-height: 360px;
+  }
+
+  .lh-saved-item {
+    flex-wrap: wrap;
+    padding: 0.7rem 0.8rem;
+    row-gap: 0.6rem;
+  }
+
+  .lh-saved-info {
+    flex: 1 1 calc(100% - 50px);
+  }
+
+  .lh-saved-actions {
+    width: 100%;
+  }
+
+  .lh-saved-actions .btn-secondary {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Preview bar: title on top, export buttons share the row below */
+  .lh-preview-bar {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .lh-preview-bar > div {
+    width: 100%;
+  }
+
+  .lh-preview-bar > div > button {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    white-space: normal;
+    line-height: 1.25;
+    text-align: center;
+    font-size: 0.8rem;
+    padding: 0.6rem 0.7rem;
+  }
 }
 
 /* ── Phones: header title and dashboard cards ──────────────────────── */
@@ -470,5 +515,227 @@
   .stat-icon-wrapper {
     width: 28px;
     height: 28px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Layout QA fixes (all widths)
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Tables: size columns to their content instead of squeezing them, so dates,
+   IDs and phone numbers stay on one line and long names wrap at a sane width.
+   A table wider than its card scrolls sideways inside the card. */
+.table-container table {
+  width: max-content;
+  min-width: 100%;
+}
+
+.table-container th {
+  white-space: nowrap;
+}
+
+.table-container td {
+  max-width: 20rem;
+}
+
+/* Page header: keep the date / lock / profile pills on the title row on every page;
+   a long section name shortens with "…" instead of pushing them down. */
+@media (min-width: 769px) {
+  .unified-upper-left {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+
+  .unified-title-wrap,
+  .unified-company-heading,
+  .unified-title {
+    min-width: 0;
+  }
+
+  .unified-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .unified-section-chip {
+    min-width: 0;
+    max-width: 280px;
+    flex-shrink: 1;
+  }
+
+  .unified-section-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Stat cards: values line up even when one card's title wraps to two lines */
+.stat-card-item {
+  align-items: stretch;
+}
+
+.stat-card-label {
+  flex: 1 0 auto;
+}
+
+.stat-icon-wrapper {
+  align-self: flex-start;
+}
+
+/* Missing colour used by the salary page's 4th card */
+.stat-icon-indigo {
+  background: oklch(0.94 0.05 275);
+  color: oklch(0.45 0.18 275);
+}
+
+.stat-card-item:has(.stat-icon-indigo) {
+  background: linear-gradient(145deg, #ffffff 0%, #eef2ff 100%);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.stat-card-item:has(.stat-icon-indigo)::before {
+  background: linear-gradient(90deg, #6366f1 0%, transparent 100%);
+}
+
+/* Five stat cards: one row of five on wide screens instead of 4 + 1 */
+@media (min-width: 1000px) {
+  .stats-cards-grid:has(> :nth-child(5):last-child) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* Dashboard KPI titles and notes wrap instead of being cut with "…" */
+.dashboard .stat-card h3 {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.3;
+}
+
+.dashboard .stat-card-note {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Sidebar menu: soft fade at the ends so items slide under the edges cleanly
+   and it is clear the list scrolls; long labels wrap instead of "…" */
+.sidebar-nav {
+  padding-top: 6px;
+  padding-bottom: 10px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 22px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 22px), transparent 100%);
+}
+
+.nav-item .label {
+  white-space: normal !important;
+  line-height: 1.2;
+}
+
+/* Forms: one consistent gap between rows (the row margin used to stack on top of the field margin) */
+.form-row {
+  margin-bottom: 0;
+}
+
+.form-row > :not(.form-group) {
+  margin-bottom: 1.35rem;
+}
+
+/* Financial Statements: same page frame as every other section */
+.fs-page {
+  padding: 0;
+}
+
+/* Letterhead saved list: fade the last visible row to hint that the list scrolls */
+.lh-saved {
+  padding-bottom: 14px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent 100%);
+}
+
+/* ── Phones ── */
+@media (max-width: 768px) {
+  /* A lone odd stat card takes the full row instead of leaving a gap */
+  .stats-cards-grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* Date and month filters get a full row so their placeholder isn't clipped */
+  .filters input[type='date'],
+  .filters input[type='month'],
+  .filters .filter-date-field {
+    grid-column: 1 / -1;
+  }
+
+  /* A button that follows a full-width group (e.g. tabs) also takes the full row */
+  .unified-lower-right > div + :last-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Pop-up buttons keep their label on one line */
+  .modal-actions button {
+    white-space: nowrap;
+    font-size: 0.85rem !important;
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
+  }
+
+  /* Salary pop-up step tabs: one scrollable row */
+  .salary-form-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-right: 1.5rem;
+    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+  }
+
+  .salary-form-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .salary-form-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
+  }
+
+  /* Financial Statements tabs: fade on the right shows the row scrolls */
+  .fs-tabs {
+    -webkit-mask-image: linear-gradient(to right, #000 82%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 82%, transparent 100%);
+    padding-right: 2rem;
+  }
+
+  /* Dashboard "Net Profit" header: badge drops below the subtitle instead of colliding */
+  .dashboard .table-section > div:first-child {
+    flex-wrap: wrap !important;
+    gap: 0.5rem;
+  }
+}
+
+/* The toast container is an empty wrapper (its toasts are fixed-position). On pages that
+   space children with `gap`, it used to add an extra gap above the page header. */
+.Toastify {
+  position: absolute;
+}
+
+/* Pages that space their sections with `gap`: don't add the header's own margin on top */
+.fs-page > .unified-header-banner,
+.tax-reports-container > .unified-header-banner {
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 769px) {
+  .unified-company-heading {
+    flex-wrap: nowrap;
+  }
+
+  .unified-company-badge {
+    flex-shrink: 0;
   }
 }

@@ -16,7 +16,7 @@
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.95);
   background:
-    url('./assets/illustrations/wm-ledger.svg') no-repeat right -1.5rem bottom 4.5rem / 300px auto,
+    url('./assets/illustrations/wm-ledger.svg') no-repeat right 1.6rem bottom 5rem / 250px auto,
     radial-gradient(circle at 0% 100%, rgba(236, 252, 203, 0.55) 0%, transparent 35%),
     radial-gradient(circle at 100% 30%, rgba(204, 251, 241, 0.45) 0%, transparent 30%),
     url('./assets/illustrations/pattern-dots.svg') repeat 0 0 / 26px 26px,
@@ -230,7 +230,7 @@
 .expense-manager .modal,
 .expense-manager .modal-box {
   background:
-    url('./assets/illustrations/wm-expense.svg') no-repeat right -1rem bottom 4.5rem / 300px auto,
+    url('./assets/illustrations/wm-expense.svg') no-repeat right 1.6rem bottom 5rem / 250px auto,
     radial-gradient(circle at 0% 100%, rgba(254, 243, 199, 0.6) 0%, transparent 35%),
     radial-gradient(circle at 100% 35%, rgba(255, 237, 213, 0.5) 0%, transparent 30%),
     url('./assets/illustrations/pattern-dots.svg') repeat 0 0 / 26px 26px,

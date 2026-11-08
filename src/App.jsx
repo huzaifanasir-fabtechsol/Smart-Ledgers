@@ -282,7 +282,7 @@ function AppContent() {
           <BrandLogo
             collapsed={!sidebarOpen}
             title={companyName || t.appTitle}
-            subtitle={companyName ? t.appTitle : 'Auto Trade Accounting'}
+            subtitle={companyName || 'Auto Trade Accounting'}
           />
           <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginLeft: sidebarOpen ? '0.5rem' : '0' }}>
             {sidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
